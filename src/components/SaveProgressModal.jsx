@@ -11,6 +11,7 @@ const LEGACY_TO_NEW = {
   'allen-ace-learning-experience': EXPERIENCE_KEY,
   'allen-ace-loop-review': REVIEW_KEY,
 };
+const SIGNUP_TIMEOUT_MS = 15000;
 
 function syncProgressToServer() {
   const keys = [MASTERY_KEY, EXPERIENCE_KEY, REVIEW_KEY];
@@ -76,22 +77,28 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
     }
     setBusy(true);
     try {
-      const result = await studentSignup({
+      let timeoutId;
+      const timeoutPromise = new Promise((resolve) => {
+        timeoutId = setTimeout(() => resolve({ success: false, error: 'Signup is taking too long. Please check your connection and try again.' }), SIGNUP_TIMEOUT_MS);
+      });
+      const signupPromise = studentSignup({
         email: trimmedEmail,
         password,
         displayName: displayName.trim() || trimmedEmail.split('@')[0],
       });
+      const result = await Promise.race([signupPromise, timeoutPromise]);
+      if (timeoutId) clearTimeout(timeoutId);
       if (!result.success) {
         setError(result.error || 'Something went wrong. Please try again.');
-        setBusy(false);
         return;
       }
       syncProgressToServer();
       setSuccess(true);
     } catch (err) {
       setError(err.message || 'Network error. Please try again.');
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
   }, [email, password, displayName]);
 
   return (

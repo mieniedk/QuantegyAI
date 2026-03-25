@@ -31,6 +31,8 @@ const PLANS = [
     highlight: false,
   },
 ];
+const AUTH_TIMEOUT_MS = 15000;
+const ACCESS_TIMEOUT_MS = 10000;
 
 const INPUT_STYLE = {
   width: '100%',
@@ -55,6 +57,15 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
 
   const examLabel = EXAM_LABELS[examId] || examId;
   const isMobile = viewportWidth < MOBILE_BP;
+  const withTimeout = useCallback((promise, timeoutMs, timeoutError) => {
+    let timerId;
+    const timeoutPromise = new Promise((resolve) => {
+      timerId = setTimeout(() => resolve({ success: false, error: timeoutError }), timeoutMs);
+    });
+    return Promise.race([promise, timeoutPromise]).finally(() => {
+      if (timerId) clearTimeout(timerId);
+    });
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -84,10 +95,24 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
       const args = mode === 'signup'
         ? { email: email.trim(), password, displayName: displayName.trim() || email.split('@')[0] }
         : { email: email.trim(), password };
-      const result = await fn(args);
+      const result = await withTimeout(
+        fn(args),
+        AUTH_TIMEOUT_MS,
+        'This request is taking too long. Please check your connection and try again.',
+      );
       if (!result.success) { setError(result.error || 'Something went wrong.'); setBusy(false); return; }
 
-      const access = await hasExamAccess(examId);
+      const accessResult = await withTimeout(
+        hasExamAccess(examId).then((ok) => ({ success: true, ok })),
+        ACCESS_TIMEOUT_MS,
+        'We created your account, but access check timed out. Please continue to pricing.',
+      );
+      if (!accessResult.success) {
+        setMode('pricing');
+        setError(accessResult.error || 'Access check timed out. Please continue to pricing.');
+        return;
+      }
+      const access = !!accessResult.ok;
       if (access) {
         onUnlocked?.();
       } else {
@@ -95,9 +120,10 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
       }
     } catch (err) {
       setError(err.message || 'Network error.');
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
-  }, [mode, email, password, displayName, examId, onUnlocked]);
+  }, [mode, email, password, displayName, examId, onUnlocked, withTimeout]);
 
   const handleCheckout = useCallback(async (planId) => {
     setBusy(true);
