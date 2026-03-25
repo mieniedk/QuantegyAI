@@ -2,11 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { hasProAccess, getStatusLabel } from '../utils/subscription';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useTheme } from '../contexts/ThemeContext';
 import LanguageSelector from './LanguageSelector';
 import { autoDropoutScan, clearAuth, getUnreadCount } from '../utils/storage';
 import NotificationBell from './NotificationBell';
-import HelpMenu from './HelpMenu';
 
 /**
  * Shared layout wrapper for all teacher pages.
@@ -16,7 +14,6 @@ const TeacherLayout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { isDark, toggleTheme } = useTheme();
   const username = localStorage.getItem('quantegy-teacher-user');
   const userRole = localStorage.getItem('quantegy-teacher-role');
 
@@ -122,19 +119,6 @@ const TeacherLayout = ({ children }) => {
           </button>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 13 }}>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: 18, padding: '4px 8px', borderRadius: 6,
-              color: 'var(--color-text-muted)',
-            }}
-          >
-            {isDark ? '☀️' : '🌙'}
-          </button>
-          <HelpMenu showApiDocs />
           <NotificationBell />
           <LanguageSelector compact />
           <span style={{

@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageSelector from './LanguageSelector';
 import NotificationBell from './NotificationBell';
-import HelpMenu from './HelpMenu';
 import { getAuthToken } from '../utils/storage';
 
 const NAV_ITEMS = [
@@ -22,7 +20,6 @@ const NAV_ITEMS = [
  */
 export default function StudentLayout({ children }) {
   const location = useLocation();
-  const { isDark, toggleTheme } = useTheme();
   const { t } = useLanguage();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
@@ -168,19 +165,6 @@ export default function StudentLayout({ children }) {
           </nav>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: 18, padding: '4px 8px', borderRadius: 6,
-              color: 'var(--color-text-muted)',
-            }}
-          >
-            {isDark ? '☀️' : '🌙'}
-          </button>
-          <HelpMenu />
           {getAuthToken() && <NotificationBell />}
           <LanguageSelector compact />
         </div>
