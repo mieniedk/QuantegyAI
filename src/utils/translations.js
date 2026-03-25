@@ -4,9 +4,18 @@
  */
 
 const LANG_KEY = 'allen-ace-lang';
+const DEFAULT_LANG = 'en';
 
-export const getStoredLang = () => localStorage.getItem(LANG_KEY) || 'en';
-export const setStoredLang = (lang) => { localStorage.setItem(LANG_KEY, lang); };
+function normalizeLang(raw) {
+  const value = String(raw || '').trim();
+  if (!value) return DEFAULT_LANG;
+  // Treat common English locale tags as the base English translation set.
+  if (/^en([-_].+)?$/i.test(value)) return 'en';
+  return value;
+}
+
+export const getStoredLang = () => normalizeLang(localStorage.getItem(LANG_KEY) || DEFAULT_LANG);
+export const setStoredLang = (lang) => { localStorage.setItem(LANG_KEY, normalizeLang(lang)); };
 
 /**
  * Language metadata — used by the language selector component.
@@ -14,7 +23,7 @@ export const setStoredLang = (lang) => { localStorage.setItem(LANG_KEY, lang); }
  */
 export const LANGUAGES = [
   // ═══ Global / Core ═══
-  { code: 'en', name: 'English', native: 'English', flag: '🇬🇧', region: 'Global', dir: 'ltr' },
+  { code: 'en', name: 'English (US)', native: 'English (US)', flag: '🇺🇸', region: 'Global', dir: 'ltr' },
   { code: 'es', name: 'Spanish', native: 'Español', flag: '🇪🇸', region: 'Global', dir: 'ltr' },
   { code: 'fr', name: 'French', native: 'Français', flag: '🇫🇷', region: 'Global', dir: 'ltr' },
   { code: 'pt', name: 'Portuguese', native: 'Português', flag: '🇧🇷', region: 'Global', dir: 'ltr' },
