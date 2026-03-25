@@ -223,6 +223,7 @@ export default function CompetencyActivity({
   subject,
   examId,
   comp,
+  currentStd = '',
   mode,
   onComplete = () => {},
   continueLabel = 'Continue',
@@ -264,7 +265,23 @@ export default function CompetencyActivity({
     }
   }
   if (subject === 'math' && comp === 'comp001') {
-    return <NumberExplorer activityIndex={activityIndex} onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+    const numberModeSet = currentStd === 'c001'
+      ? ['number-line', 'prime-blast', 'factor-lab']
+      : currentStd === 'c002'
+        ? ['complex-plane']
+        : currentStd === 'c003'
+          ? ['prime-blast', 'factor-lab', 'number-line']
+          : null;
+    return (
+      <NumberExplorer
+        activityIndex={activityIndex}
+        modeSet={numberModeSet}
+        onComplete={onComplete}
+        continueLabel={continueLabel}
+        badgeLabel={badgeLabel}
+        embedded={embedded}
+      />
+    );
   }
   if (subject === 'math' && comp === 'comp002' && !mode) {
     return <AlgebraExplorer activityIndex={activityIndex} onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;

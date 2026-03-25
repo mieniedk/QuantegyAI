@@ -810,12 +810,13 @@ function GamePhase({ gameLabel, scopeBadge, description, gameUrl, gameName, onSk
 }
 
 
-function ActivityPhase({ subject, examId, comp, mode, activityIndex, onComplete, badgeLabel, stepIndex, totalSteps, phaseKey, seed = 0 }) {
+function ActivityPhase({ subject, examId, comp, currentStd, mode, activityIndex, onComplete, badgeLabel, stepIndex, totalSteps, phaseKey, seed = 0 }) {
   return (
     <PhaseCard stepIndex={stepIndex} totalSteps={totalSteps} phaseKey={phaseKey}>
       <PhaseHeader badgeColor={COLOR.purple} badgeLabel={badgeLabel} />
       <CompetencyActivity
         subject={subject} examId={examId} comp={comp}
+        currentStd={currentStd}
         mode={mode}
         activityIndex={activityIndex + seed}
         onComplete={onComplete}
@@ -3338,7 +3339,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-1' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} mode={getActivityMode(0)} activityIndex={0} seed={revisitSeed} badgeLabel={getTileLabel('activity-1', 'Activity 1')} onComplete={() => goToPhase('check-quiz-3')} />}
+        {phase === 'activity-1' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(0)} activityIndex={0} seed={revisitSeed} badgeLabel={getTileLabel('activity-1', 'Activity 1')} onComplete={() => goToPhase('check-quiz-3')} />}
 
         {phase === 'check-quiz-2' && (
           <QuizBlock
@@ -3358,7 +3359,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-2' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} mode={getActivityMode(1)} activityIndex={1} seed={revisitSeed} badgeLabel={getTileLabel('activity-2', 'Activity 2')} onComplete={() => goToPhase('check-quiz-6')} />}
+        {phase === 'activity-2' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(1)} activityIndex={1} seed={revisitSeed} badgeLabel={getTileLabel('activity-2', 'Activity 2')} onComplete={() => goToPhase('check-quiz-6')} />}
 
         {phase === 'game2' && (
           <GamePhase
@@ -3372,7 +3373,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-3' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} mode={getActivityMode(2)} activityIndex={2} seed={revisitSeed} badgeLabel={getTileLabel('activity-3', 'Activity 3')} onComplete={() => goToPhase('game4')} />}
+        {phase === 'activity-3' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(2)} activityIndex={2} seed={revisitSeed} badgeLabel={getTileLabel('activity-3', 'Activity 3')} onComplete={() => goToPhase('game4')} />}
 
         {phase === 'check-quiz-3' && (
           <QuizBlock
@@ -3392,7 +3393,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-4' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} mode={getActivityMode(3)} activityIndex={3} seed={revisitSeed} badgeLabel={getTileLabel('activity-4', 'Activity 4')} onComplete={() => goToPhase('concept-refresh')} />}
+        {phase === 'activity-4' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(3)} activityIndex={3} seed={revisitSeed} badgeLabel={getTileLabel('activity-4', 'Activity 4')} onComplete={() => goToPhase('concept-refresh')} />}
 
         {phase === 'concept-refresh' && (
           <PhaseCard stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase}>
@@ -3412,7 +3413,7 @@ export default function PracticeLoop() {
           </PhaseCard>
         )}
 
-        {phase === 'activity-5' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} mode={getActivityMode(4)} activityIndex={4} seed={revisitSeed} badgeLabel={getTileLabel('activity-5', 'Activity 5')} onComplete={() => goToPhase('check-quiz-4')} />}
+        {phase === 'activity-5' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(4)} activityIndex={4} seed={revisitSeed} badgeLabel={getTileLabel('activity-5', 'Activity 5')} onComplete={() => goToPhase('check-quiz-4')} />}
 
         {phase === 'check-quiz-4' && (
           <QuizBlock
@@ -3432,7 +3433,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-6' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} mode={getActivityMode(5)} activityIndex={5} seed={revisitSeed} badgeLabel={getTileLabel('activity-6', 'Activity 6')} onComplete={() => goToPhase('game3')} />}
+        {phase === 'activity-6' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(5)} activityIndex={5} seed={revisitSeed} badgeLabel={getTileLabel('activity-6', 'Activity 6')} onComplete={() => goToPhase('game3')} />}
 
         {phase === 'game3' && (
           <GamePhase
@@ -3464,7 +3465,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-7' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} mode={getActivityMode(6)} activityIndex={6} seed={revisitSeed} badgeLabel={getTileLabel('activity-7', 'Activity 7')} onComplete={() => goToPhase('check-quiz-5')} />}
+        {phase === 'activity-7' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(6)} activityIndex={6} seed={revisitSeed} badgeLabel={getTileLabel('activity-7', 'Activity 7')} onComplete={() => goToPhase('check-quiz-5')} />}
 
         {phase === 'check-quiz-5' && (
           <QuizBlock
@@ -3484,7 +3485,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-8' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} mode={getActivityMode(7, 'intercept')} activityIndex={7} seed={revisitSeed} badgeLabel={getTileLabel('activity-8', 'Activity 8')} onComplete={() => goToPhase('video-2')} />}
+        {phase === 'activity-8' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(7, 'intercept')} activityIndex={7} seed={revisitSeed} badgeLabel={getTileLabel('activity-8', 'Activity 8')} onComplete={() => goToPhase('video-2')} />}
 
         {phase === 'video-2' && (
           <PhaseCard stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase}>
@@ -3541,7 +3542,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-9' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} mode={getActivityMode(8, 'y-intercept-read')} activityIndex={8} seed={revisitSeed} badgeLabel={getTileLabel('activity-9', 'Activity 9')} onComplete={() => goToPhase('game4')} />}
+        {phase === 'activity-9' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(8, 'y-intercept-read')} activityIndex={8} seed={revisitSeed} badgeLabel={getTileLabel('activity-9', 'Activity 9')} onComplete={() => goToPhase('game4')} />}
 
         {phase === 'game4' && (
           <GamePhase
@@ -3555,7 +3556,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-10' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} mode={getActivityMode(9)} activityIndex={9} seed={revisitSeed} badgeLabel={getTileLabel('activity-10', 'Activity 10')} onComplete={() => goToPhase('check-quiz-6')} />}
+        {phase === 'activity-10' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(9)} activityIndex={9} seed={revisitSeed} badgeLabel={getTileLabel('activity-10', 'Activity 10')} onComplete={() => goToPhase('check-quiz-6')} />}
 
         {phase === 'check-quiz-6' && (
           <QuizBlock
@@ -3575,7 +3576,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-11' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} mode={getActivityMode(10)} activityIndex={10} seed={revisitSeed} badgeLabel={getTileLabel('activity-11', 'Activity 11')} onComplete={() => goToPhase('mastery-check')} />}
+        {phase === 'activity-11' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(10)} activityIndex={10} seed={revisitSeed} badgeLabel={getTileLabel('activity-11', 'Activity 11')} onComplete={() => goToPhase('mastery-check')} />}
 
         {phase === 'readiness-quiz' && (
           <QuizBlock

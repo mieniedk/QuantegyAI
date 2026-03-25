@@ -411,8 +411,8 @@ const Q_POOLS = {
   'comp001': [
     { expr: '|−12|', ans: 12 }, { expr: '√(49)', ans: 7 }, { expr: '2⁵', ans: 32 },
     { expr: '3³', ans: 27 }, { expr: '(−3)(−5)', ans: 15 }, { expr: '√(169)', ans: 13 },
-    { expr: '|3+4i|', ans: 5 }, { expr: 'GCF(12,18)', ans: 6 }, { expr: 'LCM(4,6)', ans: 12 },
-    { expr: 'i² = ?', ans: -1 }, { expr: 'C(5,2)', ans: 10 }, { expr: '5! ÷ 4!', ans: 5 },
+    { expr: '|−9|', ans: 9 }, { expr: 'GCF(12,18)', ans: 6 }, { expr: 'LCM(4,6)', ans: 12 },
+    { expr: '17 mod 5', ans: 2 }, { expr: 'C(5,2)', ans: 10 }, { expr: '5! ÷ 4!', ans: 5 },
   ],
   'comp002': [
     { expr: 'f(x)=2x+1, f(3)', ans: 7 }, { expr: 'Slope: (2,5)→(4,11)', ans: 3 },

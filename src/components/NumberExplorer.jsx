@@ -715,8 +715,9 @@ function FactorLab({ onComplete, continueLabel, badgeLabel, embedded }) {
    ═══════════════════════════════════════════════════════════════════════════ */
 const MODES = ['number-line', 'complex-plane', 'prime-blast', 'factor-lab'];
 
-export default function NumberExplorer({ activityIndex = 0, onComplete, continueLabel = 'Continue', badgeLabel = 'Interactive activity', embedded = false }) {
-  const mode = MODES[activityIndex % MODES.length];
+export default function NumberExplorer({ activityIndex = 0, modeSet = null, onComplete, continueLabel = 'Continue', badgeLabel = 'Interactive activity', embedded = false }) {
+  const activeModes = Array.isArray(modeSet) && modeSet.length > 0 ? modeSet : MODES;
+  const mode = activeModes[activityIndex % activeModes.length];
   if (mode === 'number-line') return <NumberLinePlot onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'complex-plane') return <ComplexPlaneExplorer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'prime-blast') return <PrimeNumberBlast onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
