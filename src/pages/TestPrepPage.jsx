@@ -106,6 +106,7 @@ export default function TestPrepPage({ config }) {
     getQuestionsForExam: configGetQuestions,
     getDomainsForExam: configGetDomains,
     getTestConfig: configGetTestConfig,
+    getStandardForQuestion: configGetStandardForQuestion,
     hasFullExamAccess,
     examLabelsForHistory,
     backLink,
@@ -305,9 +306,31 @@ export default function TestPrepPage({ config }) {
     return shuffle(questions).slice(0, Math.min(count, questions.length));
   }
 
-  function buildCompetencyDrill(compId, count, examId) {
+  function resolveDrillScope(compId, stdId, examId) {
+    const domains = configGetDomains(examId) || [];
+    let scopedCompId = compId;
+    let scopedStdId = stdId || null;
+
+    const bank = configGetQuestions(examId) || [];
+    const hasCompQuestions = bank.some((q) => q.comp === scopedCompId);
+    if (!hasCompQuestions) {
+      const parentDomain = domains.find((d) => (d.standards || []).some((s) => s.id === scopedCompId));
+      if (parentDomain) {
+        scopedStdId = scopedStdId || scopedCompId;
+        scopedCompId = parentDomain.id;
+      }
+    }
+    return { scopedCompId, scopedStdId };
+  }
+
+  function buildCompetencyDrill(compId, count, examId, stdId = null) {
+    const { scopedCompId, scopedStdId } = resolveDrillScope(compId, stdId, examId);
     const bank = configGetQuestions(examId);
-    const pool = bank.filter((q) => q.comp === compId);
+    let pool = bank.filter((q) => q.comp === scopedCompId);
+    if (scopedStdId && typeof configGetStandardForQuestion === 'function') {
+      const byStd = pool.filter((q) => configGetStandardForQuestion(q.id) === scopedStdId);
+      if (byStd.length > 0) pool = byStd;
+    }
     return shuffle(pool).slice(0, Math.min(count, pool.length));
   }
 
@@ -319,6 +342,7 @@ export default function TestPrepPage({ config }) {
   const [answers, setAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [drillComp, setDrillComp] = useState(null);
+  const [drillStd, setDrillStd] = useState(null);
   const [startTime, setStartTime] = useState(null);
   const [elapsed, setElapsed] = useState(0);
   const [showExplanation, setShowExplanation] = useState(null);
@@ -412,13 +436,15 @@ export default function TestPrepPage({ config }) {
     setMode('test');
   }, [examId]);
 
-  const startDrill = useCallback((compId) => {
-    const qs = buildCompetencyDrill(compId, 10, examId);
+  const startDrill = useCallback((compId, stdId = null) => {
+    const { scopedCompId, scopedStdId } = resolveDrillScope(compId, stdId, examId);
+    const qs = buildCompetencyDrill(scopedCompId, 10, examId, scopedStdId);
     setQuestions(qs);
     setAnswers({});
     setCurrentIdx(0);
     setSubmitted(false);
-    setDrillComp(compId);
+    setDrillComp(scopedCompId);
+    setDrillStd(scopedStdId);
     setFlagged(new Set());
     setStartTime(Date.now());
     setElapsed(0);
@@ -430,10 +456,11 @@ export default function TestPrepPage({ config }) {
     if (autoStartedRef.current) return;
     const params = new URLSearchParams(location.search);
     const compFromUrl = params.get('comp');
+    const stdFromUrl = params.get('currentStd');
     const examFromUrl = params.get('exam');
     if (compFromUrl && mode === 'home' && (!examFromUrl || examId === examFromUrl)) {
       autoStartedRef.current = true;
-      setTimeout(() => startDrill(compFromUrl), 0);
+      setTimeout(() => startDrill(compFromUrl, stdFromUrl), 0);
     }
   }, [location.search, mode, startDrill, examId]);
 
@@ -445,6 +472,7 @@ export default function TestPrepPage({ config }) {
     setCurrentIdx(0);
     setSubmitted(false);
     setDrillComp(null);
+    setDrillStd(null);
     setFlagged(new Set());
     setStartTime(Date.now());
     setElapsed(0);
@@ -467,6 +495,7 @@ export default function TestPrepPage({ config }) {
     setCurrentIdx(0);
     setSubmitted(false);
     setDrillComp(compId);
+    setDrillStd(null);
     setFlagged(new Set());
     setStartTime(Date.now());
     setElapsed(0);
@@ -991,7 +1020,7 @@ export default function TestPrepPage({ config }) {
                                 <span style={{ fontSize: 11, fontWeight: 800, color: '#6366f1', minWidth: 26 }}>{compNum}</span>
                                 <span style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#475569' }}>{shortName}</span>
                                 <div style={{ display: 'flex', gap: 6 }}>
-                                  <button type="button" onClick={() => startDrill(dom.id)} style={{ ...standardActionPill, color: '#7c3aed', background: '#ede9fe', border: '1px solid #c4b5fd' }}>
+                                  <button type="button" onClick={() => startDrill(dom.id, std.id)} style={{ ...standardActionPill, color: '#7c3aed', background: '#ede9fe', border: '1px solid #c4b5fd' }}>
                                     Drill
                                   </button>
                                   <Link to={buildLoopUrl(dom.id, std.id)} style={{ ...standardActionPill, color: '#2563eb', background: '#eff6ff', border: '1px solid #93c5fd' }}>
@@ -1262,11 +1291,14 @@ export default function TestPrepPage({ config }) {
     const answered = answers[q.id] !== undefined;
     const totalAnswered = Object.keys(answers).length;
     const resultDomains = configGetDomains(examId);
+    const drillStdName = drillStd
+      ? (resultDomains || []).flatMap((d) => d.standards || []).find((s) => s.id === drillStd)?.name
+      : null;
     const compName =
       mode === 'adaptive'
         ? 'Adaptive Practice'
         : mode === 'drill'
-          ? resultDomains.find((c) => c.id === drillComp)?.name
+          ? (drillStdName || resultDomains.find((c) => c.id === drillComp)?.name)
           : testRunMode === 'quick'
             ? 'Quick 5-min quiz'
             : testRunMode === 'short'
@@ -1563,7 +1595,7 @@ export default function TestPrepPage({ config }) {
                         : startFullTest
                     : mode === 'adaptive'
                       ? startAdaptivePractice
-                      : () => startDrill(drillComp)
+                      : () => startDrill(drillComp, drillStd)
                 }
                 style={actionBtn('#7c3aed')}
               >

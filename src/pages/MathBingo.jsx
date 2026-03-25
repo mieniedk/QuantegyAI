@@ -460,27 +460,45 @@ const ALL_TEKS = Object.keys(Q_POOLS);
 
 const STD_TO_COMP = {
   c001: 'comp001', c002: 'comp001', c003: 'comp001',
-  c004: 'comp002', c005: 'comp002', c006: 'comp002', c007: 'comp002', c008: 'comp002',
-  c009: 'comp003', c010: 'comp003', c011: 'comp003', c012: 'comp003', c013: 'comp003',
-  c014: 'comp004', c015: 'comp004', c016: 'comp004', c017: 'comp004',
+  c004: 'comp002', c005: 'comp002', c006: 'comp002', c007: 'comp002', c008: 'comp002', c009: 'comp002', c010: 'comp002',
+  c011: 'comp003', c012: 'comp003', c013: 'comp003', c014: 'comp003',
+  c015: 'comp004', c016: 'comp004', c017: 'comp004',
   c018: 'comp005', c019: 'comp005',
   c020: 'comp006', c021: 'comp006',
 };
+
+function inferCompFromStandard(standardId = '') {
+  const m = String(standardId).match(/^c(\d{3})$/i);
+  if (!m) return '';
+  const n = Number(m[1]);
+  if (n >= 1 && n <= 3) return 'comp001';
+  if (n >= 4 && n <= 10) return 'comp002';
+  if (n >= 11 && n <= 14) return 'comp003';
+  if (n >= 15 && n <= 17) return 'comp004';
+  if (n >= 18 && n <= 19) return 'comp005';
+  if (n >= 20 && n <= 21) return 'comp006';
+  return '';
+}
 
 function buildGame(filterTeks, options = {}) {
   const { compId = '', currentStd = '', strictScope = false } = options;
   const teksIds = filterTeks
     ? filterTeks.split(',').map(t => t.trim()).filter(Boolean)
     : [];
-  const scopeKeys = [...new Set([
-    currentStd,
-    ...teksIds,
+  const directStdKeys = [...new Set([currentStd, ...teksIds].filter((id) => id && /^c\d{3}$/i.test(id) && Q_POOLS[id]))];
+  const inferredCompKeys = [...new Set([
     compId,
     STD_TO_COMP[currentStd],
+    inferCompFromStandard(currentStd),
     ...teksIds.map((id) => STD_TO_COMP[id]).filter(Boolean),
-  ].filter(Boolean))];
+    ...teksIds.map((id) => inferCompFromStandard(id)).filter(Boolean),
+  ].filter((id) => id && Q_POOLS[id]))];
+  const scopeKeys = strictScope
+    // In loop mode, prefer exact competency standard pool (e.g., c002) before broad domain pools.
+    ? (directStdKeys.length > 0 ? directStdKeys : inferredCompKeys)
+    : [...new Set([...directStdKeys, ...inferredCompKeys])];
 
-  // 1. Build the pool — use only matching TEKS when available
+  // 1. Build the pool — use only matching scope keys when available.
   let matchedPool = [];
   const keysToUse = scopeKeys.length > 0 ? scopeKeys : teksIds;
   if (keysToUse.length > 0) {
@@ -491,11 +509,24 @@ function buildGame(filterTeks, options = {}) {
     }
   }
 
+  // Strict loop mode fallback chain (keeps competency alignment where possible).
+  if (strictScope && matchedPool.length === 0) {
+    const fallbackKeys = [...new Set([
+      ...inferredCompKeys,
+    ].filter(Boolean))];
+    for (const id of fallbackKeys) {
+      if (Q_POOLS[id]) Q_POOLS[id].forEach((q) => matchedPool.push({ ...q, teks: id }));
+    }
+  }
+
   let fullPool;
   if (strictScope && matchedPool.length === 0) {
-    return { card: [], deck: [] };
-  }
-  if (matchedPool.length >= 24) {
+    // Final fail-safe: keep the game playable instead of hard-failing.
+    const broadPool = [];
+    ALL_TEKS.forEach((t) => Q_POOLS[t].forEach((q) => broadPool.push({ ...q, teks: t })));
+    broadPool.sort(() => Math.random() - 0.5);
+    fullPool = broadPool;
+  } else if (matchedPool.length >= 24) {
     fullPool = matchedPool.sort(() => Math.random() - 0.5);
   } else if (strictScope && matchedPool.length > 0) {
     // Strict loop mode: never pull from unrelated competencies.
@@ -510,7 +541,8 @@ function buildGame(filterTeks, options = {}) {
       ...matchedPool.sort(() => Math.random() - 0.5),
       ...rest.sort(() => Math.random() - 0.5),
     ];
-  } else {
+  }
+  else {
     fullPool = [];
     ALL_TEKS.forEach(t => {
       Q_POOLS[t].forEach(q => fullPool.push({ ...q, teks: t }));
@@ -728,7 +760,7 @@ const MathBingo = () => {
   };
 
   const resetGame = () => {
-    const g = buildGame(teksFilter);
+    const g = buildGame(teksFilter, { compId: compFilter, currentStd, strictScope });
     setDeck(g.deck);
     setCard(g.card);
     setMarked(new Set([12]));

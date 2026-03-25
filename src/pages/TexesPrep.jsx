@@ -1,6 +1,6 @@
 import React from 'react';
 import TestPrepPage from './TestPrepPage';
-import { getQuestionsForExam, getDomainsForExam, TEXES_TEST_CONFIG } from '../data/texes-questions';
+import { getQuestionsForExam, getDomainsForExam, getStandardForQuestion, TEXES_TEST_CONFIG } from '../data/texes-questions';
 import { hasPaidProAccess } from '../utils/subscription';
 
 const EXAM_OPTIONS = [
@@ -59,6 +59,7 @@ export default function TexesPrep() {
     defaultExamId: 'math712',
     getQuestionsForExam,
     getDomainsForExam,
+    getStandardForQuestion,
     getTestConfig,
     hasFullExamAccess,
     examLabelsForHistory,

@@ -10,7 +10,7 @@
 
 export const TEXES_DOMAINS = [
   // ═══ Domain I — Number Concepts (approx. 14%) ═══
-  { id: 'comp001', name: 'Number Concepts', desc: 'Real & complex numbers, number theory.', weight: 0.14,
+  { id: 'comp001', name: 'Number Concepts', desc: 'Real numbers and number theory foundations.', weight: 0.14,
     games: ['math-match', 'math-sprint', 'q-blocks', 'number-line-ninja', 'qbot-shop', 'math-bingo', 'math-memory', 'teks-crush'],
     video: 'https://www.youtube.com/embed/VEY08fMYmEU',
     videos: ['https://www.youtube.com/embed/VEY08fMYmEU', 'https://www.youtube.com/embed/vRJqPo_zcnQ', 'https://www.youtube.com/embed/6OgDTCG1QCU'],

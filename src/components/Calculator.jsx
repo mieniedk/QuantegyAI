@@ -170,6 +170,7 @@ export default function Calculator({ mode = 'basic', open, onClose }) {
   const [graphTab, setGraphTab] = useState(false);
   const [graphEq, setGraphEq] = useState('');
   const panelRef = useRef(null);
+  const displayInputRef = useRef(null);
   const graphInputRef = useRef(null);
   const dragState = useRef(null);
   const [pos, setPos] = useState({ x: -1, y: -1 });
@@ -183,14 +184,11 @@ export default function Calculator({ mode = 'basic', open, onClose }) {
 
   useEffect(() => {
     if (!open) return;
-    // Ensure keyboard shortcuts work immediately after opening.
-    requestAnimationFrame(() => panelRef.current?.focus());
-  }, [open]);
-
-  useEffect(() => {
-    if (!open || !graphTab) return;
-    // In graph mode, focus equation input so number/operator keys type there.
-    requestAnimationFrame(() => graphInputRef.current?.focus());
+    // Keep typing focus on the active input surface.
+    requestAnimationFrame(() => {
+      if (graphTab) graphInputRef.current?.focus();
+      else displayInputRef.current?.focus();
+    });
   }, [open, graphTab]);
 
   const append = useCallback((v) => {
@@ -204,6 +202,47 @@ export default function Calculator({ mode = 'basic', open, onClose }) {
 
   const clear = useCallback(() => { setDisplay('0'); setHasResult(false); }, []);
   const backspace = useCallback(() => setDisplay((d) => d.length > 1 ? d.slice(0, -1) : '0'), []);
+  const insertGraphAtCaret = useCallback((token) => {
+    const input = graphInputRef.current;
+    if (!input) {
+      setGraphEq((v) => `${v}${token}`);
+      return;
+    }
+    const start = input.selectionStart ?? graphEq.length;
+    const end = input.selectionEnd ?? graphEq.length;
+    const next = `${graphEq.slice(0, start)}${token}${graphEq.slice(end)}`;
+    setGraphEq(next);
+    requestAnimationFrame(() => {
+      input.focus();
+      const caret = start + token.length;
+      input.setSelectionRange(caret, caret);
+    });
+  }, [graphEq]);
+  const backspaceGraph = useCallback(() => {
+    const input = graphInputRef.current;
+    if (!input) {
+      setGraphEq((v) => (v.length > 0 ? v.slice(0, -1) : v));
+      return;
+    }
+    const start = input.selectionStart ?? graphEq.length;
+    const end = input.selectionEnd ?? graphEq.length;
+    if (start !== end) {
+      const next = `${graphEq.slice(0, start)}${graphEq.slice(end)}`;
+      setGraphEq(next);
+      requestAnimationFrame(() => {
+        input.focus();
+        input.setSelectionRange(start, start);
+      });
+      return;
+    }
+    if (start <= 0) return;
+    const next = `${graphEq.slice(0, start - 1)}${graphEq.slice(end)}`;
+    setGraphEq(next);
+    requestAnimationFrame(() => {
+      input.focus();
+      input.setSelectionRange(start - 1, start - 1);
+    });
+  }, [graphEq]);
 
   const evaluate = useCallback(() => {
     const r = safeEval(display);
@@ -231,14 +270,18 @@ export default function Calculator({ mode = 'basic', open, onClose }) {
       return;
     }
 
-    // Graph tab has its own text input; avoid swallowing typed keys here.
-    if (graphTab) return;
+    if (graphTab) {
+      if (/[\d.+\-*/%^()]/.test(e.key)) { insertGraphAtCaret(e.key); e.preventDefault(); }
+      else if (e.key === 'Backspace' || e.key === 'Delete') { backspaceGraph(); e.preventDefault(); }
+      else if (e.key === 'Escape') { setGraphEq(''); }
+      return;
+    }
 
     if (/[\d.+\-*/%^()]/.test(e.key)) { append(e.key); e.preventDefault(); }
     else if (e.key === 'Enter' || e.key === '=') { evaluate(); e.preventDefault(); }
     else if (e.key === 'Backspace' || e.key === 'Delete') { backspace(); e.preventDefault(); }
     else if (e.key === 'Escape') { clear(); }
-  }, [append, evaluate, backspace, clear, graphTab]);
+  }, [append, evaluate, backspace, clear, graphTab, insertGraphAtCaret, backspaceGraph]);
 
   const onDragStart = useCallback((e) => {
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -344,21 +387,45 @@ export default function Calculator({ mode = 'basic', open, onClose }) {
         <input
           ref={graphInputRef}
           type="text"
+          inputMode="text"
+          autoCapitalize="off"
+          autoCorrect="off"
+          spellCheck={false}
           value={graphEq}
           onChange={(e) => setGraphEq(e.target.value)}
+          onKeyDown={(e) => e.stopPropagation()}
           placeholder="x^2 + 1"
           style={{ flex: 1, padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, fontFamily: 'monospace', outline: 'none' }}
         />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 5 }}>
-        <button type="button" style={{ ...FN_BTN, minHeight: 36, fontSize: 12 }} onClick={() => setGraphEq((v) => `${v}x`)}>x</button>
-        <button type="button" style={{ ...FN_BTN, minHeight: 36, fontSize: 12 }} onClick={() => setGraphEq((v) => `${v}^`)}>^</button>
-        <button type="button" style={{ ...FN_BTN, minHeight: 36, fontSize: 12 }} onClick={() => setGraphEq((v) => `${v}^2`)}>x²</button>
-        <button type="button" style={{ ...FN_BTN, minHeight: 36, fontSize: 12 }} onClick={() => setGraphEq((v) => `${v}(`)}>(</button>
-        <button type="button" style={{ ...FN_BTN, minHeight: 36, fontSize: 12 }} onClick={() => setGraphEq((v) => `${v})`)}>)</button>
-        <button type="button" style={{ ...FN_BTN, minHeight: 36, fontSize: 12 }} onClick={() => setGraphEq((v) => `${v}sqrt(`)}>√</button>
-        <button type="button" style={{ ...FN_BTN, minHeight: 36, fontSize: 12 }} onClick={() => setGraphEq((v) => `${v}π`)}>π</button>
-        <button type="button" style={{ ...ACT_BTN, minHeight: 36, fontSize: 12 }} onClick={() => setGraphEq((v) => (v.length > 0 ? v.slice(0, -1) : v))}>⌫</button>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 5 }}>
+        <button type="button" style={{ ...NUM_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret('7')}>7</button>
+        <button type="button" style={{ ...NUM_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret('8')}>8</button>
+        <button type="button" style={{ ...NUM_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret('9')}>9</button>
+        <button type="button" style={{ ...OP_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret('+')}>+</button>
+        <button type="button" style={{ ...OP_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret('-')}>−</button>
+        <button type="button" style={{ ...ACT_BTN, minHeight: 34, fontSize: 12 }} onClick={backspaceGraph}>⌫</button>
+
+        <button type="button" style={{ ...NUM_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret('4')}>4</button>
+        <button type="button" style={{ ...NUM_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret('5')}>5</button>
+        <button type="button" style={{ ...NUM_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret('6')}>6</button>
+        <button type="button" style={{ ...OP_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret('*')}>×</button>
+        <button type="button" style={{ ...OP_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret('/')}>÷</button>
+        <button type="button" style={{ ...NUM_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret('.')}>.</button>
+
+        <button type="button" style={{ ...NUM_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret('1')}>1</button>
+        <button type="button" style={{ ...NUM_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret('2')}>2</button>
+        <button type="button" style={{ ...NUM_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret('3')}>3</button>
+        <button type="button" style={{ ...NUM_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret('0')}>0</button>
+        <button type="button" style={{ ...ACT_BTN, minHeight: 34, fontSize: 12 }} onClick={() => setGraphEq('')}>C</button>
+        <button type="button" style={{ ...FN_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret('π')}>π</button>
+
+        <button type="button" style={{ ...FN_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret('x')}>x</button>
+        <button type="button" style={{ ...FN_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret('^')}>^</button>
+        <button type="button" style={{ ...FN_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret('^2')}>x²</button>
+        <button type="button" style={{ ...FN_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret('(')}>(</button>
+        <button type="button" style={{ ...FN_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret(')')}>)</button>
+        <button type="button" style={{ ...FN_BTN, minHeight: 34, fontSize: 12 }} onClick={() => insertGraphAtCaret('sqrt(')}>√</button>
       </div>
       <GraphCanvas equation={graphEq} />
     </div>
@@ -403,15 +470,34 @@ export default function Calculator({ mode = 'basic', open, onClose }) {
         {!graphTab && (
           <>
             {/* display */}
-            <div style={{
+            <input
+              ref={displayInputRef}
+              type="text"
+              inputMode="decimal"
+              value={display}
+              onChange={(e) => {
+                const sanitized = String(e.target.value || '')
+                  .replace(/×/g, '*')
+                  .replace(/÷/g, '/')
+                  .replace(/[−–]/g, '-')
+                  .replace(/[ˆ˄]/g, '^')
+                  .replace(/[^0-9.+\-*/%^()πe]/gi, '');
+                setDisplay(sanitized || '0');
+                setHasResult(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === '=') { evaluate(); e.preventDefault(); }
+                else if (e.key === 'Escape') { clear(); }
+              }}
+              style={{
               background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10,
               padding: '12px 14px', fontSize: 22, fontWeight: 700, fontFamily: 'monospace',
               textAlign: 'right', color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis',
               whiteSpace: 'nowrap', minHeight: 48, display: 'flex', alignItems: 'center',
-              justifyContent: 'flex-end',
-            }}>
-              {display}
-            </div>
+              justifyContent: 'flex-end', outline: 'none', width: '100%',
+            }}
+              aria-label="Calculator display input"
+            />
             {sciPad}
             {numPad}
           </>
