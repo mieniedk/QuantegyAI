@@ -1,0 +1,270 @@
+{
+  "teachers": [
+    {
+      "username": "m1",
+      "password": "mienie",
+      "createdAt": "2026-02-19T14:37:45.852Z"
+    },
+    {
+      "username": "testteacher",
+      "password": "test123",
+      "createdAt": "2026-02-19T14:38:28.141Z"
+    }
+  ],
+  "students": [],
+  "profiles": {
+    "m1": {
+      "schoolName": "p",
+      "state": "TX",
+      "grades": [
+        "grade3"
+      ],
+      "onboarded": true,
+      "updatedAt": "2026-02-19T14:38:04.199Z"
+    }
+  },
+  "subscriptions": {
+    "m1": {
+      "plan": "trial",
+      "trialStart": "2026-02-19T14:37:45.853Z",
+      "trialEnd": "2026-03-05T14:40:38.375Z",
+      "paidUntil": null,
+      "stripeCustomerId": null
+    },
+    "testteacher": {
+      "plan": "trial",
+      "trialStart": "2026-02-19T14:38:28.141Z",
+      "trialEnd": "2026-02-26T14:38:28.141Z",
+      "paidUntil": null,
+      "stripeCustomerId": null
+    }
+  },
+  "classes": [
+    {
+      "id": "class-1771575955409",
+      "name": "g3",
+      "description": "",
+      "gradeLevel": "Grade 3",
+      "gradeId": "grade3",
+      "teksStandards": [
+        "3.2A"
+      ],
+      "games": [
+        "teks-crush"
+      ],
+      "joinCode": "KCYR",
+      "students": [
+        {
+          "id": "s0-1771575955409",
+          "name": "a"
+        },
+        {
+          "id": "s1-1771575955409",
+          "name": "b"
+        },
+        {
+          "id": "s2-1771575955409",
+          "name": "c"
+        }
+      ],
+      "teacher": "m1",
+      "createdAt": "2026-02-20T08:25:55.409Z"
+    }
+  ],
+  "assignments": [
+    {
+      "id": "a-1771575955409-0",
+      "name": "TEKS Crush",
+      "classId": "class-1771575955409",
+      "gameId": "teks-crush",
+      "gamePath": "/games/teks-crush",
+      "teks": [
+        "3.2A",
+        "3.3F",
+        "3.4A",
+        "3.4C",
+        "3.4D",
+        "3.5B",
+        "3.7B"
+      ],
+      "focusTeks": null,
+      "autoGrade": true
+    }
+  ],
+  "gameResults": [
+    {
+      "studentId": "s0-1771575955409",
+      "assignmentId": "unassigned-1771576029931",
+      "classId": "class-1771575955409",
+      "gameId": "warmup",
+      "teks": "3.2A",
+      "score": 0,
+      "correct": 0,
+      "total": 5,
+      "time": 33,
+      "grade": "grade3",
+      "id": "gr-1771576029931-5qhu",
+      "timestamp": "2026-02-20T08:27:09.931Z",
+      "_teacher": "m1"
+    },
+    {
+      "studentId": "s0-1771575955409",
+      "assignmentId": "unassigned-1771576072414",
+      "classId": "class-1771575955409",
+      "gameId": "math-sprint",
+      "teks": "3.2B",
+      "score": 33,
+      "correct": 1,
+      "total": 3,
+      "time": 5,
+      "grade": "grade3",
+      "id": "gr-1771576072414-zanc",
+      "timestamp": "2026-02-20T08:27:52.414Z",
+      "_teacher": "m1"
+    },
+    {
+      "0": "m",
+      "1": "a",
+      "2": "t",
+      "3": "h",
+      "4": "-",
+      "5": "b",
+      "6": "i",
+      "7": "n",
+      "8": "g",
+      "9": "o",
+      "id": "gr-1771782335752-s5ub",
+      "timestamp": "2026-02-22T17:45:35.752Z",
+      "_teacher": "m1"
+    },
+    {
+      "0": "m",
+      "1": "a",
+      "2": "t",
+      "3": "h",
+      "4": "-",
+      "5": "m",
+      "6": "i",
+      "7": "l",
+      "8": "l",
+      "9": "i",
+      "10": "o",
+      "11": "n",
+      "12": "a",
+      "13": "i",
+      "14": "r",
+      "15": "e",
+      "id": "gr-1771783813064-tvme",
+      "timestamp": "2026-02-22T18:10:13.064Z",
+      "_teacher": "m1"
+    },
+    {
+      "0": "m",
+      "1": "a",
+      "2": "t",
+      "3": "h",
+      "4": "-",
+      "5": "m",
+      "6": "i",
+      "7": "l",
+      "8": "l",
+      "9": "i",
+      "10": "o",
+      "11": "n",
+      "12": "a",
+      "13": "i",
+      "14": "r",
+      "15": "e",
+      "id": "gr-1771784521412-j81j",
+      "timestamp": "2026-02-22T18:22:01.412Z",
+      "_teacher": "m1"
+    },
+    {
+      "0": "m",
+      "1": "a",
+      "2": "t",
+      "3": "h",
+      "4": "-",
+      "5": "m",
+      "6": "i",
+      "7": "l",
+      "8": "l",
+      "9": "i",
+      "10": "o",
+      "11": "n",
+      "12": "a",
+      "13": "i",
+      "14": "r",
+      "15": "e",
+      "id": "gr-1771784583150-wrnk",
+      "timestamp": "2026-02-22T18:23:03.150Z",
+      "_teacher": "m1"
+    },
+    {
+      "0": "m",
+      "1": "a",
+      "2": "t",
+      "3": "h",
+      "4": "-",
+      "5": "m",
+      "6": "i",
+      "7": "l",
+      "8": "l",
+      "9": "i",
+      "10": "o",
+      "11": "n",
+      "12": "a",
+      "13": "i",
+      "14": "r",
+      "15": "e",
+      "id": "gr-1771784899967-vuu2",
+      "timestamp": "2026-02-22T18:28:19.967Z",
+      "_teacher": "m1"
+    },
+    {
+      "0": "n",
+      "1": "u",
+      "2": "m",
+      "3": "b",
+      "4": "e",
+      "5": "r",
+      "6": "-",
+      "7": "l",
+      "8": "i",
+      "9": "n",
+      "10": "e",
+      "11": "-",
+      "12": "n",
+      "13": "i",
+      "14": "n",
+      "15": "j",
+      "16": "a",
+      "id": "gr-1771798965199-ibke",
+      "timestamp": "2026-02-22T22:22:45.199Z",
+      "_teacher": "m1"
+    },
+    {
+      "studentId": "s0-1771575955409",
+      "assignmentId": "unassigned-1772204292391",
+      "classId": "class-1771575955409",
+      "gameId": "warmup",
+      "teks": "3.2A",
+      "score": 20,
+      "correct": 1,
+      "total": 5,
+      "time": 23,
+      "grade": "grade3",
+      "id": "gr-1772204292391-irrb",
+      "timestamp": "2026-02-27T14:58:12.391Z",
+      "_teacher": "m1"
+    }
+  ],
+  "grades": [],
+  "assessments": [],
+  "submissions": [],
+  "chatMessages": [],
+  "announcements": [],
+  "discussions": [],
+  "modules": [],
+  "questionBanks": {}
+}

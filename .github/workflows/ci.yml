@@ -1,0 +1,133 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx vitest run tests/unit --reporter=verbose
+
+  api-tests:
+    name: API Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Start server
+        run: node server/index.js &
+        env:
+          NODE_ENV: test
+          JWT_SECRET: ci-test-secret
+      - name: Wait for server
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3001/api/health && break || sleep 1
+          done
+      - run: npx vitest run tests/api --reporter=verbose
+        env:
+          TEST_BASE_URL: http://localhost:3001
+
+  api-security-tests:
+    name: API Security Guardrails
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Start server
+        run: node server/index.js &
+        env:
+          NODE_ENV: test
+          JWT_SECRET: ci-test-secret
+      - name: Wait for server
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3001/api/health && break || sleep 1
+          done
+      - run: npm run test:api:security -- --reporter=verbose
+        env:
+          TEST_BASE_URL: http://localhost:3001
+
+  e2e-onboarding:
+    name: E2E Onboarding Wizard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+      - name: Run onboarding e2e
+        run: npm run e2e:onboarding -- --project=chromium
+        env:
+          CI: true
+
+  e2e-accessibility:
+    name: E2E Accessibility Smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+      - name: Run accessibility e2e smoke
+        run: npm run e2e:accessibility -- --project=chromium
+        env:
+          CI: true
+
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t allen-ace:ci .

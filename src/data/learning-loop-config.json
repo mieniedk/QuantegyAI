@@ -1,0 +1,369 @@
+{
+  "version": "1.0.0",
+  "loopName": "Learning Loop",
+  "description": "Uniform 21-tile loop used for every test, domain, and competency. 4 unique games rotated from the full catalog per competency.",
+  "appliesTo": {
+    "tests": "*",
+    "domains": "*",
+    "competencies": "*"
+  },
+  "adaptiveScope": {
+    "examIds": ["math712"],
+    "requireCompetency": true,
+    "requireStandard": true,
+    "description": "Adaptive Learning Loop is enforced for every Math 7-12 competency standard."
+  },
+  "sequence": [
+    {
+      "tile": 1,
+      "id": "diagnostic-quiz",
+      "type": "quiz",
+      "label": "Short Quiz (Diagnostic)",
+      "quizSpecRef": "diagnostic"
+    },
+    {
+      "tile": 2,
+      "id": "video-a",
+      "type": "video",
+      "label": "Video Micro-Lesson A",
+      "videoRef": "videoA"
+    },
+    {
+      "tile": 3,
+      "id": "check-quiz-1",
+      "type": "quiz",
+      "label": "Short Quiz",
+      "quizSpecRef": "check"
+    },
+    {
+      "tile": 4,
+      "id": "game-a",
+      "type": "game",
+      "label": "Game A",
+      "gameSlot": 1
+    },
+    {
+      "tile": 5,
+      "id": "check-quiz-2",
+      "type": "quiz",
+      "label": "Short Quiz",
+      "quizSpecRef": "check"
+    },
+    {
+      "tile": 6,
+      "id": "interactive-a",
+      "type": "interactive",
+      "label": "Interactive Activity A",
+      "interactiveSlot": 1
+    },
+    {
+      "tile": 7,
+      "id": "check-quiz-3",
+      "type": "quiz",
+      "label": "Short Quiz",
+      "quizSpecRef": "check"
+    },
+    {
+      "tile": 8,
+      "id": "concept-reminder-a",
+      "type": "concept-reminder",
+      "label": "Short Concept Reminder",
+      "reminderRef": "conceptReminderA"
+    },
+    {
+      "tile": 9,
+      "id": "check-quiz-4",
+      "type": "quiz",
+      "label": "Short Quiz",
+      "quizSpecRef": "check"
+    },
+    {
+      "tile": 10,
+      "id": "game-b",
+      "type": "game",
+      "label": "Game B",
+      "gameSlot": 2
+    },
+    {
+      "tile": 11,
+      "id": "check-quiz-5",
+      "type": "quiz",
+      "label": "Short Quiz",
+      "quizSpecRef": "check"
+    },
+    {
+      "tile": 12,
+      "id": "interactive-b",
+      "type": "interactive",
+      "label": "Interactive Activity B",
+      "interactiveSlot": 2
+    },
+    {
+      "tile": 13,
+      "id": "check-quiz-6",
+      "type": "quiz",
+      "label": "Short Quiz",
+      "quizSpecRef": "check"
+    },
+    {
+      "tile": 14,
+      "id": "video-b",
+      "type": "video",
+      "label": "Video Micro-Lesson B",
+      "videoRef": "videoB"
+    },
+    {
+      "tile": 15,
+      "id": "check-quiz-7",
+      "type": "quiz",
+      "label": "Short Quiz",
+      "quizSpecRef": "check"
+    },
+    {
+      "tile": 16,
+      "id": "game-c",
+      "type": "game",
+      "label": "Game C",
+      "gameSlot": 3
+    },
+    {
+      "tile": 17,
+      "id": "check-quiz-8",
+      "type": "quiz",
+      "label": "Short Quiz",
+      "quizSpecRef": "check"
+    },
+    {
+      "tile": 18,
+      "id": "interactive-c",
+      "type": "interactive",
+      "label": "Interactive Activity C",
+      "interactiveSlot": 3
+    },
+    {
+      "tile": 19,
+      "id": "game-d",
+      "type": "game",
+      "label": "Game D",
+      "gameSlot": 4
+    },
+    {
+      "tile": 20,
+      "id": "readiness-quiz",
+      "type": "quiz",
+      "label": "Short Quiz (Readiness)",
+      "quizSpecRef": "readiness"
+    },
+    {
+      "tile": 21,
+      "id": "mastery-test",
+      "type": "mastery-test",
+      "label": "Mastery Test",
+      "quizSpecRef": "mastery"
+    }
+  ],
+  "quizSpecs": {
+    "diagnostic": {
+      "questionCount": 4,
+      "difficultyMix": {
+        "easy": 0.5,
+        "medium": 0.35,
+        "hard": 0.15
+      },
+      "timeMinutes": {
+        "min": 3,
+        "max": 4
+      },
+      "purpose": "Baseline knowledge before instruction and practice."
+    },
+    "check": {
+      "questionCount": 3,
+      "difficultyMix": {
+        "easy": 0.35,
+        "medium": 0.45,
+        "hard": 0.2
+      },
+      "timeMinutes": {
+        "min": 2,
+        "max": 3
+      },
+      "purpose": "Short progress checks between instruction/practice tiles."
+    },
+    "readiness": {
+      "questionCount": 4,
+      "difficultyMix": {
+        "easy": 0.2,
+        "medium": 0.5,
+        "hard": 0.3
+      },
+      "timeMinutes": {
+        "min": 3,
+        "max": 4
+      },
+      "gating": {
+        "minCorrect": 3,
+        "requireAtLeastOneMediumOrHardCorrect": true
+      },
+      "purpose": "Readiness gate before mastery test."
+    },
+    "mastery": {
+      "questionCountMin": 8,
+      "questionCountMax": 10,
+      "difficultyMix": {
+        "easy": 0.2,
+        "medium": 0.5,
+        "hard": 0.3
+      },
+      "timeMinutes": {
+        "min": 8,
+        "max": 12
+      },
+      "passing": {
+        "scorePercent": 80,
+        "requireAtLeastOneMediumOrHardCorrect": true
+      },
+      "purpose": "Final competency mastery check."
+    }
+  },
+  "uniquenessRules": {
+    "games": {
+      "requiredSlots": 4,
+      "mustBeUniqueById": true,
+      "mustBeUniqueByType": true,
+      "fallbackPolicy": "fillWithUniqueIdsThenDefault"
+    },
+    "interactiveActivities": {
+      "requiredSlots": 3,
+      "mustBeUniqueByMode": true,
+      "defaultMathModes": [
+        "slope",
+        "intercept",
+        "both",
+        "y-intercept-read"
+      ],
+      "fallbackPolicy": "cycleDeterministicallyWithoutBackToBackDuplicates"
+    },
+    "videos": {
+      "mustUseDifferentAssetsForAandB": true,
+      "fallbackPolicy": "ifNoVideoBUseConceptReminderVariant"
+    }
+  },
+  "assetRequirementsPerCompetency": {
+    "quizPoolTags": [
+      "testId",
+      "domainId",
+      "competencyId",
+      "standardIds"
+    ],
+    "videoAssets": [
+      "videoA",
+      "videoB"
+    ],
+    "gameCandidatesMin": 4,
+    "interactiveModesMin": 3,
+    "conceptReminderFields": [
+      "keyIdea",
+      "workedExample",
+      "commonMisconception"
+    ]
+  },
+  "adaptiveRules": {
+    "diagnosticSkipAhead": {
+      "enabled": true,
+      "perfectScore": {
+        "threshold": 1.0,
+        "skipToTileId": "readiness-quiz",
+        "description": "100% on diagnostic → skip directly to readiness quiz"
+      },
+      "highScore": {
+        "threshold": 0.75,
+        "skipToTileId": "concept-reminder-a",
+        "description": "≥75% on diagnostic → skip to concept reminder, then readiness"
+      }
+    },
+    "struggleDetection": {
+      "enabled": true,
+      "zeroCorrectOnCheckQuiz": {
+        "action": "insertConceptReminder",
+        "description": "0/3 on any check quiz → show concept reminder before next tile"
+      },
+      "twoConsecutiveFailures": {
+        "action": "replayPreviousVideo",
+        "description": "Two check quizzes in a row below 50% → replay the most recent video"
+      }
+    },
+    "earlyMasteryExit": {
+      "enabled": true,
+      "masteryThreshold": 85,
+      "minimumTilesCompleted": 8,
+      "offerSkipToTileId": "readiness-quiz",
+      "description": "If mastery ≥85 after completing ≥8 tiles, offer skip to readiness"
+    },
+    "readinessGating": {
+      "enabled": true,
+      "minCorrect": 3,
+      "requireMediumOrHardCorrect": true,
+      "onFail": {
+        "action": "remediationMiniLoop",
+        "tiles": ["concept-reminder-a", "interactive-c", "readiness-quiz"],
+        "maxRetries": 2,
+        "description": "Failed readiness → concept reminder + activity + retry (up to 2x)"
+      }
+    },
+    "difficultyEscalation": {
+      "enabled": true,
+      "checkQuizProgression": [
+        { "tiles": ["check-quiz-1", "check-quiz-2"], "difficultyBias": "easy" },
+        { "tiles": ["check-quiz-3", "check-quiz-4", "check-quiz-5"], "difficultyBias": "medium" },
+        { "tiles": ["check-quiz-6", "check-quiz-7", "check-quiz-8"], "difficultyBias": "hard" }
+      ],
+      "description": "Early quizzes favor easy questions, later quizzes favor harder ones"
+    }
+  },
+  "competencyConfigTemplate": {
+    "testId": "math712",
+    "domainId": "comp001",
+    "competencyId": "comp001-std-01",
+    "standardIds": [
+      "A.11B",
+      "A.8A"
+    ],
+    "quizPools": {
+      "diagnostic": "pool://math712/comp001/comp001-std-01/diagnostic",
+      "check": "pool://math712/comp001/comp001-std-01/check",
+      "readiness": "pool://math712/comp001/comp001-std-01/readiness",
+      "mastery": "pool://math712/comp001/comp001-std-01/mastery"
+    },
+    "assets": {
+      "videoA": "video://math712/comp001/comp001-std-01/a",
+      "videoB": "video://math712/comp001/comp001-std-01/b",
+      "games": [
+        {
+          "id": "math-match",
+          "type": "matching",
+          "path": "/games/math-match"
+        },
+        {
+          "id": "q-blocks",
+          "type": "arcade",
+          "path": "/games/q-blocks"
+        },
+        {
+          "id": "teks-crush",
+          "type": "matching-grid",
+          "path": "/games/teks-crush"
+        }
+      ],
+      "interactiveModes": [
+        "slope",
+        "intercept",
+        "y-intercept-read"
+      ],
+      "conceptReminderA": {
+        "keyIdea": "Use exponent rules with the same base: add exponents when multiplying and subtract when dividing.",
+        "workedExample": "a^m · a^n = a^(m+n), a^m ÷ a^n = a^(m−n), (a^m)^n = a^(mn).",
+        "commonMisconception": "Do not add bases when multiplying powers; only exponents combine for same-base powers."
+      }
+    }
+  }
+}

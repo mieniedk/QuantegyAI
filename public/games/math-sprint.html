@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Q-Bot's Weekly Math Challenge | Quantegy AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --qbot-blue: #2B7DE9;
+    --qbot-dark: #1A3A6E;
+    --qbot-light: #6BB8FF;
+    --qbot-cyan: #00E5FF;
+    --yellow-pop: #FFD700;
+    --yellow-warm: #FFA726;
+    --green-correct: #2ECC71;
+    --red-wrong: #EF5350;
+    --bg-1: #0B1A3B;
+    --bg-2: #132D5E;
+    --silver: #C8D6E5;
+    --silver-bright: #E8EEF4;
+    --silver-shine: #F0F4F8;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow-x: hidden; margin: 0; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%);
+    min-height: 100%;
+    height: 100%;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    padding: 0;
+    position: relative;
+  }
+  .bg-symbols { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+  .bg-symbols span {
+    position: absolute; font-size: 2rem; opacity: 0.07; color: var(--qbot-cyan);
+    animation: floatUp linear infinite; font-weight: 700;
+  }
+  @keyframes floatUp {
+    0%   { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+    10%  { opacity: 0.08; }
+    90%  { opacity: 0.05; }
+    100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+  }
+  .particles { position: fixed; inset: 0; pointer-events: none; z-index: 100; }
+  .particle {
+    position: absolute; width: 10px; height: 10px; border-radius: 50%;
+    animation: burst 0.8s ease-out forwards;
+  }
+  @keyframes burst {
+    0%   { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+  }
+  .card {
+    position: relative; z-index: 10; width: 100%; max-width: 460px; margin: 0 auto;
+    height: 100%; max-height: 100%;
+    background: linear-gradient(170deg, rgba(25,55,120,0.96) 0%, rgba(10,22,55,0.98) 100%);
+    border-radius: 28px;
+    border: 1px solid rgba(107,184,255,0.08);
+    box-shadow: 0 0 80px rgba(43,125,233,0.12), 0 24px 60px rgba(0,0,0,0.45),
+                inset 0 1px 0 rgba(255,255,255,0.07);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .card::before {
+    content: ''; position: absolute; top: 0; left: 15%; right: 15%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,229,255,0.25), transparent);
+  }
+  .header { padding: 12px 16px 4px; text-align: center; flex-shrink: 0; }
+  #startScreen { flex-shrink: 0; overflow-y: auto; }
+  #game {
+    display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;
+  }
+  .game-scroll {
+    flex: 1; overflow-y: auto; overflow-x: hidden; min-height: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+  #res { flex-shrink: 0; overflow-y: auto; }
+  .foot { flex-shrink: 0; }
+  .logo-wrap { position: relative; display: inline-block; }
+  .logo-text {
+    font-family: 'Fredoka', sans-serif; font-size: 2.25rem; font-weight: 700;
+    background: linear-gradient(135deg, var(--qbot-cyan), var(--yellow-pop), var(--qbot-light));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    animation: qbotBounce 3s ease-in-out infinite;
+    filter: drop-shadow(0 4px 12px rgba(43,125,233,0.4));
+  }
+  .logo-sub { font-family: 'Fredoka', sans-serif; font-size: 0.85rem; color: var(--silver); margin-top: 2px; }
+  @keyframes qbotBounce {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25%      { transform: translateY(-8px) rotate(1.5deg); }
+    50%      { transform: translateY(-2px) rotate(0deg); }
+    75%      { transform: translateY(-10px) rotate(-1.5deg); }
+  }
+  .logo-glow {
+    position: absolute; top: 50%; left: 50%; width: 200px; height: 200px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(0,229,255,0.15) 0%, transparent 70%);
+    border-radius: 50%; animation: glowPulse 3s ease-in-out infinite; pointer-events: none;
+  }
+  @keyframes glowPulse {
+    0%, 100% { transform: translate(-50%,-50%) scale(1); opacity: 0.6; }
+    50%      { transform: translate(-50%,-50%) scale(1.3); opacity: 1; }
+  }
+  .sparkle {
+    position: absolute; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--yellow-pop); opacity: 0; animation: sparkle 2.5s ease-in-out infinite;
+  }
+  .sparkle:nth-child(2) { top: 10%; right: 8%; animation-delay: 0s; width: 5px; height: 5px; }
+  .sparkle:nth-child(3) { top: 30%; left: 5%;  animation-delay: 0.8s; background: var(--qbot-cyan); }
+  .sparkle:nth-child(4) { bottom: 20%; right: 5%; animation-delay: 1.6s; width: 4px; height: 4px; }
+  .sparkle:nth-child(5) { top: 5%; left: 30%; animation-delay: 0.4s; background: #FF6BFF; width: 5px; height: 5px; }
+  .sparkle:nth-child(6) { bottom: 10%; left: 15%; animation-delay: 1.2s; background: var(--green-correct); }
+  @keyframes sparkle {
+    0%, 100% { opacity: 0; transform: scale(0.5); }
+    50%      { opacity: 1; transform: scale(1.2); }
+  }
+  .week-badge {
+    display: inline-block; margin-top: 10px; padding: 5px 18px;
+    background: linear-gradient(135deg, var(--yellow-pop), var(--yellow-warm));
+    color: var(--qbot-dark); font-family: 'Fredoka', sans-serif; font-weight: 700;
+    font-size: 0.78rem; border-radius: 50px; letter-spacing: 0.5px;
+    box-shadow: 0 3px 12px rgba(255,215,0,0.25); text-transform: uppercase;
+  }
+  .focus-badge {
+    display: inline-block; margin-top: 8px; padding: 6px 20px;
+    background: linear-gradient(135deg, rgba(0,229,255,0.2), rgba(43,125,233,0.2));
+    border: 1.5px solid rgba(0,229,255,0.35); color: var(--qbot-cyan);
+    font-family: 'Fredoka', sans-serif; font-weight: 700;
+    font-size: 0.78rem; border-radius: 50px; letter-spacing: 0.5px;
+  }
+  .focus-desc {
+    font-family: 'Nunito', sans-serif; font-size: 0.72rem; color: rgba(255,255,255,0.45);
+    margin-top: 6px; padding: 0 20px; line-height: 1.4;
+  }
+  .timer-row { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 8px 20px 4px; }
+  .timer-ring { position: relative; width: 52px; height: 52px; }
+  .timer-ring svg { transform: rotate(-90deg); width: 52px; height: 52px; }
+  .timer-ring .track { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 4; }
+  .timer-ring .prog {
+    fill: none; stroke: var(--qbot-cyan); stroke-width: 4; stroke-linecap: round;
+    stroke-dasharray: 150.8; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear, stroke 0.3s;
+  }
+  .timer-ring .prog.warn { stroke: var(--yellow-pop); }
+  .timer-ring .prog.danger { stroke: var(--red-wrong); }
+  .timer-num {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 1rem; color: var(--silver-bright);
+  }
+  .timer-label {
+    font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 0.8rem;
+    color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;
+  }
+  .q-area { padding: 12px 20px; text-align: center; }
+  .q-number {
+    font-family: 'Fredoka', sans-serif; font-size: 0.72rem; font-weight: 600;
+    color: var(--silver); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px;
+  }
+  .q-teks {
+    font-family: 'Fredoka', sans-serif; font-size: 0.56rem; font-weight: 600;
+    color: rgba(0,229,255,0.5); letter-spacing: 0.5px; margin-bottom: 6px;
+    background: rgba(0,229,255,0.06); display: inline-block; padding: 2px 8px;
+    border-radius: 20px; border: 1px solid rgba(0,229,255,0.12);
+  }
+  .q-text {
+    font-family: 'Fredoka', sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--silver-shine);
+    line-height: 1.35; text-shadow: 0 1px 0 rgba(255,255,255,0.15), 0 2px 8px rgba(0,0,0,0.3); min-height: 44px;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    word-wrap: break-word; max-width: 100%; overflow-wrap: break-word;
+  }
+  .q-text.big { font-size: 1.35rem; }
+  .q-text .hl { color: var(--yellow-pop); font-size: 1.1em; }
+  .q-context {
+    font-size: 0.7rem; font-weight: 500; color: rgba(255,255,255,0.4);
+    margin-bottom: 4px; line-height: 1.35;
+  }
+  .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 4px 20px 16px; }
+  .opt {
+    position: relative; padding: 12px 10px;
+    background: linear-gradient(135deg, rgba(43,125,233,0.25), rgba(30,63,139,0.5));
+    border: 2.5px solid rgba(107,184,255,0.45);
+    border-radius: 14px; color: var(--silver-shine);
+    font-family: 'Fredoka', sans-serif; font-size: 1.05rem; font-weight: 700;
+    cursor: pointer; transition: all 0.2s ease; text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+    -webkit-user-select: none; user-select: none;
+    word-wrap: break-word; overflow-wrap: break-word;
+  }
+  .opt .letter {
+    position: absolute; top: 5px; left: 10px;
+    font-size: 0.6rem; font-weight: 700; color: rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.08); width: 18px; height: 18px; line-height: 18px;
+    text-align: center; border-radius: 4px;
+  }
+  .opt:hover:not(.locked) {
+    border-color: var(--qbot-cyan); transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(0,229,255,0.2), inset 0 1px 0 rgba(255,255,255,0.15);
+    background: linear-gradient(135deg, rgba(43,125,233,0.4), rgba(30,63,139,0.6));
+  }
+  .opt:active:not(.locked) { transform: translateY(0) scale(0.97); }
+  .opt.correct {
+    border-color: var(--green-correct) !important;
+    background: linear-gradient(135deg, rgba(46,204,113,0.35), rgba(46,204,113,0.15)) !important;
+    box-shadow: 0 0 30px rgba(46,204,113,0.35), inset 0 0 20px rgba(46,204,113,0.1);
+    animation: correctPop 0.5s ease;
+  }
+  .opt.wrong {
+    border-color: var(--red-wrong) !important;
+    background: linear-gradient(135deg, rgba(239,83,80,0.3), rgba(239,83,80,0.1)) !important;
+    animation: shake 0.4s ease;
+  }
+  .opt.reveal {
+    border-color: var(--green-correct) !important;
+    background: linear-gradient(135deg, rgba(46,204,113,0.2), rgba(46,204,113,0.08)) !important;
+  }
+  .opt.locked { pointer-events: none; }
+  .opt.locked:not(.correct):not(.wrong):not(.reveal) { opacity: 0.35; }
+  @keyframes correctPop { 0%{transform:scale(1)} 50%{transform:scale(1.06)} 100%{transform:scale(1)} }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+  .fb { text-align: center; padding: 0 20px 10px; min-height: 36px; }
+  .fb-text {
+    font-family: 'Fredoka', sans-serif; font-size: 1.05rem; font-weight: 700;
+    opacity: 0; transform: translateY(8px); transition: all 0.3s ease;
+  }
+  .fb-text.on { opacity: 1; transform: translateY(0); }
+  .fb-text.ok { color: var(--green-correct); }
+  .fb-text.no { color: var(--red-wrong); }
+  .fb-text.to { color: var(--yellow-warm); }
+  .fb-sub { font-size: 0.75rem; color: rgba(255,255,255,0.45); margin-top: 3px; opacity: 0; transition: opacity 0.3s 0.1s; }
+  .fb-sub.on { opacity: 1; }
+  .dots { display: flex; justify-content: center; gap: 6px; padding: 8px 20px; }
+  .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: rgba(255,255,255,0.1); border: 1.5px solid rgba(255,255,255,0.15); transition: all 0.3s;
+  }
+  .dot.now { background: var(--qbot-cyan); border-color: var(--qbot-cyan); box-shadow: 0 0 8px var(--qbot-cyan); transform: scale(1.2); }
+  .dot.ok  { background: var(--green-correct); border-color: var(--green-correct); box-shadow: 0 0 6px rgba(46,204,113,0.4); }
+  .dot.fail { background: var(--red-wrong); border-color: var(--red-wrong); }
+  .scores {
+    display: flex; justify-content: space-around; padding: 8px 20px;
+    background: rgba(0,0,0,0.2); border-top: 1px solid rgba(255,255,255,0.05);
+  }
+  .sc { text-align: center; }
+  .sc-v { font-family: 'Fredoka', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--silver-bright); }
+  .sc-l { font-size: 0.6rem; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+  .sc-v.fire { color: var(--yellow-pop); }
+  .cta {
+    padding: 6px 20px 10px; text-align: center; flex-shrink: 0;
+    background: transparent;
+    border-top: none;
+  }
+  .next-btn {
+    width: 100%; padding: 12px 14px; border: none; border-radius: 14px; color: white;
+    font-family: 'Fredoka', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer;
+    background: linear-gradient(135deg, var(--qbot-blue), var(--qbot-light));
+    box-shadow: 0 4px 20px rgba(43,125,233,0.3); transition: all 0.2s; display: none;
+  }
+  .next-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(43,125,233,0.4); }
+  .next-btn.vis { display: block; animation: fadeUp 0.3s ease; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .start { text-align: center; padding: 16px 24px 24px; }
+  .start-t { font-family:'Fredoka',sans-serif; font-size:1rem; color:var(--silver); margin-bottom:4px; }
+  .start-s { font-size:0.82rem; color:rgba(255,255,255,0.4); margin-bottom:18px; line-height:1.5; }
+  .diff-row { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+  .diff {
+    padding:14px 20px; border-radius:14px; border:2px solid rgba(107,184,255,0.2);
+    background:rgba(255,255,255,0.05); color:var(--silver-bright); font-family:'Fredoka',sans-serif;
+    font-size:0.88rem; font-weight:700; cursor:pointer; transition:all 0.2s; flex:1; min-width:90px;
+  }
+  .diff:hover { border-color:var(--qbot-cyan); transform:translateY(-2px); box-shadow:0 4px 15px rgba(0,229,255,0.15); }
+  .diff em { font-size:1.3rem; display:block; margin-bottom:4px; font-style:normal; }
+  .diff small { font-size:0.65rem; color:rgba(255,255,255,0.45); font-weight:600; display:block; }
+  .focus-start-btn {
+    padding: 16px 48px; border-radius: 16px; border: none;
+    background: linear-gradient(135deg, var(--qbot-blue), var(--qbot-light));
+    color: white; font-family: 'Fredoka', sans-serif; font-size: 1.1rem; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; margin-top: 8px;
+    box-shadow: 0 4px 20px rgba(43,125,233,0.3);
+  }
+  .focus-start-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(43,125,233,0.4); }
+  .results { display:none; text-align:center; padding:28px 24px; }
+  .results.vis { display:block; animation:fadeUp 0.5s ease; }
+  .r-emoji { font-size:3.5rem; margin-bottom:10px; }
+  .r-title { font-family:'Fredoka',sans-serif; font-size:1.5rem; font-weight:700; color:var(--silver-shine); margin-bottom:4px; }
+  .r-score {
+    font-family:'Fredoka',sans-serif; font-size:3rem; font-weight:700;
+    background:linear-gradient(135deg,var(--yellow-pop),var(--yellow-warm));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .r-sub { color:rgba(255,255,255,0.45); font-size:0.85rem; margin-bottom:18px; }
+  .r-stats { display:flex; justify-content:center; gap:24px; margin-bottom:22px; }
+  .rs { text-align:center; }
+  .rs-v { font-family:'Fredoka',sans-serif; font-size:1.3rem; font-weight:700; color:var(--silver-bright); }
+  .rs-l { font-size:0.65rem; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.5px; }
+  .share-btn {
+    padding:14px 40px; border:none; border-radius:14px; cursor:pointer; transition:all 0.2s;
+    background:linear-gradient(135deg,var(--yellow-pop),var(--yellow-warm));
+    color:var(--qbot-dark); font-family:'Fredoka',sans-serif; font-size:1rem; font-weight:700;
+    box-shadow:0 4px 20px rgba(255,215,0,0.3); margin-bottom:10px;
+  }
+  .share-btn:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(255,215,0,0.4); }
+  .share-row { display:flex; gap:10px; justify-content:center; margin-bottom:12px; flex-wrap:wrap; padding:0 8px; }
+  .share-row .share-btn { flex:1; min-width:130px; margin:0; padding:12px 16px; font-size:0.9rem; }
+  .share-img-btn { background:linear-gradient(135deg,var(--qbot-blue),var(--qbot-light)); color:white; box-shadow:0 4px 20px rgba(43,125,233,0.3); }
+  .emoji-grid { display:flex; justify-content:center; gap:8px; margin-bottom:16px; min-height:36px; align-items:center; }
+  .eg-item { display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .eg-icon { font-size:1.6rem; animation:egPop 0.4s ease backwards; }
+  .eg-time { font-family:'Fredoka',sans-serif; font-size:0.6rem; font-weight:600; color:rgba(255,255,255,0.3); }
+  @keyframes egPop { 0% { transform:scale(0) rotate(-20deg); opacity:0; } 60% { transform:scale(1.2) rotate(5deg); } 100% { transform:scale(1) rotate(0deg); opacity:1; } }
+  .again-btn {
+    padding:12px 32px; background:transparent; border:2px solid rgba(107,184,255,0.3);
+    border-radius:14px; color:var(--qbot-light); font-family:'Fredoka',sans-serif;
+    font-size:0.88rem; font-weight:600; cursor:pointer; transition:all 0.2s;
+  }
+  .again-btn:hover { border-color:var(--qbot-cyan); background:rgba(43,125,233,0.1); }
+  .perfect-banner { display:none; text-align:center; padding:0 24px; }
+  .perfect-banner.vis { display:block; animation:fadeUp 0.6s ease; }
+  .crown { font-size:4.5rem; animation:crownBounce 1s ease infinite; display:inline-block; }
+  @keyframes crownBounce { 0%,100% { transform:translateY(0) scale(1); } 30% { transform:translateY(-14px) scale(1.15); } 50% { transform:translateY(-6px) scale(1.05); } }
+  .perfect-title {
+    font-family:'Fredoka',sans-serif; font-size:1.8rem; font-weight:700;
+    background:linear-gradient(135deg,#FFD700,#FFF,#FFD700,#FFA726);
+    background-size:200% 200%; -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    background-clip:text; animation:goldShimmer 2s ease-in-out infinite; margin:6px 0 2px;
+  }
+  @keyframes goldShimmer { 0% { background-position:0% 50%; } 50% { background-position:100% 50%; } 100% { background-position:0% 50%; } }
+  .perfect-sub { font-family:'Fredoka',sans-serif; font-size:0.95rem; color:var(--yellow-pop); margin-bottom:4px; opacity:0.9; }
+  .perfect-pts { font-family:'Fredoka',sans-serif; font-size:2.6rem; font-weight:700; color:var(--silver-shine); margin:4px 0 6px; }
+  .perfect-pts span { color:var(--yellow-pop); }
+  .confetti-wrap { position:fixed; inset:0; pointer-events:none; z-index:150; overflow:hidden; }
+  .confetti-piece { position:absolute; width:10px; height:10px; top:-20px; animation:confettiFall linear forwards; }
+  @keyframes confettiFall { 0% { transform:translateY(0) rotate(0deg) scale(1); opacity:1; } 80% { opacity:1; } 100% { transform:translateY(105vh) rotate(var(--rot)) scale(0.5); opacity:0; } }
+  .starburst { display:inline-block; position:relative; }
+  .starburst::before {
+    content:''; position:absolute; top:50%; left:50%; width:120px; height:120px;
+    transform:translate(-50%,-50%);
+    background:radial-gradient(circle, rgba(255,215,0,0.25) 0%, transparent 70%);
+    border-radius:50%; animation:starPulse 1.5s ease-in-out infinite;
+  }
+  @keyframes starPulse { 0%,100% { transform:translate(-50%,-50%) scale(1); opacity:0.6; } 50% { transform:translate(-50%,-50%) scale(1.5); opacity:1; } }
+  .music-btn {
+    position:absolute; top:14px; right:14px; z-index:20;
+    width:38px; height:38px; border-radius:50%;
+    background:rgba(255,255,255,0.06); border:1.5px solid rgba(107,184,255,0.25);
+    color:var(--silver); font-size:1.1rem; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:all 0.2s; backdrop-filter:blur(4px);
+  }
+  .music-btn:hover { border-color:var(--qbot-cyan); background:rgba(0,229,255,0.1); transform:scale(1.08); }
+  .music-btn.on { border-color:var(--qbot-cyan); color:var(--qbot-cyan); background:rgba(0,229,255,0.1); }
+  .music-btn .bar {
+    display:inline-block; width:3px; background:currentColor; border-radius:2px;
+    margin:0 1px; animation:none; vertical-align:middle;
+  }
+  .music-btn.on .bar { animation:eqBar 0.6s ease-in-out infinite alternate; }
+  .music-btn .bar:nth-child(1) { height:8px; animation-delay:0s; }
+  .music-btn .bar:nth-child(2) { height:14px; animation-delay:0.15s; }
+  .music-btn .bar:nth-child(3) { height:10px; animation-delay:0.3s; }
+  .music-btn .bar:nth-child(4) { height:6px; animation-delay:0.1s; }
+  @keyframes eqBar { 0% { height:4px; } 100% { height:16px; } }
+  .toast {
+    position:fixed; bottom:40px; left:50%; transform:translateX(-50%) translateY(80px);
+    background:rgba(25,55,120,0.95); border:1px solid var(--qbot-cyan); color:white;
+    padding:12px 24px; border-radius:12px; font-family:'Fredoka',sans-serif; font-size:0.85rem;
+    z-index:200; transition:transform 0.3s; box-shadow:0 8px 30px rgba(0,0,0,0.4);
+  }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+  .foot { text-align:center; padding:10px 24px 16px; border-top:1px solid rgba(255,255,255,0.04); }
+  .foot span { font-size:0.68rem; color:rgba(255,255,255,0.2); font-weight:600; letter-spacing:0.5px; }
+  .foot a { color:var(--qbot-light); text-decoration:none; }
+  .back-link {
+    display: inline-block; margin: 10px 0 0 0; padding: 6px 16px; border-radius: 10px;
+    border: 1.5px solid rgba(107,184,255,0.3); background: transparent;
+    color: var(--qbot-light); font-family: 'Fredoka', sans-serif; font-size: 0.75rem;
+    font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.2s;
+  }
+  .back-link:hover { border-color: var(--qbot-cyan); background: rgba(43,125,233,0.1); }
+</style>
+</head>
+<body>
+<div class="bg-symbols" id="bg"></div>
+<div class="particles" id="particles"></div>
+<div class="card">
+  <button class="music-btn" id="musicBtn" onclick="toggleMusic()" title="Toggle Music">
+    <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
+  </button>
+  <div class="header">
+    <div class="logo-wrap">
+      <div class="logo-glow"></div>
+      <span class="sparkle"></span><span class="sparkle"></span><span class="sparkle"></span>
+      <span class="sparkle"></span><span class="sparkle"></span>
+      <div class="logo-text">🤖 Q-Bot Math Sprint</div>
+      <div class="logo-sub">Weekly Math Challenge · Quantegy AI</div>
+    </div>
+    <div class="week-badge" id="weekBadge">Week 1</div>
+    <div class="focus-badge" id="focusBadge" style="display:none"></div>
+    <div class="focus-desc" id="focusDesc" style="display:none"></div>
+  </div>
+  <div class="start" id="startScreen">
+    <!-- Normal mode: topic selection -->
+    <div id="normalStart">
+      <div class="start-t">3 Quick Questions · Grade 3 TEKS Aligned</div>
+      <div class="start-s">Choose a topic and show what you know!</div>
+      <div class="diff-row">
+        <button class="diff" onclick="go('compute')"><em>🔢</em>Compute<small>Add · Sub · Multiply · Divide</small></button>
+        <button class="diff" onclick="go('measure')"><em>📐</em>Measure<small>Area · Perimeter · Time</small></button>
+        <button class="diff" onclick="go('mixed')"><em>⭐</em>Mixed<small>All TEKS Topics</small></button>
+      </div>
+    </div>
+    <!-- Focused mode: single start button -->
+    <div id="focusStart" style="display:none">
+      <div class="start-t" id="focusTitle">Targeted Practice</div>
+      <div class="start-s" id="focusSub">3 questions focused on your selected standard</div>
+      <button class="focus-start-btn" onclick="go('focused')">🚀 Start Practice</button>
+    </div>
+  </div>
+  <div id="game" style="display:none">
+    <div class="game-scroll">
+      <div class="timer-row">
+        <span class="timer-label">Time</span>
+        <div class="timer-ring">
+          <svg viewBox="0 0 52 52"><circle class="track" cx="26" cy="26" r="24"/><circle class="prog" id="prog" cx="26" cy="26" r="24"/></svg>
+          <div class="timer-num" id="tNum">15</div>
+        </div>
+      </div>
+      <div class="q-area">
+        <div class="q-number" id="qNum">Question 1 of 3</div>
+        <div class="q-teks" id="qTeks">TEKS 3.4A</div>
+        <div class="q-text" id="qTxt"></div>
+      </div>
+      <div class="opts" id="opts"></div>
+      <div class="fb"><div class="fb-text" id="fbT"></div><div class="fb-sub" id="fbS"></div></div>
+      <div class="dots" id="dots"></div>
+      <div class="scores">
+        <div class="sc"><div class="sc-v" id="sScore">0</div><div class="sc-l">Score</div></div>
+        <div class="sc"><div class="sc-v fire" id="sStreak">0 🔥</div><div class="sc-l">Streak</div></div>
+        <div class="sc"><div class="sc-v" id="sPts">0</div><div class="sc-l">Points</div></div>
+      </div>
+    </div>
+    <div class="cta"><button class="next-btn" id="nextBtn" onclick="next()">Next &rarr;</button></div>
+  </div>
+  <div class="results" id="res">
+    <div id="normalRes">
+      <div class="r-emoji" id="rE">🏆</div>
+      <div class="r-title" id="rT">Amazing!</div>
+      <div class="r-score" id="rS">3/3</div>
+      <div class="r-sub" id="rSub"></div>
+    </div>
+    <div class="perfect-banner" id="perfectBanner">
+      <div class="starburst"><div class="crown">👑</div></div>
+      <div class="perfect-title">PERFECT SCORE!</div>
+      <div class="perfect-sub">You answered all 3 correctly!</div>
+      <div class="perfect-pts"><span id="pPts">300</span> pts</div>
+    </div>
+    <div class="r-stats">
+      <div class="rs"><div class="rs-v" id="rAvg">0s</div><div class="rs-l">Avg Time</div></div>
+      <div class="rs"><div class="rs-v" id="rStr">0 🔥</div><div class="rs-l">Best Streak</div></div>
+      <div class="rs"><div class="rs-v" id="rPts">0</div><div class="rs-l">Points</div></div>
+    </div>
+    <div class="emoji-grid" id="emojiGrid"></div>
+    <div class="share-row">
+      <button class="share-btn" onclick="share()">📤 Share Text</button>
+      <button class="share-btn share-img-btn" onclick="shareImage()">🖼️ Share Image</button>
+    </div>
+    <button class="again-btn" onclick="reset()">🔄 Play Again</button>
+  </div>
+  <div class="foot">
+    <span>Powered by <a href="#">Quantegy AI</a></span><br>
+    <a class="back-link" href="/games">← Back to Games</a>
+  </div>
+</div>
+<div class="confetti-wrap" id="confettiWrap"></div>
+<canvas id="scoreCanvas" width="600" height="600" style="display:none"></canvas>
+<div class="toast" id="toast">📋 Score copied!</div>
+
+<script>
+const N=3, TL=10, C=2*Math.PI*24;
+let diff,qs,cur,score,streak,best,pts,done,timer,tl,times,t0,results=[];
+let audioCtx=null,musicOn=false,masterGain=null,musicGain=null,sfxGain=null;
+
+/* ── URL parameter parsing for focused TEKS mode ── */
+const urlParams = new URLSearchParams(window.location.search);
+const focusTeks = urlParams.get('teks');         // e.g. "3.4A" or "4.2A,4.4A"
+const focusLabel = urlParams.get('label') || '';  // e.g. "Addition & Subtraction"
+const focusDesc  = urlParams.get('desc') || '';   // e.g. "Solve one-step and two-step problems..."
+const gradeParam = urlParams.get('grade') || '';  // e.g. "grade3" or "grade4"
+let focusTeksList = focusTeks ? focusTeks.split(',').map(function(s){return s.trim()}) : [];
+/* When embedded from practice loop, hide footer + share + Play Again + Next button
+   so parent "Continue" is the only CTA. Auto-advance questions after feedback. */
+var _isLoop = (urlParams.get('from') === 'loop');
+if (_isLoop) {
+  function hideEmbeddedOnly() {
+    document.querySelectorAll('.foot, .share-row, .again-btn, .cta').forEach(function(el){ if(el) el.style.display='none'; });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hideEmbeddedOnly);
+  else hideEmbeddedOnly();
+
+  var _loopTimer = null;
+  var _origPick = pick;
+  pick = function(v, btn) {
+    _origPick(v, btn);
+    if (_loopTimer) clearTimeout(_loopTimer);
+    _loopTimer = setTimeout(function() { next(); }, 1500);
+  };
+  var _origTimeup = timeup;
+  timeup = function() {
+    _origTimeup();
+    if (_loopTimer) clearTimeout(_loopTimer);
+    _loopTimer = setTimeout(function() { next(); }, 1500);
+  };
+}
+
+/* ── TEKS → Generator mapping ── */
+const TEKS_GENERATORS = {
+  /* Grade 1 – EC-6 */
+  '1.2A': ['g1_subitizing'],'1.2B': ['g1_composeDecompose'],'1.2E': ['g1_compareNumbers'],'1.2F': ['g1_orderNumbers'],'1.2G': ['g1_compareSymbols'],
+  '1.3B': ['g1_wordProblems'],'1.3C': ['g1_composeTen'],'1.3D': ['g1_addSub20'],'1.3E': ['g1_explainStrategies'],
+  '1.4A': ['g1_identifyCoins'],'1.4B': ['g1_coinValue'],'1.4C': ['g1_countCoins'],
+  '1.5B': ['g1_skipCount'],'1.5C': ['g1_tenMoreLess'],'1.5D': ['g1_representWordProblems'],'1.5E': ['g1_equalSign'],'1.5G': ['g1_properties'],
+  '1.6D': ['g1_identifyShapes'],'1.6E': ['g1_identifySolids'],'1.6G': ['g1_partitionEqual'],'1.6H': ['g1_halvesFourths'],
+  '1.7E': ['g1_tellTime'],'1.8C': ['g1_graphConclusions'],
+  /* Grade 2 – EC-6 */
+  '2.2A': ['g2_composeDecompose1200'],'2.2B': ['g2_numberForms'],'2.2D': ['g2_compareOrder'],'2.4A': ['g2_addSub20'],'2.4B': ['g2_addTwoDigit'],
+  '2.5A': ['g2_coinValue'],'2.6A': ['g2_equalGroups'],'2.6B': ['g2_equalShares'],'2.7A': ['g2_evenOdd'],'2.7B': ['g2_tenHundredMoreLess'],
+  '2.8C': ['g2_polygonSides'],'2.9F': ['g2_areaRectangle'],'2.10C': ['g2_graphWordProblems'],
+  '3.2A': ['placeValue_expanded'],
+  '3.2B': ['placeValue_digit'],
+  '3.2C': ['placeValue_round'],
+  '3.2D': ['compareOrder'],
+  '3.3A': ['representFraction'],
+  '3.3B': ['fractionNumberLine'],
+  '3.3C': ['unitFraction'],
+  '3.3D': ['composeFraction'],
+  '3.3E': ['partitionShare'],
+  '3.3F': ['equivalentFraction'],
+  '3.3G': ['explainEquivalence'],
+  '3.3H': ['compareFractions'],
+  '3.4A': ['addSub'],
+  '3.4B': ['rounding'],
+  '3.4C': ['coins'],
+  '3.4D': ['equalGroups'],
+  '3.4E': ['multRepresent'],
+  '3.4F': ['multiply'],
+  '3.4G': ['twoDigitByOne'],
+  '3.4H': ['divideWord'],
+  '3.4I': ['evenOdd'],
+  '3.4J': ['quotientRelation'],
+  '3.4K': ['divide'],
+  '3.5A': ['addSubWord'],
+  '3.5B': ['multiplyWord'],
+  '3.5C': ['multComparison'],
+  '3.5D': ['missingFactor'],
+  '3.5E': ['pattern'],
+  '3.6A': ['classifyShapes'],
+  '3.6B': ['quadrilaterals'],
+  '3.6C': ['area'],
+  '3.7A': ['fractionDistance'],
+  '3.7B': ['perimeter'],
+  '3.7C': ['time'],
+  '3.7D': ['measureChoice'],
+  '3.7E': ['measureUnits'],
+  '3.8A': ['dataDisplay'],
+  '3.8B': ['dataProblems'],
+  '3.9A': ['finLitIncome'],
+  '3.9B': ['finLitScarcity'],
+  '3.9C': ['finLitSpending'],
+  '3.9D': ['finLitCredit'],
+  '3.9E': ['finLitSaving'],
+  /* Grade 4 */
+  '4.2A': ['g4_placeValueRelations'],
+  '4.2B': ['g4_expandedNotation'],
+  '4.2C': ['g4_compareOrder'],
+  '4.2D': ['g4_rounding'],
+  '4.3A': ['g4_decomposeFractions'],
+  '4.3B': ['g4_decomposeMultiple'],
+  '4.3C': ['g4_equivalentFractions'],
+  '4.3D': ['g4_compareFractions'],
+  '4.3E': ['g4_addSubFractions'],
+  '4.3F': ['g4_reasonablenessFractions'],
+  '4.3G': ['g4_fractionsDecimalsNumberLine'],
+  '4.4A': ['g4_addSubDecimals'],
+  '4.4B': ['g4_multiplyTenHundred'],
+  '4.4C': ['g4_twoDigitProducts'],
+  '4.4D': ['g4_multiplicationStrategies'],
+  '4.4E': ['g4_divisionRepresentations'],
+  '4.4F': ['g4_divisionStrategies'],
+  '4.4G': ['g4_roundingEstimation'],
+  '4.4H': ['g4_multDivFluency'],
+  '4.5A': ['g4_multiStepEquations'],
+  '4.5B': ['g4_inputOutput'],
+  '4.5C': ['g4_perimeterAreaFormulas'],
+  '4.5D': ['g4_perimeterAreaProblems'],
+  '4.6A': ['g4_geometricFigures'],
+  '4.6B': ['g4_symmetry'],
+  '4.6C': ['g4_triangleTypes'],
+  '4.6D': ['g4_classify2d'],
+  '4.7A': ['g4_angleMeasure'],
+  '4.7B': ['g4_degrees'],
+  '4.7C': ['g4_measureAngles'],
+  '4.7D': ['g4_drawAngles'],
+  '4.7E': ['g4_unknownAngles'],
+  '4.8A': ['g4_measurementUnits'],
+  '4.8B': ['g4_convertMeasurements'],
+  '4.8C': ['g4_elapsedTime'],
+  '4.9A': ['g4_dataDisplay'],
+  '4.9B': ['g4_dataProblems'],
+  '4.10A': ['g4_fixedVariableExpenses'],
+  '4.10B': ['g4_profit'],
+  '4.10C': ['g4_savingsPlans'],
+  '4.10D': ['g4_allocateAllowance'],
+  '4.10E': ['g4_financialInstitutions'],
+  /* Grade 5 */
+  '5.2A': ['g5_decimalExpanded'],'5.2B': ['g5_compareDecimals'],'5.2C': ['g5_roundDecimals'],
+  '5.3B': ['g5_multiply3x2'],'5.3C': ['g5_division4x2'],'5.3E': ['g5_decimalMultiply'],'5.3G': ['g5_decimalDivide'],
+  '5.3K': ['g5_addSubRational'],'5.4A': ['g5_primeComposite'],'5.4B': ['g5_multiStepEquations'],
+  '5.4G': ['g5_volumeFormula'],'5.4H': ['g5_perimeterAreaVolume'],'5.5A': ['g5_classifyHierarchy'],
+  '5.7A': ['g5_measurementConversions'],'5.8A': ['g5_coordinatePlane'],'5.9C': ['g5_dataProblems'],
+  /* Grade 6 */
+  '6.2B': ['g6_oppositeAbsolute'],'6.2C': ['g6_compareOrderNumberLine'],'6.3D': ['g6_integerOperations'],
+  '6.3E': ['g6_rationalOperations'],'6.4B': ['g6_ratioRateReasoning'],'6.5B': ['g6_percentProblems'],
+  '6.6C': ['g6_representYkx'],'6.7A': ['g6_orderOperations'],'6.8D': ['g6_areaVolumeSolve'],
+  '6.9A': ['g6_writeEquations'],'6.10A': ['g6_solveEquations'],
+  /* Grade 7 */
+  '7.3A': ['g7_rationalOperations'],'7.4A': ['g7_constantRates'],'7.4C': ['g7_constantProportionality'],
+  '7.4D': ['g7_ratiosRatesPercents'],'7.5B': ['g7_piRatio'],'7.6D': ['g7_theoreticalProbability'],
+  '7.9A': ['g7_volume3D'],'7.9B': ['g7_circleMeasures'],'7.11A': ['g7_twoStepEquations'],
+  /* Grade 8 */
+  '8.2B': ['g8_irrationalApproximate'],'8.2C': ['g8_scientificNotation'],'8.4A': ['g8_slopeFormula'],
+  '8.5B': ['g8_linearNonProportional'],'8.5I': ['g8_writeLinearEquation'],'8.6C': ['g8_pythagoreanExplain'],
+  '8.7A': ['g8_volumeCylinderConeSphere'],'8.7C': ['g8_pythagoreanSolve'],'8.8C': ['g8_solveEquationsBothSides'],
+  '8.8D': ['g8_angleTheorems'],'8.10A': ['g8_transformationProperties'],
+  /* Grade 9 – Algebra I */
+  'A.2A': ['g9_domainRange'],'A.2B': ['g9_writeLinearEquation'],'A.3A': ['g9_slope'],
+  'A.3C': ['g9_graphLinear'],'A.5A': ['g9_solveLinear'],'A.5B': ['g9_solveInequality'],'A.5C': ['g9_systems'],
+  'A.6A': ['g9_quadraticDomainRange'],'A.8A': ['g9_solveQuadratic'],'A.10E': ['g9_factorTrinomial'],
+  'A.11A': ['g9_simplifyRadicals'],'A.11B': ['g9_lawsOfExponents'],
+  /* Grade 10 – Geometry */
+  'G.2A': ['g10_constructions'],
+  'G.2B': ['g10_geometricConjectures'],
+  'G.3A': ['g10_conditionalLogic'],
+  'G.4A': ['g10_definitionsTheorems'],
+  'G.5A': ['g10_patternsConjectures'],
+  'G.6A': ['g10_angleTheorems'],
+  'G.6D': ['g10_triangleTheorems'],
+  'G.7A': ['g10_pythagoreanApply'],
+  'G.8A': ['g10_similarTrig'],
+  'G.9A': ['g10_arcSector'],
+  'G.10A': ['g10_crossSections'],
+  'G.11A': ['g10_surfaceArea3D'],
+  'G.12A': ['g10_slopeSimilar'],
+  'G.12D': ['g10_dilationMeasurements'],
+  /* Grade 11 – Algebra II */
+  '2A.2A': ['g11_domainRange'],
+  '2A.2B': ['g11_quadraticWrite'],
+  '2A.3A': ['g11_transformations'],
+  '2A.4A': ['g11_quadraticSqrtSolve'],
+  '2A.4B': ['g11_expLogSolve'],
+  '2A.5A': ['g11_parentTransforms'],
+  '2A.6A': ['g11_expLogDomain'],
+  '2A.6B': ['g11_expLogGraph'],
+  '2A.7A': ['g11_polynomialOps'],
+  '2A.7B': ['g11_polynomialDivide'],
+  '2A.8A': ['g11_polynomialSolve'],
+  '2A.9A': ['g11_circleEquation'],
+  '2A.10A': ['g11_complexNumbers'],
+  '2A.11A': ['g11_fundamentalTheorem']
+};
+
+/* ── TEKS human-readable names ── */
+const TEKS_NAMES = {
+  /* Grade 1 – EC-6 */
+  '1.2A':'Subitizing','1.2B':'Compose & Decompose','1.2E':'Compare Numbers','1.2F':'Order Numbers','1.2G':'Compare Symbols',
+  '1.3B':'Word Problems','1.3C':'Compose 10','1.3D':'Add & Subtract within 20','1.3E':'Explain Strategies',
+  '1.4A':'Identify Coins','1.4B':'Coin Value','1.4C':'Count Coins',
+  '1.5B':'Skip Count','1.5C':'10 More & 10 Less','1.5D':'Represent Word Problems','1.5E':'Equal Sign','1.5G':'Properties',
+  '1.6D':'Identify 2D Shapes','1.6E':'Identify 3D Solids','1.6G':'Partition Equal','1.6H':'Halves & Fourths',
+  '1.7E':'Tell Time','1.8C':'Graph Conclusions',
+  /* Grade 2 – EC-6 */
+  '2.2A':'Compose & Decompose to 1,200','2.2B':'Number Forms','2.2D':'Compare & Order','2.4A':'Add & Subtract within 20','2.4B':'Add Two-Digit',
+  '2.5A':'Coin Value','2.6A':'Equal Groups (Multiplication)','2.6B':'Equal Shares (Division)','2.7A':'Even & Odd','2.7B':'10 or 100 More/Less',
+  '2.8C':'Polygon Sides','2.9F':'Area of Rectangle','2.10C':'Graph Word Problems',
+  '3.2A':'Place Value – Compose/Decompose','3.2B':'Place Value – Digit Identification',
+  '3.2C':'Rounding to Nearest Hundred','3.2D':'Compare & Order Numbers',
+  '3.3A':'Represent Fractions','3.3B':'Fractions on Number Lines',
+  '3.3C':'Unit Fractions','3.3D':'Compose/Decompose Fractions',
+  '3.3E':'Partition & Sharing','3.3F':'Equivalent Fractions',
+  '3.3G':'Explain Fraction Equivalence','3.3H':'Comparing Fractions',
+  '3.4A':'Addition & Subtraction','3.4B':'Rounding & Estimation',
+  '3.4C':'Money – Counting Coins','3.4D':'Equal Groups & Arrays',
+  '3.4E':'Multiplication Representations','3.4F':'Multiplication Facts',
+  '3.4G':'Two-Digit × One-Digit','3.4H':'Division Word Problems',
+  '3.4I':'Even & Odd Numbers','3.4J':'Quotient from Multiplication',
+  '3.4K':'Division Facts',
+  '3.5A':'Add/Sub Word Problems','3.5B':'Multiplication Word Problems',
+  '3.5C':'Multiplication as Comparison','3.5D':'Missing Factor','3.5E':'Number Patterns',
+  '3.6A':'Classify 2D & 3D Shapes','3.6B':'Quadrilaterals',
+  '3.6C':'Area','3.7A':'Fractions as Distances',
+  '3.7B':'Perimeter','3.7C':'Elapsed Time',
+  '3.7D':'Capacity vs. Weight','3.7E':'Measure Capacity & Weight',
+  '3.8A':'Data Displays','3.8B':'Data Problem Solving',
+  '3.9A':'Income & Labor','3.9B':'Scarcity & Cost',
+  '3.9C':'Spending Decisions','3.9D':'Credit & Borrowing','3.9E':'Saving & Planning',
+  /* Grade 4 */
+  '4.2A':'Place Value Relationships','4.2B':'Expanded Notation',
+  '4.2C':'Compare & Order Numbers','4.2D':'Rounding',
+  '4.3A':'Decompose Fractions','4.3B':'Multiple Decompositions',
+  '4.3C':'Equivalent Fractions','4.3D':'Compare Fractions',
+  '4.3E':'Add & Subtract Fractions','4.3F':'Reasonableness of Fractions',
+  '4.3G':'Fractions & Decimals on Number Line',
+  '4.4A':'Add & Subtract Decimals','4.4B':'Multiply by 10 & 100',
+  '4.4C':'Two-Digit Products','4.4D':'Multiplication Strategies',
+  '4.4E':'Division Representations','4.4F':'Division Strategies',
+  '4.4G':'Rounding & Estimation','4.4H':'Mult & Div Fluency',
+  '4.5A':'Multi-Step Equations','4.5B':'Input-Output Tables',
+  '4.5C':'Perimeter & Area Formulas','4.5D':'Perimeter & Area Problems',
+  '4.6A':'Geometric Figures','4.6B':'Lines of Symmetry',
+  '4.6C':'Triangle Types','4.6D':'Classify 2D Figures',
+  '4.7A':'Angle Measure','4.7B':'Degrees',
+  '4.7C':'Measure Angles','4.7D':'Draw Angles','4.7E':'Unknown Angles',
+  '4.8A':'Measurement Units','4.8B':'Convert Measurements','4.8C':'Elapsed Time',
+  '4.9A':'Data Displays','4.9B':'Data Problem Solving',
+  '4.10A':'Fixed & Variable Expenses','4.10B':'Profit',
+  '4.10C':'Savings Plans','4.10D':'Allocate Allowance','4.10E':'Financial Institutions',
+  /* Grade 5 */
+  '5.2A':'Decimal Expanded Notation','5.2B':'Compare Decimals','5.2C':'Round Decimals',
+  '5.3B':'Multiply 3×2 Digit','5.3C':'Division 4×2 Digit','5.3E':'Decimal Multiplication','5.3G':'Decimal Division',
+  '5.3K':'Add & Subtract Rational','5.4A':'Prime & Composite','5.4B':'Multi-Step Equations',
+  '5.4G':'Volume Formula','5.4H':'Perimeter, Area & Volume','5.5A':'Classify 2D Hierarchy',
+  '5.7A':'Measurement Conversions','5.8A':'Coordinate Plane','5.9C':'Data Problems',
+  /* Grade 6 */
+  '6.2B':'Opposite & Absolute Value','6.2C':'Compare & Order on Number Line','6.3D':'Integer Operations',
+  '6.3E':'Rational Operations','6.4B':'Ratio & Rate Reasoning','6.5B':'Percent Problems',
+  '6.6C':'Represent y=kx or y=x+b','6.7A':'Order of Operations','6.8D':'Solve Area & Volume',
+  '6.9A':'Write Equations','6.10A':'Solve One-Step Equations',
+  /* Grade 7 */
+  '7.3A':'Rational Number Operations','7.4A':'Constant Rates','7.4C':'Constant of Proportionality',
+  '7.4D':'Ratios, Rates & Percents','7.5B':'π as Ratio','7.6D':'Theoretical Probability',
+  '7.9A':'Volume 3D','7.9B':'Circumference & Area of Circles','7.11A':'Two-Step Equations',
+  /* Grade 8 */
+  '8.2B':'Irrational Numbers','8.2C':'Scientific Notation','8.4A':'Slope Formula',
+  '8.5B':'Linear Non-Proportional','8.5I':'Write Linear Equation','8.6C':'Pythagorean Theorem',
+  '8.7A':'Volume Cylinder, Cone, Sphere','8.7C':'Pythagorean Solve','8.8C':'Solve Equations Both Sides',
+  '8.8D':'Angle Theorems','8.10A':'Transformation Properties',
+  /* Grade 9 – Algebra I */
+  'A.2A':'Domain & Range Linear','A.2B':'Write Linear Equations','A.3A':'Slope',
+  'A.3C':'Graph Linear Functions','A.5A':'Solve Linear Equations','A.5B':'Solve Inequalities','A.5C':'Systems of Equations',
+  'A.6A':'Quadratic Domain & Range','A.8A':'Solve Quadratic','A.10E':'Factor Trinomials',
+  'A.11A':'Simplify Radicals','A.11B':'Laws of Exponents',
+  /* Grade 10 – Geometry */
+  'G.2A':'Constructions & Conjectures','G.2B':'Geometric Conjectures',
+  'G.3A':'Conditional Logic','G.4A':'Definitions & Theorems',
+  'G.5A':'Patterns & Conjectures (Parallel Lines)','G.6A':'Angle Theorems',
+  'G.6D':'Triangle Theorems','G.7A':'Apply Pythagorean Theorem',
+  'G.8A':'Similar Triangles & Trig','G.9A':'Arc Length & Sectors',
+  'G.10A':'Cross-Sections',
+  'G.11A':'Surface Area 3D','G.12A':'Slope from Similar Triangles',
+  'G.12D':'Dilation Measurements',
+  /* Grade 11 – Algebra II */
+  '2A.2A':'Domain & Range (Quadratic, Square Root, Exponential)','2A.2B':'Write Quadratic Functions',
+  '2A.3A':'Graph Transformations','2A.4A':'Quadratic & Square Root Equations',
+  '2A.4B':'Exponential & Logarithmic Equations','2A.5A':'Parent Function Transforms',
+  '2A.6A':'Exp & Log Domain/Range','2A.6B':'Graph Exponential & Logarithmic',
+  '2A.7A':'Polynomial Operations','2A.7B':'Polynomial Division',
+  '2A.8A':'Solve Polynomial Equations','2A.9A':'Circle Equation',
+  '2A.10A':'Complex Numbers','2A.11A':'Fundamental Theorem of Algebra'
+};
+
+/* Only use focused mode when teks param maps to real question generators (e.g. 3.4A). Comp ids like comp_ec6_1 from practice loop do not; show normal start and use grade-based pools. */
+focusTeksList = focusTeksList.filter(function(t){ return TEKS_GENERATORS[t]; });
+
+/* ── Set up focused mode UI if teks param is present ── */
+if (focusTeksList.length > 0) {
+  document.getElementById('normalStart').style.display = 'none';
+  document.getElementById('focusStart').style.display = 'block';
+  var useMixedForVariety = (gradeParam === 'grade7-12' || gradeParam === 'grade4-8');
+  if (useMixedForVariety) {
+    document.getElementById('focusSub').textContent = '3 questions across number, algebra, geometry & more';
+  }
+  var teksNames = focusTeksList.map(function(t){return TEKS_NAMES[t]||t}).join(', ');
+  var badgeText = 'TEKS ' + focusTeksList.join(', ');
+  document.getElementById('focusBadge').style.display = 'inline-block';
+  document.getElementById('focusBadge').textContent = '🎯 Focused: ' + badgeText;
+  if (focusDesc) {
+    document.getElementById('focusDesc').style.display = 'block';
+    document.getElementById('focusDesc').textContent = focusDesc;
+  }
+  document.getElementById('focusTitle').textContent = focusLabel || teksNames;
+  document.getElementById('focusSub').textContent = '3 targeted questions on ' + badgeText;
+}
+
+/* ── Audio ── */
+function initAudio(){if(audioCtx)return;audioCtx=new(window.AudioContext||window.webkitAudioContext)();masterGain=audioCtx.createGain();masterGain.gain.value=0.7;masterGain.connect(audioCtx.destination);musicGain=audioCtx.createGain();musicGain.gain.value=0.35;musicGain.connect(masterGain);sfxGain=audioCtx.createGain();sfxGain.gain.value=0.5;sfxGain.connect(masterGain)}
+function toggleMusic(){initAudio();if(audioCtx.state==='suspended')audioCtx.resume();musicOn=!musicOn;document.getElementById('musicBtn').classList.toggle('on',musicOn);if(musicOn)startBGM();else stopBGM()}
+let bgmInterval=null;
+function startBGM(){stopBGM();const bpm=140,beatLen=60/bpm;const notes=[523.25,587.33,659.25,783.99,880,783.99,659.25,587.33,523.25,659.25,783.99,880,1046.5,880,783.99,659.25,440,523.25,587.33,659.25,783.99,659.25,587.33,523.25,440,523.25,659.25,587.33,523.25,440,392,440];const bass=[261.63,261.63,329.63,329.63,392,392,349.23,349.23,261.63,261.63,329.63,329.63,392,392,349.23,349.23,220,220,261.63,261.63,329.63,329.63,261.63,261.63,220,220,261.63,261.63,220,220,196,220];let step=0;function playStep(){if(!musicOn||!audioCtx)return;const t=audioCtx.currentTime;const o1=audioCtx.createOscillator(),g1=audioCtx.createGain();o1.type='square';o1.frequency.value=notes[step%notes.length];g1.gain.setValueAtTime(0.12,t);g1.gain.exponentialRampToValueAtTime(0.001,t+beatLen*0.8);o1.connect(g1);g1.connect(musicGain);o1.start(t);o1.stop(t+beatLen*0.85);const o2=audioCtx.createOscillator(),g2=audioCtx.createGain();o2.type='triangle';o2.frequency.value=bass[step%bass.length]*0.5;g2.gain.setValueAtTime(0.18,t);g2.gain.exponentialRampToValueAtTime(0.001,t+beatLen*0.9);o2.connect(g2);g2.connect(musicGain);o2.start(t);o2.stop(t+beatLen*0.95);if(step%2===0){const buf=audioCtx.createBuffer(1,audioCtx.sampleRate*0.05,audioCtx.sampleRate);const d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.exp(-i/(d.length*0.15));const src=audioCtx.createBufferSource(),hg=audioCtx.createGain();src.buffer=buf;hg.gain.value=0.06;src.connect(hg);hg.connect(musicGain);src.start(t)}step++}bgmInterval=setInterval(playStep,beatLen*1000);playStep()}
+function stopBGM(){if(bgmInterval){clearInterval(bgmInterval);bgmInterval=null}}
+function sfxCorrect(){if(!audioCtx||!musicOn)return;const t=audioCtx.currentTime;[523.25,659.25,783.99,1046.5].forEach(function(f,i){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0.2,t+i*0.08);g.gain.exponentialRampToValueAtTime(0.001,t+i*0.08+0.2);o.connect(g);g.connect(sfxGain);o.start(t+i*0.08);o.stop(t+i*0.08+0.25)})}
+function sfxWrong(){if(!audioCtx||!musicOn)return;const t=audioCtx.currentTime;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sawtooth';o.frequency.setValueAtTime(300,t);o.frequency.exponentialRampToValueAtTime(100,t+0.3);g.gain.setValueAtTime(0.15,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.3);o.connect(g);g.connect(sfxGain);o.start(t);o.stop(t+0.35)}
+function sfxTick(){if(!audioCtx||!musicOn)return;const t=audioCtx.currentTime;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.value=880;g.gain.setValueAtTime(0.08,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.06);o.connect(g);g.connect(sfxGain);o.start(t);o.stop(t+0.08)}
+function sfxTimeWarn(){if(!audioCtx||!musicOn)return;const t=audioCtx.currentTime;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='square';o.frequency.value=600;g.gain.setValueAtTime(0.1,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.12);o.connect(g);g.connect(sfxGain);o.start(t);o.stop(t+0.15)}
+function sfxPerfect(){if(!audioCtx||!musicOn)return;const t=audioCtx.currentTime;[523.25,659.25,783.99,1046.5,1318.51,1046.5,1318.51,1567.98].forEach(function(f,i){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='square';o.frequency.value=f;const s=t+i*0.1;g.gain.setValueAtTime(0.15,s);g.gain.exponentialRampToValueAtTime(i===7?0.08:0.001,s+(i===7?0.5:0.15));o.connect(g);g.connect(sfxGain);o.start(s);o.stop(s+(i===7?0.6:0.18))})}
+function sfxClick(){if(!audioCtx||!musicOn)return;const t=audioCtx.currentTime;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.value=660;g.gain.setValueAtTime(0.1,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.04);o.connect(g);g.connect(sfxGain);o.start(t);o.stop(t+0.05)}
+
+/* ── Background decorations ── */
+!function(){const s=['+','\u2212','\u00d7','\u00f7','=','%','\u03c0','\u221a','\u2211','\u221e'],c=document.getElementById('bg');for(let i=0;i<25;i++){const e=document.createElement('span');e.textContent=s[~~(Math.random()*s.length)];e.style.left=Math.random()*100+'%';e.style.fontSize=(1+Math.random()*2.5)+'rem';e.style.animationDuration=(12+Math.random()*18)+'s';e.style.animationDelay=Math.random()*15+'s';c.appendChild(e)}}();
+!function(){const d=new Date(),w=Math.ceil(((d-new Date(d.getFullYear(),0,1))/864e5+new Date(d.getFullYear(),0,1).getDay()+1)/7);const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];document.getElementById('weekBadge').textContent='Week '+w+' \u00b7 '+m[d.getMonth()]+' '+d.getFullYear()}();
+
+function ri(a,b){return~~(Math.random()*(b-a+1))+a}
+
+/* ── Individual question generators (each returns {q, a, teks, ctx}) ── */
+var GEN = {};
+/* ── Grade 1 – EC-6 generators ── */
+GEN.g1_subitizing = function(){var n=ri(3,10);var dots=[];for(var i=0;i<n;i++)dots.push('\u2022');return{q:'How many dots? '+dots.join(' '),a:n,teks:'1.2A',ctx:''}};
+GEN.g1_composeDecompose = function(){var t=ri(1,9),o=ri(1,9);var num=t*10+o;return{q:t+' tens + '+o+' ones = ?',a:num,teks:'1.2B',ctx:''}};
+GEN.g1_compareNumbers = function(){var a=ri(10,50),b=ri(10,50);if(a===b)b++;return{q:'Which is greater: '+a+' or '+b+'?',a:a>b?a:b,teks:'1.2E',ctx:''}};
+GEN.g1_orderNumbers = function(){var arr=[ri(15,40),ri(15,40),ri(15,40)];arr.sort(function(x,y){return x-y});return{q:'Order from least to greatest: '+arr[1]+', '+arr[0]+', '+arr[2],a:arr[0]+', '+arr[1]+', '+arr[2],teks:'1.2F',ctx:''}};
+GEN.g1_compareSymbols = function(){var a=ri(10,50),b=ri(10,50);if(a===b)b++;var ans=a>b?'>':a<b?'<':'=';return{q:a+' ___ '+b+' ?',a:ans,teks:'1.2G',ctx:'Choose >, <, or ='}};
+GEN.g1_wordProblems = function(){var a=ri(5,12),b=ri(3,8);return{q:'There are '+a+' birds. '+b+' fly away. How many remain?',a:a-b,teks:'1.3B',ctx:''}};
+GEN.g1_composeTen = function(){var a=ri(3,7),b=10-a;return{q:a+' + ___ = 10',a:b,teks:'1.3C',ctx:''}};
+GEN.g1_addSub20 = function(){if(ri(0,1)){var a=ri(5,15),b=ri(2,a-1);return{q:a+' \u2212 '+b+' = ?',a:a-b,teks:'1.3D',ctx:''}}else{var a=ri(5,12),b=ri(3,8);return{q:a+' + '+b+' = ?',a:a+b,teks:'1.3D',ctx:''}}};
+GEN.g1_explainStrategies = function(){return{q:'To add 8 + 5, you can make 10 by taking 2 from 5. So 8 + 2 = 10, and 10 + 3 = ?',a:13,teks:'1.3E',ctx:'Making 10 strategy'}};
+GEN.g1_identifyCoins = function(){var qs=[{q:'A penny is worth ___ cent(s).',a:1,ctx:''},{q:'A nickel is worth ___ cents.',a:5,ctx:''},{q:'A dime is worth ___ cents.',a:10,ctx:''},{q:'A quarter is worth ___ cents.',a:25,ctx:''}];var p=qs[ri(0,qs.length-1)];return{q:p.q,a:p.a,teks:'1.4A',ctx:p.ctx}};
+GEN.g1_coinValue = function(){var n=ri(2,5);return{q:n+' nickels = ___ cents',a:n*5,teks:'1.4B',ctx:''}};
+GEN.g1_countCoins = function(){var d=ri(1,3),n=ri(1,4),p=ri(0,4);var total=d*10+n*5+p;return{q:d+' dime(s) + '+n+' nickel(s) + '+p+' penny(ies) = ___ cents',a:total,teks:'1.4C',ctx:''}};
+GEN.g1_skipCount = function(){var by=ri(0,1)?2:5;var start=ri(1,3)*by;var mid=start+by;var end=mid+by;return{q:'Skip count by '+by+'s: '+start+', ___, '+end,a:mid,teks:'1.5B',ctx:''}};
+GEN.g1_tenMoreLess = function(){var n=ri(20,80);return{q:'10 more than '+n+' is ___',a:n+10,teks:'1.5C',ctx:''}};
+GEN.g1_representWordProblems = function(){var a=ri(5,12),b=ri(2,5);return{q:a+' apples. Eat '+b+'. How many left?',a:a-b,teks:'1.5D',ctx:''}};
+GEN.g1_equalSign = function(){var a=ri(3,8),b=ri(2,7);return{q:a+' + '+b+' = ___ + '+a,a:b,teks:'1.5E',ctx:'Both sides equal'}};
+GEN.g1_properties = function(){var a=ri(2,5),b=ri(2,5),c=ri(1,4);return{q:'('+a+' + '+b+') + '+c+' = '+a+' + (___ + '+c+')',a:b,teks:'1.5G',ctx:'Associative property'}};
+GEN.g1_identifyShapes = function(){var qs=[{q:'A square has ___ sides.',a:4,ctx:''},{q:'A triangle has ___ sides.',a:3,ctx:''},{q:'A circle has ___ sides.',a:0,ctx:''}];var p=qs[ri(0,qs.length-1)];return{q:p.q,a:p.a,teks:'1.6D',ctx:p.ctx}};
+GEN.g1_identifySolids = function(){var qs=[{q:'A cube has ___ faces.',a:6,ctx:''},{q:'A sphere has ___ flat faces.',a:0,ctx:''},{q:'A cylinder has ___ circular bases.',a:2,ctx:''}];var p=qs[ri(0,qs.length-1)];return{q:p.q,a:p.a,teks:'1.6E',ctx:p.ctx}};
+GEN.g1_partitionEqual = function(){var parts=ri(0,1)?2:4;return{q:'A shape divided into '+parts+' equal parts. Each part is ___.',a:'1/'+parts,teks:'1.6G',ctx:''}};
+GEN.g1_halvesFourths = function(){var qs=[{q:'Is 1/2 the same as one half?',a:'Yes',ctx:''},{q:'How many fourths make a whole?',a:4,ctx:''}];var p=qs[ri(0,qs.length-1)];return{q:p.q,a:p.a,teks:'1.6H',ctx:p.ctx}};
+GEN.g1_tellTime = function(){var h=ri(1,12),m=ri(0,1)?0:30;var time=m===0?h+':00':h+':30';return{q:'What time is it? The clock shows '+h+' o\'clock'+(m===30?' and 30 minutes':'')+'.',a:time,teks:'1.7E',ctx:''}};
+GEN.g1_graphConclusions = function(){var v1=ri(3,8),v2=ri(2,7);return{q:'A bar graph shows Red='+v1+', Blue='+v2+'. How many chose Red?',a:v1,teks:'1.8C',ctx:''}};
+/* ── Grade 2 – EC-6 generators ── */
+GEN.g2_composeDecompose1200 = function(){var h=ri(1,9),t=ri(1,9),o=ri(0,9);var num=h*100+t*10+o;return{q:h+' hundreds + '+t+' tens + '+o+' ones = ?',a:num,teks:'2.2A',ctx:''}};
+GEN.g2_numberForms = function(){var h=ri(1,9),t=ri(0,9),o=ri(0,9);var n=h*100+t*10+o;var parts=[];if(h)parts.push(h*100);if(t)parts.push(t*10);if(o)parts.push(o);if(parts.length===0)parts=[0];return{q:'Write '+n+' in expanded form.',a:parts.join(' + '),teks:'2.2B',ctx:''}};
+GEN.g2_compareOrder = function(){var a=ri(100,400),b=ri(100,400);if(a===b)b+=ri(10,50);var ans=a>b?'>':'<';return{q:a+' ___ '+b,a:ans,teks:'2.2D',ctx:''}};
+GEN.g2_addSub20 = function(){var a=ri(5,18),b=ri(2,9);return{q:a+' + '+b+' = ?',a:a+b,teks:'2.4A',ctx:''}};
+GEN.g2_addTwoDigit = function(){var a=ri(20,60),b=ri(15,50);return{q:a+' + '+b+' = ?',a:a+b,teks:'2.4B',ctx:''}};
+GEN.g2_coinValue = function(){var q=ri(0,2),d=ri(0,3),n=ri(0,4),p=ri(0,9);var total=q*25+d*10+n*5+p;if(total===0)return GEN.g2_coinValue();return{q:q+' quarter(s) + '+d+' dime(s) + '+n+' nickel(s) + '+p+' penny(ies) = ___ cents',a:total,teks:'2.5A',ctx:''}};
+GEN.g2_equalGroups = function(){var g=ri(2,5),p=ri(2,5);return{q:g+' groups of '+p+' = ?',a:g*p,teks:'2.6A',ctx:''}};
+GEN.g2_equalShares = function(){var total=ri(4,12),people=ri(2,4);if(total%people!==0)return GEN.g2_equalShares();return{q:total+' cookies shared among '+people+' people. Each gets ___',a:total/people,teks:'2.6B',ctx:''}};
+GEN.g2_evenOdd = function(){var n=ri(10,35);return{q:'Is '+n+' even or odd?',a:n%2===0?'Even':'Odd',teks:'2.7A',ctx:''}};
+GEN.g2_tenHundredMoreLess = function(){var n=ri(100,800);if(ri(0,1))return{q:'10 more than '+n+' = ?',a:n+10,teks:'2.7B',ctx:''};return{q:'100 more than '+n+' = ?',a:n+100,teks:'2.7B',ctx:''}};
+GEN.g2_polygonSides = function(){var qs=[{q:'A triangle has ___ sides.',a:3,ctx:''},{q:'A quadrilateral has ___ sides.',a:4,ctx:''},{q:'A pentagon has ___ sides.',a:5,ctx:''}];var p=qs[ri(0,qs.length-1)];return{q:p.q,a:p.a,teks:'2.8C',ctx:p.ctx}};
+GEN.g2_areaRectangle = function(){var l=ri(2,6),w=ri(2,5);return{q:'A rectangle '+l+' by '+w+' has area ___ square units.',a:l*w,teks:'2.9F',ctx:''}};
+GEN.g2_graphWordProblems = function(){var v1=ri(5,12),v2=ri(3,10);return{q:'Graph: Dogs='+v1+', Cats='+v2+'. How many more dogs than cats?',a:v1-v2,teks:'2.10C',ctx:''}};
+GEN.placeValue_expanded = function(){var th=ri(1,9),h=ri(0,9),te=ri(0,9),o=ri(0,9);var num=th*1000+h*100+te*10+o;var parts=[th*1000,h*100,te*10,o].filter(function(x){return x>0});return{q:parts.join(' + ')+' = ?',a:num,teks:'3.2A',ctx:''}};
+GEN.placeValue_digit = function(){var num=ri(1000,99999);var places=[['ones',1],['tens',10],['hundreds',100],['thousands',1000]];var p=places[ri(0,3)];return{q:'What digit is in the '+p[0]+' place?',a:Math.floor(num/p[1])%10,teks:'3.2B',ctx:num.toLocaleString()}};
+GEN.placeValue_round = function(){var num=ri(10,990);return{q:'Round '+num+' to the nearest hundred = ?',a:Math.round(num/100)*100,teks:'3.2C',ctx:''}};
+GEN.compareFractions = function(){var dn=([2,3,4,6,8])[ri(0,4)];var a1=ri(1,dn-1),a2=ri(1,dn-1);if(a1===a2)return GEN.addSub();var bigger=a1>a2?a1+'/'+dn:a2+'/'+dn;return{q:'Which is greater: '+a1+'/'+dn+' or '+a2+'/'+dn+'?',a:bigger,teks:'3.3H',ctx:''}};
+GEN.addSub = function(){var op=ri(0,1);if(op===0){var x=ri(100,500),y=ri(100,499);return{q:x+' + '+y+' = ?',a:x+y,teks:'3.4A',ctx:''}}else{var x=ri(200,999),y=ri(100,x-1);return{q:x+' \u2212 '+y+' = ?',a:x-y,teks:'3.4A',ctx:''}}};
+GEN.addSubWord = function(){var names=['Emma','Liam','Mia','Noah','Ava','Ethan'];var n=names[ri(0,names.length-1)];if(ri(0,1)===0){var x=ri(120,450),y=ri(50,300);return{q:'How many pages total?',a:x+y,teks:'3.5A',ctx:n+' read '+x+' pages last week and '+y+' pages this week.'}}else{var x=ri(300,800),y=ri(100,x-50);return{q:'How many apples are left?',a:x-y,teks:'3.5A',ctx:'A store had '+x+' apples. They sold '+y+'.'}}};
+GEN.multiply = function(){var x=ri(2,10),y=ri(2,10);return{q:x+' \u00d7 '+y+' = ?',a:x*y,teks:'3.4F',ctx:''}};
+GEN.multiplyWord = function(){var items=['stickers','marbles','crayons','cookies','cards','pencils'];var item=items[ri(0,items.length-1)];var groups=ri(2,9),per=ri(2,10);if(groups*per>100)return GEN.multiply();return{q:'How many '+item+' in all?',a:groups*per,teks:'3.5B',ctx:'There are '+groups+' bags with '+per+' '+item+' in each bag.'}};
+GEN.divide = function(){var b=ri(2,10),r=ri(2,10);return{q:b*r+' \u00f7 '+b+' = ?',a:r,teks:'3.4K',ctx:''}};
+GEN.divideWord = function(){var b=ri(2,8),r=ri(2,10);var total=b*r;return{q:'How many does each get?',a:r,teks:'3.4H',ctx:total+' stickers shared equally among '+b+' friends.'}};
+GEN.twoDigitByOne = function(){var x=ri(11,25),y=ri(2,5);return{q:x+' \u00d7 '+y+' = ?',a:x*y,teks:'3.4G',ctx:''}};
+GEN.missingFactor = function(){var x=ri(2,10),y=ri(2,10);return{q:x+' \u00d7 ___ = '+x*y,a:y,teks:'3.5D',ctx:''}};
+GEN.evenOdd = function(){var num=ri(10,200);return{q:'Is '+num+' even or odd?',a:num%2===0?'Even':'Odd',teks:'3.4I',ctx:''}};
+GEN.rounding = function(){if(ri(0,1)===0){var num=ri(12,98);return{q:'Round '+num+' to the nearest 10 = ?',a:Math.round(num/10)*10,teks:'3.4B',ctx:''}}else{var num=ri(110,990);return{q:'Round '+num+' to the nearest 100 = ?',a:Math.round(num/100)*100,teks:'3.4B',ctx:''}}};
+GEN.pattern = function(){var start=ri(1,5),step=ri(2,6);var seq=[start,start+step,start+step*2,start+step*3];return{q:seq.join(', ')+', ___',a:start+step*4,teks:'3.5E',ctx:'What comes next in the pattern?'}};
+GEN.area = function(){var l=ri(2,10),w=ri(2,10);return{q:'What is the area?',a:l*w,teks:'3.6C',ctx:'A rectangle is '+l+' units long and '+w+' units wide.'}};
+GEN.perimeter = function(){var l=ri(3,12),w=ri(3,12);return{q:'What is the perimeter?',a:2*(l+w),teks:'3.7B',ctx:'A rectangle has sides of '+l+' ft and '+w+' ft.'}};
+GEN.time = function(){var mins=[10,15,20,25,30,45];var m1=mins[ri(0,5)],m2=mins[ri(0,5)];return{q:'Total time in minutes?',a:m1+m2,teks:'3.7C',ctx:'A movie preview is '+m1+' min. The movie is '+m2+' min.'}};
+GEN.coins = function(){var quarters=ri(0,4),dimes=ri(0,5),nickels=ri(0,4),pennies=ri(0,9);var total=quarters*25+dimes*10+nickels*5+pennies;if(total===0)return GEN.coins();var parts=[];if(quarters)parts.push(quarters+' quarter'+(quarters>1?'s':''));if(dimes)parts.push(dimes+' dime'+(dimes>1?'s':''));if(nickels)parts.push(nickels+' nickel'+(nickels>1?'s':''));if(pennies)parts.push(pennies+(pennies>1?' pennies':' penny'));return{q:'How many cents?',a:total,teks:'3.4C',ctx:parts.join(', ')}};
+
+/* ── New generators for all Grade 3 TEKS ── */
+
+GEN.compareOrder = function(){var a=ri(1000,90000),b=ri(1000,90000);if(a===b)b+=ri(1,100);var ans=a>b?'>':a<b?'<':'=';return{q:'Which symbol goes in the blank? '+a.toLocaleString()+' ___ '+b.toLocaleString(),a:ans,teks:'3.2D',ctx:'Choose >, <, or ='}};
+
+GEN.representFraction = function(){var dn=([2,3,4,6,8])[ri(0,4)];var nm=ri(1,dn);return{q:'A shape is divided into '+dn+' equal parts. '+nm+' part'+(nm>1?'s are':' is')+' shaded. What fraction is shaded?',a:nm+'/'+dn,teks:'3.3A',ctx:''}};
+
+GEN.fractionNumberLine = function(){var dn=([2,4,8])[ri(0,2)];var nm=ri(1,dn-1);return{q:'A number line from 0 to 1 is divided into '+dn+' equal parts. What fraction is at mark '+nm+'?',a:nm+'/'+dn,teks:'3.3B',ctx:''}};
+
+GEN.unitFraction = function(){var dn=([2,3,4,6,8])[ri(0,4)];return{q:'A pizza is cut into '+dn+' equal slices. What fraction is ONE slice?',a:'1/'+dn,teks:'3.3C',ctx:''}};
+
+GEN.composeFraction = function(){var dn=([2,3,4,6,8])[ri(0,4)];var nm=ri(2,dn);var sum=[];for(var i=0;i<nm;i++)sum.push('1/'+dn);return{q:sum.join(' + ')+' = ?',a:nm+'/'+dn,teks:'3.3D',ctx:'Add the unit fractions.'}};
+
+GEN.partitionShare = function(){var total=ri(2,5)*([2,3,4])[ri(0,2)];var people=([2,3,4])[ri(0,2)];var each=total/people;if(each!==Math.floor(each))return GEN.partitionShare();return{q:'How many does each person get?',a:each,teks:'3.3E',ctx:total+' cookies shared equally among '+people+' friends.'}};
+
+GEN.equivalentFraction = function(){var pairs=[[1,2,2,4],[1,2,3,6],[1,2,4,8],[1,3,2,6],[1,4,2,8],[2,4,1,2],[3,6,1,2],[2,6,1,3],[2,8,1,4],[3,4,6,8]];var p=pairs[ri(0,pairs.length-1)];return{q:p[0]+'/'+p[1]+' = ?/'+p[3],a:p[2],teks:'3.3F',ctx:'Find the equivalent fraction.'}};
+
+GEN.explainEquivalence = function(){var pairs=[['1/2','2/4','Yes'],['1/3','2/6','Yes'],['1/4','2/8','Yes'],['2/3','4/6','Yes'],['1/2','1/3','No'],['2/4','3/4','No'],['1/3','1/4','No'],['3/6','2/4','Yes'],['2/8','1/4','Yes'],['3/8','1/4','No']];var p=pairs[ri(0,pairs.length-1)];return{q:'Are '+p[0]+' and '+p[1]+' equivalent fractions?',a:p[2],teks:'3.3G',ctx:''}};
+
+GEN.equalGroups = function(){var groups=ri(2,10),per=ri(2,10);return{q:'How many objects in all?',a:groups*per,teks:'3.4D',ctx:groups+' rows with '+per+' objects in each row.'}};
+
+GEN.multRepresent = function(){var x=ri(2,8),y=ri(2,6);var total=x*y;var sum=[];for(var i=0;i<x;i++)sum.push(y);return{q:sum.join(' + ')+' = ?',a:total,teks:'3.4E',ctx:'Write as multiplication: '+x+' \u00d7 '+y}};
+
+GEN.quotientRelation = function(){var a=ri(2,10),b=ri(2,10);var product=a*b;return{q:'If '+a+' \u00d7 '+b+' = '+product+', then '+product+' \u00f7 '+a+' = ?',a:b,teks:'3.4J',ctx:'Use the multiplication fact to find the quotient.'}};
+
+GEN.multComparison = function(){var x=ri(2,6),y=ri(3,12);return{q:x+' \u00d7 '+y+' means '+x+' times as much as what number?',a:y,teks:'3.5C',ctx:''}};
+
+GEN.classifyShapes = function(){var qs=[{q:'How many faces does a cube have?',a:6,ctx:'Think about a 3D cube.'},{q:'How many edges does a rectangular prism have?',a:12,ctx:'Count all the edges.'},{q:'A sphere has how many flat faces?',a:0,ctx:'Think about a ball.'},{q:'How many vertices does a cylinder have?',a:0,ctx:'Think about a can.'},{q:'How many faces does a triangular prism have?',a:5,ctx:'3 rectangles + 2 triangles.'},{q:'A cone has how many vertices?',a:1,ctx:'Think about an ice cream cone.'},{q:'How many edges does a cube have?',a:12,ctx:'Count the edges of a cube.'},{q:'How many flat faces does a cone have?',a:1,ctx:'A cone has a circular base.'}];var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'3.6A',ctx:pick.ctx}};
+
+GEN.quadrilaterals = function(){var qs=[{q:'How many sides does a quadrilateral have?',a:4,ctx:''},{q:'A square has how many right angles?',a:4,ctx:''},{q:'How many pairs of parallel sides does a rectangle have?',a:2,ctx:''},{q:'A trapezoid has how many pairs of parallel sides?',a:1,ctx:''},{q:'How many equal sides does a rhombus have?',a:4,ctx:'All sides of a rhombus are equal.'},{q:'A parallelogram has how many pairs of parallel sides?',a:2,ctx:''},{q:'How many sides does a rectangle have?',a:4,ctx:'A rectangle is a quadrilateral.'}];var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'3.6B',ctx:pick.ctx}};
+
+GEN.fractionDistance = function(){var dn=([2,4,8])[ri(0,2)];var nm=ri(1,dn);return{q:'What fraction names the distance from 0 to the '+nm+(nm===1?'st':nm===2?'nd':nm===3?'rd':'th')+' mark on a number line divided into '+dn+' equal parts?',a:nm+'/'+dn,teks:'3.7A',ctx:'The number line goes from 0 to 1.'}};
+
+GEN.measureChoice = function(){var items=[{q:'Measuring water in a fish tank',a:'Capacity'},{q:'Measuring how heavy a backpack is',a:'Weight'},{q:'Measuring juice in a pitcher',a:'Capacity'},{q:'Measuring a bag of apples',a:'Weight'},{q:'Measuring milk for a recipe',a:'Capacity'},{q:'Measuring a stack of books',a:'Weight'},{q:'Measuring water in a swimming pool',a:'Capacity'},{q:'Measuring a puppy',a:'Weight'}];var pick=items[ri(0,items.length-1)];return{q:'Is this measured by capacity or weight?',a:pick.a,teks:'3.7D',ctx:pick.q}};
+
+GEN.measureUnits = function(){var qs=[{q:'About how many liters does a large water bottle hold?',a:2,ctx:'Choose the best estimate.'},{q:'A paperclip weighs about how many grams?',a:1,ctx:'Choose the best estimate.'},{q:'A watermelon weighs about how many kilograms?',a:5,ctx:'Choose the best estimate.'},{q:'A teaspoon holds about how many milliliters?',a:5,ctx:'Choose the best estimate.'},{q:'A bag of flour weighs about how many kilograms?',a:2,ctx:'Choose the best estimate.'},{q:'A juice box holds about how many milliliters?',a:250,ctx:'Choose the best estimate.'}];var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'3.7E',ctx:pick.ctx}};
+
+GEN.dataDisplay = function(){var cats=['Red','Blue','Green','Yellow'];var vals=[ri(2,10),ri(2,10),ri(2,10),ri(2,10)];var total=vals[0]+vals[1]+vals[2]+vals[3];var maxIdx=vals.indexOf(Math.max.apply(null,vals));if(ri(0,1)===0){return{q:'How many students chose '+cats[ri(0,3)]+'?',a:vals[ri(0,3)],teks:'3.8A',ctx:'Favorite colors: Red='+vals[0]+', Blue='+vals[1]+', Green='+vals[2]+', Yellow='+vals[3]}}else{return{q:'How many students voted in all?',a:total,teks:'3.8A',ctx:'Favorite colors: Red='+vals[0]+', Blue='+vals[1]+', Green='+vals[2]+', Yellow='+vals[3]}}};
+
+GEN.dataProblems = function(){var cats=['Soccer','Basketball','Baseball'];var vals=[ri(4,15),ri(4,15),ri(4,15)];var diff=vals[0]-vals[2];if(diff<0)diff=-diff;if(ri(0,1)===0){return{q:'How many more students chose '+cats[0]+' than '+cats[2]+'?',a:Math.abs(vals[0]-vals[2]),teks:'3.8B',ctx:'Favorite sports: '+cats[0]+'='+vals[0]+', '+cats[1]+'='+vals[1]+', '+cats[2]+'='+vals[2]}}else{return{q:'How many students chose '+cats[0]+' and '+cats[1]+' combined?',a:vals[0]+vals[1],teks:'3.8B',ctx:'Favorite sports: '+cats[0]+'='+vals[0]+', '+cats[1]+'='+vals[1]+', '+cats[2]+'='+vals[2]}}};
+
+GEN.finLitIncome = function(){var qs=[{q:'A doctor earns more than a cashier because of what?',a:'Education & Training',ctx:'Think about human capital.'},{q:'What do people trade their labor for?',a:'Income',ctx:'People work to earn money.'},{q:'Learning new skills increases your what?',a:'Human Capital',ctx:'Skills and education are human capital.'},{q:'Which job likely earns the most: teacher, surgeon, or clerk?',a:'Surgeon',ctx:'More training often means more income.'}];var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'3.9A',ctx:pick.ctx}};
+
+GEN.finLitScarcity = function(){var qs=[{q:'When there are only 5 concert tickets left and 100 people want them, what happens to the price?',a:'Goes Up',ctx:'This is called scarcity.'},{q:'If a store has too many apples, what will likely happen to the price?',a:'Goes Down',ctx:'Supply is greater than demand.'},{q:'Water in a desert is expensive because of what?',a:'Scarcity',ctx:'Resources are limited.'},{q:'When many stores sell the same toy, the price usually does what?',a:'Goes Down',ctx:'More supply means lower cost.'}];var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'3.9B',ctx:pick.ctx}};
+
+GEN.finLitSpending = function(){var qs=[{q:'Buying something on sale that you planned for is what type of spending?',a:'Planned',ctx:'You thought about it before buying.'},{q:'Buying candy at the checkout because it looks good is what type of spending?',a:'Unplanned',ctx:'You did not plan to buy it.'},{q:'Saving up for a bicycle is an example of what?',a:'Planned Spending',ctx:'You set a goal and saved for it.'},{q:'A benefit of planned spending is what?',a:'You stay in budget',ctx:'Planning helps you manage money.'}];var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'3.9C',ctx:pick.ctx}};
+
+GEN.finLitCredit = function(){var qs=[{q:'When you borrow money and pay it back later, this is called what?',a:'Credit',ctx:'Credit means borrowing.'},{q:'The extra money you pay when you borrow is called what?',a:'Interest',ctx:'Lenders charge interest.'},{q:'Who is responsible for paying back borrowed money?',a:'The Borrower',ctx:'The borrower must repay.'},{q:'If you borrow $10 and pay back $12, how much is the interest?',a:2,ctx:'Interest = amount paid back \u2212 amount borrowed.'}];var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'3.9D',ctx:pick.ctx}};
+
+GEN.finLitSaving = function(){var qs=[{q:'Putting money aside for later is called what?',a:'Saving',ctx:'Saving helps reach goals.'},{q:'Which is a good reason to save money?',a:'For emergencies',ctx:'Unexpected costs can happen.'},{q:'A plan for how to save money over time is called a what?',a:'Savings Plan',ctx:'Planning helps you save more.'},{q:'Saving $5 each week for 4 weeks gives you how much?',a:20,ctx:'$5 \u00d7 4 weeks'}];var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'3.9E',ctx:pick.ctx}};
+
+/* ── Grade 4 generators ── */
+GEN.g4_placeValueRelations = function(){var places=[['tens','10 times','ones'],['hundreds','10 times','tens'],['thousands','10 times','hundreds'],['ten-thousands','one-tenth','hundred-thousands']];var p=places[ri(0,3)];return{q:'The '+p[0]+' place is ___ the value of the '+p[2]+' place.',a:p[1],teks:'4.2A',ctx:'Think about place value relationships.'}};
+GEN.g4_expandedNotation = function(){var millions=ri(1,9),hTh=ri(0,9),tTh=ri(0,9),th=ri(0,9),h=ri(0,9),te=ri(0,9),o=ri(0,9);var num=millions*1e6+hTh*100000+tTh*10000+th*1000+h*100+te*10+o;var parts=[millions*1000000,hTh*100000,tTh*10000,th*1000,h*100,te*10,o].filter(function(x){return x>0});return{q:parts.join(' + ')+' = ?',a:num,teks:'4.2B',ctx:''}};
+GEN.g4_compareOrder = function(){var a=ri(100000,999999999),b=ri(100000,999999999);if(a===b)b+=ri(1,1000);var ans=a>b?'>':a<b?'<':'=';return{q:'Which symbol? '+a.toLocaleString()+' ___ '+b.toLocaleString(),a:ans,teks:'4.2C',ctx:'Choose >, <, or ='}};
+GEN.g4_rounding = function(){var places=[['nearest 10',10],['nearest 100',100],['nearest 1,000',1000],['nearest 10,000',10000]];var p=places[ri(0,3)];var num=ri(100,999999);return{q:'Round '+num.toLocaleString()+' to the '+p[0]+' = ?',a:Math.round(num/p[1])*p[1],teks:'4.2D',ctx:''}};
+GEN.g4_decomposeFractions = function(){var dn=[2,3,4,5,6,8][ri(0,5)];var nm=ri(2,dn);var sum=[];for(var i=0;i<nm;i++)sum.push('1/'+dn);return{q:sum.join(' + ')+' = ?',a:nm+'/'+dn,teks:'4.3A',ctx:'Add the unit fractions.'}};
+GEN.g4_decomposeMultiple = function(){var dn=4;var nm=ri(2,3);var sum=[];for(var i=0;i<nm;i++)sum.push('1/'+dn);var alt=nm+'/'+dn;return{q:'Write '+alt+' as a sum of unit fractions. Which is correct?',a:sum.join(' + '),teks:'4.3B',ctx:'Decompose into 1/'+dn+' parts.'}};
+GEN.g4_equivalentFractions = function(){var pairs=[[1,2,2,4],[1,2,4,8],[2,4,1,2],[1,3,2,6],[1,4,2,8],[3,4,6,8],[2,3,4,6]];var p=pairs[ri(0,pairs.length-1)];return{q:p[0]+'/'+p[1]+' = ?/'+p[3],a:p[2],teks:'4.3C',ctx:'Find the equivalent fraction.'}};
+GEN.g4_compareFractions = function(){var dn1=[2,3,4,6,8][ri(0,4)],dn2=[2,3,4,6,8][ri(0,4)];var n1=ri(1,dn1-1),n2=ri(1,dn2-1);var v1=n1/dn1,v2=n2/dn2;var bigger=v1>v2?n1+'/'+dn1:v2>v1?n2+'/'+dn2:(n1+'/'+dn1);return{q:'Which is greater: '+n1+'/'+dn1+' or '+n2+'/'+dn2+'?',a:bigger,teks:'4.3D',ctx:''}};
+GEN.g4_addSubFractions = function(){var dn=[2,4,6,8][ri(0,3)];var n1=ri(1,dn-1),n2=ri(1,dn-1);if(ri(0,1)===0){var sum=n1+n2;if(sum>dn)return GEN.g4_addSubFractions();return{q:n1+'/'+dn+' + '+n2+'/'+dn+' = ?',a:sum+'/'+dn,teks:'4.3E',ctx:''}}else{var diff=n1-n2;if(diff<=0)return GEN.g4_addSubFractions();return{q:n1+'/'+dn+' \u2212 '+n2+'/'+dn+' = ?',a:diff+'/'+dn,teks:'4.3E',ctx:''}}};
+GEN.g4_reasonablenessFractions = function(){var dn=4;var n1=ri(1,2),n2=ri(1,2);var sum=n1+n2;var opts=['Less than 1','Between 1 and 2','Greater than 2','Exactly 2'];var ans=sum/dn<1?'Less than 1':sum/dn<=2?'Between 1 and 2':'Greater than 2';return{q:n1+'/'+dn+' + '+n2+'/'+dn+' is reasonable to say the sum is:',a:ans,teks:'4.3F',ctx:'Estimate first.'}};
+GEN.g4_fractionsDecimalsNumberLine = function(){var dn=[2,4,5,10][ri(0,3)];var nm=ri(1,dn-1);return{q:'On a number line from 0 to 1 divided into '+dn+' parts, what fraction is at mark '+nm+'?',a:nm+'/'+dn,teks:'4.3G',ctx:''}};
+GEN.g4_addSubDecimals = function(){if(ri(0,1)===0){var x=ri(100,5000),y=ri(100,4999);return{q:x+' + '+y+' = ?',a:x+y,teks:'4.4A',ctx:''}}else{var x=ri(200,9999),y=ri(100,x-1);return{q:x+' \u2212 '+y+' = ?',a:x-y,teks:'4.4A',ctx:''}}};
+GEN.g4_multiplyTenHundred = function(){var n=ri(1,99);var mult=ri(0,1)?10:100;return{q:n+' \u00d7 '+(mult===10?'10':'100')+' = ?',a:n*mult,teks:'4.4B',ctx:''}};
+GEN.g4_twoDigitProducts = function(){var x=ri(12,45),y=ri(11,35);return{q:x+' \u00d7 '+y+' = ?',a:x*y,teks:'4.4C',ctx:''}};
+GEN.g4_multiplicationStrategies = function(){var x=ri(100,9999),y=ri(2,9);return{q:x+' \u00d7 '+y+' = ?',a:x*y,teks:'4.4D',ctx:''}};
+GEN.g4_divisionRepresentations = function(){var d=ri(2,9),q=ri(5,20);var total=d*q;return{q:total+' \u00f7 '+d+' = ?',a:q,teks:'4.4E',ctx:''}};
+GEN.g4_divisionStrategies = function(){var d=ri(2,9),q=ri(10,100);var total=d*q;return{q:total+' \u00f7 '+d+' = ?',a:q,teks:'4.4F',ctx:''}};
+GEN.g4_roundingEstimation = function(){var num=ri(100,9999);var t=ri(0,1)?10:100;return{q:'Round '+num+' to the nearest '+(t===10?'10':'100')+' to estimate. Result?',a:Math.round(num/t)*t,teks:'4.4G',ctx:''}};
+GEN.g4_multDivFluency = function(){if(ri(0,1)===0){var x=ri(2,12),y=ri(2,12);return{q:x+' \u00d7 '+y+' = ?',a:x*y,teks:'4.4H',ctx:''}}else{var d=ri(2,9),q=ri(2,12);return{q:(d*q)+' \u00f7 '+d+' = ?',a:q,teks:'4.4H',ctx:''}}};
+GEN.g4_multiStepEquations = function(){var x=ri(50,200),y=ri(30,100);return{q:'A store had '+x+' apples. They sold '+y+'. How many are left?',a:x-y,teks:'4.5A',ctx:''}};
+GEN.g4_inputOutput = function(){var start=ri(1,5),rule=ri(2,5);var out=start*rule;return{q:'If input is '+start+' and the rule is "multiply by '+rule+'", what is the output?',a:out,teks:'4.5B',ctx:''}};
+GEN.g4_perimeterAreaFormulas = function(){var l=ri(3,12),w=ri(3,12);if(ri(0,1)===0)return{q:'A rectangle is '+l+' by '+w+'. What is the perimeter?',a:2*(l+w),teks:'4.5C',ctx:''};return{q:'A rectangle is '+l+' by '+w+'. What is the area?',a:l*w,teks:'4.5C',ctx:''}};
+GEN.g4_perimeterAreaProblems = function(){var l=ri(4,15),w=ri(3,10);return{q:'A rectangle has length '+l+' and width '+w+'. What is the area?',a:l*w,teks:'4.5D',ctx:''}};
+GEN.g4_geometricFigures = function(){var qs=[{q:'How many sides does a ray have?',a:1,ctx:''},{q:'Perpendicular lines meet at what angle?',a:90,ctx:''},{q:'A line segment has how many endpoints?',a:2,ctx:''},{q:'Parallel lines never ___.',a:'Intersect',ctx:''}];var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'4.6A',ctx:pick.ctx}};
+GEN.g4_symmetry = function(){var qs=[{q:'A square has how many lines of symmetry?',a:4,ctx:''},{q:'A rectangle has how many lines of symmetry?',a:2,ctx:''},{q:'A circle has how many lines of symmetry?',a:'Infinitely many',ctx:''}];var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'4.6B',ctx:pick.ctx}};
+GEN.g4_triangleTypes = function(){var qs=[{q:'A triangle with one 90\u00b0 angle is called what?',a:'Right triangle',ctx:''},{q:'A triangle with all angles less than 90\u00b0 is?',a:'Acute triangle',ctx:''},{q:'A triangle with one angle greater than 90\u00b0 is?',a:'Obtuse triangle',ctx:''}];var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'4.6C',ctx:pick.ctx}};
+GEN.g4_classify2d = function(){var qs=[{q:'A parallelogram has how many pairs of parallel sides?',a:2,ctx:''},{q:'A trapezoid has how many pairs of parallel sides?',a:1,ctx:''}];var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'4.6D',ctx:pick.ctx}};
+GEN.g4_angleMeasure = function(){var qs=[{q:'A right angle measures how many degrees?',a:90,ctx:''},{q:'A straight angle measures how many degrees?',a:180,ctx:''},{q:'A full circle is how many degrees?',a:360,ctx:''}];var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'4.7A',ctx:pick.ctx}};
+GEN.g4_degrees = function(){return{q:'Angles are measured in what unit?',a:'Degrees',teks:'4.7B',ctx:''}};
+GEN.g4_measureAngles = function(){var angles=[30,45,60,90,120,135];var a=angles[ri(0,angles.length-1)];return{q:'An angle of '+a+'\u00b0 is best described as:',a:a===90?'Right':a<90?'Acute':'Obtuse',teks:'4.7C',ctx:''}};
+GEN.g4_drawAngles = function(){var a=ri(30,150);if(a===90)a=90;return{q:'To draw an angle of '+a+'\u00b0, you use a ___.',a:'Protractor',teks:'4.7D',ctx:''}};
+GEN.g4_unknownAngles = function(){var a=ri(30,80),b=ri(30,80);var sum=a+b;var comp=90-sum;if(comp<=0)return GEN.g4_unknownAngles();return{q:'Two angles add to 90\u00b0. One is '+a+'\u00b0. What is the other?',a:90-a,teks:'4.7E',ctx:''}};
+GEN.g4_measurementUnits = function(){var qs=[{q:'1 foot = how many inches?',a:12,ctx:''},{q:'1 meter = how many centimeters?',a:100,ctx:''},{q:'1 kilogram = how many grams?',a:1000,ctx:''}];var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'4.8A',ctx:pick.ctx}};
+GEN.g4_convertMeasurements = function(){var qs=[{q:'3 feet = how many inches?',a:36,ctx:''},{q:'2 meters = how many centimeters?',a:200,ctx:''},{q:'4 pounds = how many ounces?',a:64,ctx:''}];var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'4.8B',ctx:pick.ctx}};
+GEN.g4_elapsedTime = function(){var m1=[15,30,45,60][ri(0,3)],m2=[10,20,30][ri(0,2)];return{q:'A trip took '+m1+' min, then a break of '+m2+' min. Total minutes?',a:m1+m2,teks:'4.8C',ctx:''}};
+GEN.g4_dataDisplay = function(){var cats=['Red','Blue','Green'];var v1=ri(5,15),v2=ri(5,15),v3=ri(5,15);return{q:'In a survey: Red='+v1+', Blue='+v2+', Green='+v3+'. How many chose Red?',a:v1,teks:'4.9A',ctx:''}};
+GEN.g4_dataProblems = function(){var v1=ri(8,20),v2=ri(5,15),v3=ri(5,15);return{q:'Sports: Soccer='+v1+', Basketball='+v2+', Baseball='+v3+'. How many more chose Soccer than Baseball?',a:v1-v3,teks:'4.9B',ctx:''}};
+GEN.g4_fixedVariableExpenses = function(){var qs=[{q:'Rent each month is an example of what type of expense?',a:'Fixed',ctx:''},{q:'Groceries that change each week are what type?',a:'Variable',ctx:''}];var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'4.10A',ctx:pick.ctx}};
+GEN.g4_profit = function(){var rev=ri(50,200),cost=ri(20,rev-10);return{q:'Revenue $'+rev+', costs $'+cost+'. Profit?',a:rev-cost,teks:'4.10B',ctx:''}};
+GEN.g4_savingsPlans = function(){return{q:'Which helps you save more: a savings account or keeping cash at home?',a:'Savings account',teks:'4.10C',ctx:''}};
+GEN.g4_allocateAllowance = function(){return{q:'A good way to use allowance is to ___.',a:'Save some, spend some',teks:'4.10D',ctx:''}};
+GEN.g4_financialInstitutions = function(){return{q:'Banks and credit unions are types of ___.',a:'Financial institutions',teks:'4.10E',ctx:''}};
+
+/* ── Grade 5 generators ── */
+GEN.g5_decimalExpanded = function(){var a=ri(1,9),b=ri(1,9),c=ri(1,9);var n=a+'.'+b+c;var ans=a+' + '+(b/10).toFixed(1)+' + '+(c/100).toFixed(2);return{q:'Write '+n+' in expanded form.',a:ans,teks:'5.2A',ctx:''}};
+GEN.g5_compareDecimals = function(){var a=ri(10,99)/10,b=ri(10,99)/10;if(a===b)b+=0.1;return{q:'Which is greater: '+a+' or '+b+'?',a:a>b?a:b,teks:'5.2B',ctx:''}};
+GEN.g5_roundDecimals = function(){var n=ri(100,999)/100;var place=ri(0,1)?'tenths':'hundredths';var ans=place==='tenths'?Math.round(n*10)/10:Math.round(n*100)/100;return{q:'Round '+n+' to the nearest '+place+'.',a:ans,teks:'5.2C',ctx:''}};
+GEN.g5_multiply3x2 = function(){var a=ri(100,999),b=ri(10,99);return{q:a+' \u00d7 '+b+' = ?',a:a*b,teks:'5.3B',ctx:''}};
+GEN.g5_division4x2 = function(){var d=ri(11,99),q=ri(10,90);var total=d*q;return{q:total+' \u00f7 '+d+' = ?',a:q,teks:'5.3C',ctx:''}};
+GEN.g5_decimalMultiply = function(){var a=ri(1,9),b=ri(1,9);var x=a*b/10;return{q:a+' \u00d7 '+b/10+' = ?',a:x,teks:'5.3E',ctx:''}};
+GEN.g5_decimalDivide = function(){var d=ri(2,9),q=ri(2,9);var total=Math.round(d*q*100)/100;return{q:total+' \u00f7 '+d+' = ?',a:Math.round(total/d*100)/100,teks:'5.3G',ctx:''}};
+GEN.g5_addSubRational = function(){var n1=ri(1,3),d=4,n2=ri(1,3);var sum=n1+n2;if(sum>d)return GEN.g5_addSubRational();return{q:n1+'/'+d+' + '+n2+'/'+d+' = ?',a:sum+'/'+d,teks:'5.3K',ctx:''}};
+GEN.g5_primeComposite = function(){var qs=[{n:7,a:'Prime'},{n:9,a:'Composite'},{n:11,a:'Prime'},{n:12,a:'Composite'},{n:17,a:'Prime'}];var p=qs[ri(0,qs.length-1)];return{q:'Is '+p.n+' prime or composite?',a:p.a,teks:'5.4A',ctx:''}};
+GEN.g5_multiStepEquations = function(){var x=ri(20,80),y=ri(10,40);return{q:'A store had '+x+' items. They sold '+y+'. How many remain?',a:x-y,teks:'5.4B',ctx:''}};
+GEN.g5_volumeFormula = function(){var l=ri(2,8),w=ri(2,6),h=ri(2,6);return{q:'Volume of a rectangular prism with dimensions '+l+' \u00d7 '+w+' \u00d7 '+h+'?',a:l*w*h,teks:'5.4G',ctx:''}};
+GEN.g5_perimeterAreaVolume = function(){var l=ri(2,10),w=ri(2,8);if(ri(0,1))return{q:'Area of rectangle '+l+' by '+w+'?',a:l*w,teks:'5.4H',ctx:''};return{q:'Perimeter of rectangle '+l+' by '+w+'?',a:2*(l+w),teks:'5.4H',ctx:''}};
+GEN.g5_classifyHierarchy = function(){var qs=[{q:'A square is a special type of ___.',a:'rectangle',ctx:''},{q:'A rhombus has ___ pairs of parallel sides.',a:2,ctx:''}];var p=qs[ri(0,qs.length-1)];return{q:p.q,a:p.a,teks:'5.5A',ctx:p.ctx}};
+GEN.g5_measurementConversions = function(){var qs=[{q:'3 feet = ___ inches',a:36,ctx:''},{q:'2 meters = ___ centimeters',a:200,ctx:''},{q:'4 kg = ___ grams',a:4000,ctx:''}];var p=qs[ri(0,qs.length-1)];return{q:p.q,a:p.a,teks:'5.7A',ctx:p.ctx}};
+GEN.g5_coordinatePlane = function(){var qs=[{q:'The point (0,0) is called the ___.',a:'origin',ctx:''},{q:'The horizontal axis is the ___.',a:'x-axis',ctx:''}];var p=qs[ri(0,qs.length-1)];return{q:p.q,a:p.a,teks:'5.8A',ctx:p.ctx}};
+GEN.g5_dataProblems = function(){var v1=ri(5,15),v2=ri(5,15),v3=ri(5,15);return{q:'Data: A='+v1+', B='+v2+', C='+v3+'. Total?',a:v1+v2+v3,teks:'5.9C',ctx:''}};
+
+/* ── Grade 6 generators ── */
+GEN.g6_oppositeAbsolute = function(){var n=ri(-20,20);if(n===0)n=5;return{q:'|'+n+'| = ?',a:n<0?-n:n,teks:'6.2B',ctx:''}};
+GEN.g6_compareOrderNumberLine = function(){var a=ri(-5,5),b=ri(-5,5);if(a===b)b++;var ans=a>b?'>':'<';return{q:'Which symbol: '+a+' ___ '+b+'?',a:ans,teks:'6.2C',ctx:''}};
+GEN.g6_integerOperations = function(){var a=ri(-15,15),b=ri(1,15);if(ri(0,1))return{q:a+' + '+b+' = ?',a:a+b,teks:'6.3D',ctx:''};return{q:a+' \u2212 '+b+' = ?',a:a-b,teks:'6.3D',ctx:''}};
+GEN.g6_rationalOperations = function(){var n1=ri(1,4),d1=ri(2,6),n2=ri(1,4),d2=d1;var prod=n1*n2;var den=d1*d2;var g=function g(a,b){return b?g(b,a%b):a};var gcd=g(prod,den);return{q:n1+'/'+d1+' \u00d7 '+n2+'/'+d2+' = ?',a:(prod/gcd)+'/'+(den/gcd),teks:'6.3E',ctx:''}};
+GEN.g6_ratioRateReasoning = function(){var a=ri(2,5),b=ri(2,5);return{q:'If 3 apples cost $'+a+', how much for 6 apples?',a:a*2,teks:'6.4B',ctx:''}};
+GEN.g6_percentProblems = function(){var p=ri(10,50),w=ri(20,100);var part=Math.round(w*p/100);return{q:p+'% of '+w+' = ?',a:part,teks:'6.5B',ctx:''}};
+GEN.g6_representYkx = function(){var k=ri(2,5),x=ri(2,8);return{q:'If y = '+k+'x and x = '+x+', then y = ?',a:k*x,teks:'6.6C',ctx:''}};
+GEN.g6_orderOperations = function(){var a=ri(2,5),b=ri(2,5),c=ri(1,4);return{q:a+' + '+b+' \u00d7 '+c+' = ?',a:a+b*c,teks:'6.7A',ctx:''}};
+GEN.g6_areaVolumeSolve = function(){var l=ri(3,10),w=ri(3,8);return{q:'Area of rectangle '+l+' by '+w+'?',a:l*w,teks:'6.8D',ctx:''}};
+GEN.g6_writeEquations = function(){var x=ri(5,20),y=ri(2,5);var total=x+y;return{q:'x + '+y+' = '+total+'. Find x.',a:x,teks:'6.9A',ctx:''}};
+GEN.g6_solveEquations = function(){var x=ri(3,12),c=ri(5,20);var rhs=x+c;return{q:'Solve: x + '+c+' = '+rhs,a:x,teks:'6.10A',ctx:''}};
+
+/* ── Grade 7 generators ── */
+GEN.g7_rationalOperations = function(){var n1=ri(1,5),d1=ri(2,6),n2=ri(1,5),d2=d1;var sum=n1+n2;return{q:n1+'/'+d1+' + '+n2+'/'+d2+' = ?',a:sum+'/'+d1,teks:'7.3A',ctx:''}};
+GEN.g7_constantRates = function(){var d=ri(2,5),t=ri(2,4),r=d*t;return{q:'Distance = rate \u00d7 time. If d='+r+' and t='+t+', find rate.',a:d,teks:'7.4A',ctx:''}};
+GEN.g7_constantProportionality = function(){var k=ri(2,5),x=ri(2,8);return{q:'y = kx. If y = '+k*x+' when x = '+x+', find k.',a:k,teks:'7.4C',ctx:''}};
+GEN.g7_ratiosRatesPercents = function(){var p=ri(10,30),w=ri(50,200);return{q:p+'% of '+w+' = ?',a:Math.round(w*p/100),teks:'7.4D',ctx:''}};
+GEN.g7_piRatio = function(){var qs=[{q:'π is the ratio of circumference to ___.',a:'diameter',ctx:''},{q:'C = πd means circumference equals π times ___.',a:'diameter',ctx:''}];var p=qs[ri(0,qs.length-1)];return{q:p.q,a:p.a,teks:'7.5B',ctx:p.ctx}};
+GEN.g7_theoreticalProbability = function(){var qs=[{q:'P(rolling 3 on a fair die) = ?',a:'1/6',ctx:''},{q:'P(heads on fair coin) = ?',a:'1/2',ctx:''}];var p=qs[ri(0,qs.length-1)];return{q:p.q,a:p.a,teks:'7.6D',ctx:p.ctx}};
+GEN.g7_volume3D = function(){var l=ri(2,6),w=ri(2,5),h=ri(2,5);return{q:'Volume of rectangular prism '+l+' \u00d7 '+w+' \u00d7 '+h+'?',a:l*w*h,teks:'7.9A',ctx:''}};
+GEN.g7_circleMeasures = function(){var r=ri(2,7);return{q:'Circumference of circle with radius '+r+'? (Use π)',a:2*r+'π',teks:'7.9B',ctx:''}};
+GEN.g7_twoStepEquations = function(){var x=ri(3,10),c=ri(5,15);var rhs=2*x+c;return{q:'Solve: 2x + '+c+' = '+rhs,a:x,teks:'7.11A',ctx:''}};
+
+/* ── Grade 8 generators ── */
+GEN.g8_irrationalApproximate = function(){var qs=[{q:'√2 is between which two consecutive integers?',a:'1 and 2',ctx:''},{q:'√9 = ?',a:3,ctx:''},{q:'√16 = ?',a:4,ctx:''}];var p=qs[ri(0,qs.length-1)];return{q:p.q,a:p.a,teks:'8.2B',ctx:p.ctx}};
+GEN.g8_scientificNotation = function(){var n=ri(1,9),e=ri(2,6);var val=n*Math.pow(10,e);return{q:n+' \u00d7 10^'+e+' = ?',a:val,teks:'8.2C',ctx:''}};
+GEN.g8_slopeFormula = function(){var x1=0,y1=0,x2=ri(2,6),y2=ri(2,8);var m=y2/x2;if(m!==Math.floor(m))return GEN.g8_slopeFormula();return{q:'Slope of line through (0,0) and ('+x2+','+y2+')?',a:m,teks:'8.4A',ctx:''}};
+GEN.g8_linearNonProportional = function(){var m=ri(2,4),b=ri(1,5),x=ri(2,6);return{q:'y = '+m+'x + '+b+'. If x = '+x+', then y = ?',a:m*x+b,teks:'8.5B',ctx:''}};
+GEN.g8_writeLinearEquation = function(){var m=ri(2,4),b=ri(0,3);return{q:'Slope '+m+', y-intercept '+b+'. Which equation?',a:'y = '+m+'x + '+b,teks:'8.5I',ctx:''}};
+GEN.g8_pythagoreanExplain = function(){return{q:'In a² + b² = c², c is the ___.',a:'hypotenuse',teks:'8.6C',ctx:''}};
+GEN.g8_volumeCylinderConeSphere = function(){var r=ri(2,5);var v=Math.round(4/3*Math.PI*r*r*r);return{q:'Volume of sphere with radius '+r+'? (Use π)',a:(4*r*r*r)+'π/3',teks:'8.7A',ctx:''}};
+GEN.g8_pythagoreanSolve = function(){var a=ri(3,6),b=ri(4,8);var c=Math.round(Math.sqrt(a*a+b*b));return{q:'Right triangle legs '+a+' and '+b+'. Hypotenuse?',a:c,teks:'8.7C',ctx:''}};
+GEN.g8_solveEquationsBothSides = function(){var x=ri(2,8),c=ri(3,10);var rhs=2*x+c;return{q:'Solve: 2x + '+c+' = 3x. x = ?',a:c,teks:'8.8C',ctx:''}};
+GEN.g8_angleTheorems = function(){return{q:'The sum of angles in a triangle is ___°.',a:180,teks:'8.8D',ctx:''}};
+GEN.g8_transformationProperties = function(){var qs=[{q:'A translation preserves ___.',a:'congruence',ctx:''},{q:'A reflection changes ___.',a:'orientation',ctx:''}];var p=qs[ri(0,qs.length-1)];return{q:p.q,a:p.a,teks:'8.10A',ctx:p.ctx}};
+
+/* ── Grade 9 – Algebra I generators ── */
+GEN.g9_domainRange = function(){return{q:'For f(x) = 2x + 3, if domain is all reals, range is ___.',a:'all reals',teks:'A.2A',ctx:''}};
+GEN.g9_writeLinearEquation = function(){var m=ri(2,4),b=ri(0,5);return{q:'Line with slope '+m+' and y-intercept '+b+':',a:'y = '+m+'x + '+b,teks:'A.2B',ctx:''}};
+GEN.g9_slope = function(){var x1=ri(0,2),y1=ri(0,2),x2=ri(4,6),y2=ri(4,8);var m=(y2-y1)/(x2-x1);if(m!==Math.floor(m)&&m!==Math.floor(m*10)/10)return GEN.g9_slope();return{q:'Slope of line through ('+x1+','+y1+') and ('+x2+','+y2+')?',a:m,teks:'A.3A',ctx:''}};
+GEN.g9_graphLinear = function(){var m=ri(1,3),b=ri(0,4);return{q:'y = '+m+'x + '+b+'. What is the y-intercept?',a:b,teks:'A.3C',ctx:''}};
+GEN.g9_solveLinear = function(){var x=ri(2,10),c=ri(5,20);var rhs=x+c;return{q:'Solve: x + '+c+' = '+rhs,a:x,teks:'A.5A',ctx:''}};
+GEN.g9_solveInequality = function(){var x=ri(2,8),c=ri(3,10);var rhs=x+c;return{q:'Solve: x + '+c+' > '+rhs+'. x > ?',a:x,teks:'A.5B',ctx:''}};
+GEN.g9_systems = function(){var x=ri(2,6),y=ri(2,6);var c1=x+y,c2=2*x+y;return{q:'x + y = '+c1+' and 2x + y = '+c2+'. Find x.',a:x,teks:'A.5C',ctx:''}};
+GEN.g9_quadraticDomainRange = function(){return{q:'For f(x) = x², the range is ___.',a:'y ≥ 0',teks:'A.6A',ctx:''}};
+GEN.g9_solveQuadratic = function(){var r=ri(2,6);return{q:'Solve: x² = '+r*r,a:'±'+r,teks:'A.8A',ctx:''}};
+GEN.g9_factorTrinomial = function(){var a=ri(1,4),b=ri(1,6);var p1=a+b,p2=a*b;return{q:'Factor: x² + '+p1+'x + '+p2,a:'(x + '+a+')(x + '+b+')',teks:'A.10E',ctx:''}};
+GEN.g9_simplifyRadicals = function(){var n=ri(4,16);var s=Math.sqrt(n);if(s!==Math.floor(s))return GEN.g9_simplifyRadicals();return{q:'√'+n+' = ?',a:s,teks:'A.11A',ctx:''}};
+GEN.g9_lawsOfExponents = function(){var a=ri(2,10),m=ri(2,4),n=ri(2,4);return{q:a+'^'+m+' \u00d7 '+a+'^'+n+' = ?',a:Math.pow(a,m+n),teks:'A.11B',ctx:''}};
+
+/* ── Grade 10 – Geometry generators ── */
+GEN.g10_constructions = function(){
+  var qs=[
+    {q:'Which tool is used to construct a perpendicular bisector?',a:'Compass and straightedge',ctx:''},
+    {q:'A construction of an equilateral triangle uses how many arcs?',a:2,ctx:''},
+    {q:'To bisect an angle, you first draw an arc that intersects both ___.',a:'rays',ctx:''},
+    {q:'Which construction creates a 90° angle?',a:'Perpendicular lines',ctx:''},
+    {q:'A regular hexagon can be constructed by inscribing it in a ___.',a:'circle',ctx:''}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'G.2A',ctx:pick.ctx}};
+
+GEN.g10_geometricConjectures = function(){
+  var qs=[
+    {q:'The sum of interior angles of a quadrilateral is ___°.',a:360,ctx:''},
+    {q:'Opposite angles of a parallelogram are ___.',a:'congruent',ctx:''},
+    {q:'The diagonals of a rectangle are ___.',a:'congruent',ctx:''},
+    {q:'In a circle, inscribed angles that intercept the same arc are ___.',a:'congruent',ctx:''},
+    {q:'The sum of exterior angles of any convex polygon is ___°.',a:360,ctx:''}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'G.2B',ctx:pick.ctx}};
+
+GEN.g10_conditionalLogic = function(){
+  var qs=[
+    {q:'If a statement is "If p then q", the converse is:',a:'If q then p',ctx:''},
+    {q:'The contrapositive of "If it rains, the ground is wet" is:',a:'If the ground is not wet, it did not rain',ctx:''},
+    {q:'A conditional and its ___ always have the same truth value.',a:'contrapositive',ctx:''},
+    {q:'The inverse of "If x=2, then x²=4" negates:',a:'both hypothesis and conclusion',ctx:''},
+    {q:'If a conditional is true, its converse is ___.',a:'not necessarily true',ctx:''}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'G.3A',ctx:pick.ctx}};
+
+GEN.g10_definitionsTheorems = function(){
+  var qs=[
+    {q:'Point, line, and plane are examples of ___ terms.',a:'undefined',ctx:''},
+    {q:'A ___ is a statement that can be proven.',a:'theorem',ctx:''},
+    {q:'A ___ is accepted without proof.',a:'postulate',ctx:''},
+    {q:'Which is undefined: point, angle, or triangle?',a:'point',ctx:''},
+    {q:'Definitions are used to ___ new terms from undefined terms.',a:'define',ctx:''}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'G.4A',ctx:pick.ctx}};
+
+GEN.g10_patternsConjectures = function(){
+  var qs=[
+    {q:'When parallel lines are cut by a transversal, corresponding angles are ___.',a:'congruent',ctx:''},
+    {q:'Alternate interior angles are ___ when lines are parallel.',a:'congruent',ctx:''},
+    {q:'Same-side interior angles are ___ when lines are parallel.',a:'supplementary',ctx:''},
+    {q:'If two parallel lines are cut by a transversal, how many angle measures do you need to find all 8?',a:1,ctx:''},
+    {q:'Vertical angles are always ___.',a:'congruent',ctx:''}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'G.5A',ctx:pick.ctx}};
+
+GEN.g10_angleTheorems = function(){
+  var a=ri(30,80),b=180-a;
+  var qs=[
+    {q:'Two vertical angles measure '+a+'° and '+b+'°. What is '+a+'°?',a:a,ctx:'Vertical angles are congruent.'},
+    {q:'If corresponding angles are congruent, the lines are ___.',a:'parallel',ctx:''},
+    {q:'Alternate exterior angles are ___ when lines are parallel.',a:'congruent',ctx:''},
+    {q:'Two angles that form a linear pair are ___.',a:'supplementary',ctx:''},
+    {q:'If ∠1 and ∠2 are vertical angles and m∠1 = 50°, then m∠2 = ?',a:50,ctx:''}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'G.6A',ctx:pick.ctx}};
+
+GEN.g10_triangleTheorems = function(){
+  var qs=[
+    {q:'The sum of interior angles of a triangle is ___°.',a:180,ctx:''},
+    {q:'An exterior angle of a triangle equals the sum of the two ___.',a:'remote interior angles',ctx:''},
+    {q:'In a right triangle, the side opposite the right angle is the ___.',a:'hypotenuse',ctx:''},
+    {q:'The Pythagorean theorem states a² + b² = ___.',a:'c²',ctx:''},
+    {q:'In a 30-60-90 triangle, the hypotenuse is ___ the shorter leg.',a:'twice',ctx:''}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'G.6D',ctx:pick.ctx}};
+
+GEN.g10_pythagoreanApply = function(){
+  var triples=[[3,4,5],[5,12,13],[6,8,10],[8,15,17],[9,12,15]];
+  var t=triples[ri(0,triples.length-1)];
+  var qs=[
+    {q:'A right triangle has legs '+t[0]+' and '+t[1]+'. Find the hypotenuse.',a:t[2],teks:'G.7A',ctx:'a² + b² = c²'},
+    {q:'A right triangle has legs 6 and 8. What is the hypotenuse?',a:10,teks:'G.7A',ctx:''},
+    {q:'A right triangle has hypotenuse 13 and one leg 5. Find the other leg.',a:12,teks:'G.7A',ctx:''},
+    {q:'A 15-ft ladder leans against a wall. The base is 9 ft from the wall. How high up the wall?',a:12,teks:'G.7A',ctx:'9² + h² = 15²'}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'G.7A',ctx:pick.ctx}};
+
+GEN.g10_similarTrig = function(){
+  var qs=[
+    {q:'In a right triangle, sin(θ) = ___ / hypotenuse.',a:'opposite',ctx:''},
+    {q:'cos(30°) = ?',a:'√3/2',ctx:'Or approximately 0.866.'},
+    {q:'tan(45°) = ?',a:1,ctx:''},
+    {q:'If two triangles are similar, their corresponding sides are ___.',a:'proportional',ctx:''},
+    {q:'In a 45-45-90 triangle, the legs are ___.',a:'congruent',ctx:''},
+    {q:'sin²θ + cos²θ = ?',a:1,ctx:'Pythagorean identity.'}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'G.8A',ctx:pick.ctx}};
+
+GEN.g10_arcSector = function(){
+  var qs=[
+    {q:'A sector has radius 6 and central angle 90°. Its area is ___π.',a:9,teks:'G.9A',ctx:'(90/360)·π·6² = 9π'},
+    {q:'Arc length formula: (central angle / 360) × ___.',a:'2πr',ctx:''},
+    {q:'Sector area formula: (central angle / 360) × ___.',a:'πr²',ctx:''},
+    {q:'A semicircle has radius 5. Its arc length is ___π.',a:5,teks:'G.9A',ctx:'Half of circumference.'},
+    {q:'A sector with radius 4 and 180° central angle has area ___π.',a:8,teks:'G.9A',ctx:'(180/360)·π·16 = 8π'}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'G.9A',ctx:pick.ctx}};
+
+GEN.g10_crossSections = function(){
+  var qs=[
+    {q:'A horizontal cross-section of a cylinder is a ___.',a:'circle',ctx:''},
+    {q:'A vertical cross-section of a rectangular prism can be a ___.',a:'rectangle',ctx:''},
+    {q:'A cross-section of a sphere is always a ___.',a:'circle',ctx:''},
+    {q:'A cross-section of a cone parallel to the base is a ___.',a:'circle',ctx:''},
+    {q:'A cross-section of a pyramid through the apex and base can be a ___.',a:'triangle',ctx:''}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'G.10A',ctx:pick.ctx}};
+
+GEN.g10_surfaceArea3D = function(){
+  var r=ri(2,5),h=ri(4,10);
+  var qs=[
+    {q:'Surface area of a cylinder: 2πr² + ___.',a:'2πrh',ctx:'Lateral area.'},
+    {q:'A sphere with radius '+r+' has surface area ___π.',a:4*r*r,teks:'G.11A',ctx:'SA = 4πr²'},
+    {q:'Lateral surface area of a cone: π × ___ × slant height.',a:'radius',ctx:''},
+    {q:'A cube with edge 4 has surface area ___.',a:96,teks:'G.11A',ctx:'6 × 4² = 96'},
+    {q:'Surface area of a rectangular prism: 2(lw + lh + ___).',a:'wh',ctx:''}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'G.11A',ctx:pick.ctx}};
+
+GEN.g10_slopeSimilar = function(){
+  var qs=[
+    {q:'Slope = rise over ___.',a:'run',ctx:''},
+    {q:'Similar right triangles have the same ___.',a:'slope',ctx:''},
+    {q:'If two lines have the same slope, they are ___.',a:'parallel',ctx:''},
+    {q:'Slope of a horizontal line is ___.',a:0,ctx:''},
+    {q:'Slope of a vertical line is ___.',a:'undefined',ctx:''}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'G.12A',ctx:pick.ctx}};
+
+GEN.g10_dilationMeasurements = function(){
+  var k=ri(2,4);
+  var qs=[
+    {q:'A dilation with scale factor '+k+' multiplies lengths by ___.',a:k,teks:'G.12D',ctx:''},
+    {q:'A dilation with scale factor 3 multiplies area by ___.',a:9,teks:'G.12D',ctx:'Area scales by k²'},
+    {q:'Under a dilation, angle measures ___.',a:'stay the same',ctx:''},
+    {q:'If scale factor is 2, perimeter is multiplied by ___.',a:2,teks:'G.12D',ctx:''},
+    {q:'If scale factor is 1/2, area is multiplied by ___.',a:'1/4',ctx:'k² = 1/4'}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'G.12D',ctx:pick.ctx}};
+
+/* ── Grade 11 – Algebra II generators ── */
+GEN.g11_domainRange = function(){
+  var qs=[
+    {q:'For f(x) = x², what is the range?',a:'[0, ∞)',ctx:'y = x² has minimum 0.'},
+    {q:'For f(x) = √x, what is the domain?',a:'[0, ∞)',ctx:'Square root requires x ≥ 0.'},
+    {q:'For f(x) = 2ˣ, what is the range?',a:'(0, ∞)',ctx:'Exponential is always positive.'},
+    {q:'For f(x) = x² − 4, what is the range?',a:'[-4, ∞)',ctx:'Vertex at (0, −4).'},
+    {q:'For f(x) = √(x − 3), what is the domain?',a:'[3, ∞)',ctx:'Need x − 3 ≥ 0.'}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'2A.2A',ctx:pick.ctx}};
+
+GEN.g11_quadraticWrite = function(){
+  var h=ri(1,3),k=ri(-2,2);
+  var ans='y = (x − '+h+')² + '+k;
+  var opts=[ans,'y = (x + '+h+')² + '+k,'y = (x − '+h+')² − '+k,'y = x² + '+k];
+  return{q:'A parabola has vertex ('+h+', '+k+'). Which is the vertex form?',a:ans,teks:'2A.2B',ctx:'Vertex form: y = a(x − h)² + k',o:opts}};
+
+GEN.g11_transformations = function(){
+  var qs=[
+    {q:'The graph of y = x² is shifted 3 units right. What is the new equation?',a:'y = (x − 3)²',ctx:''},
+    {q:'The graph of y = √x is reflected over the x-axis. What is the new equation?',a:'y = −√x',ctx:''},
+    {q:'The graph of y = x² is shifted up 5. What is the new equation?',a:'y = x² + 5',ctx:''},
+    {q:'The graph of y = 2ˣ is stretched vertically by factor 3. What is the new equation?',a:'y = 3·2ˣ',ctx:''},
+    {q:'The graph of y = x² is shifted left 2 and down 1. What is the new equation?',a:'y = (x + 2)² − 1',ctx:''}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'2A.3A',ctx:pick.ctx}};
+
+GEN.g11_quadraticSqrtSolve = function(){
+  if(ri(0,1)===0){
+    var a=ri(1,5),b=ri(0,3);var c=a*a+b;
+    return{q:'Solve: √(x + '+b+') = '+a,a:c,teks:'2A.4A',ctx:'Square both sides.'};
+  }else{
+    var p=ri(2,6),q=p*p;
+    return{q:'Solve: x² = '+q,a:'±'+p,teks:'2A.4A',ctx:'Take square root of both sides.'};
+  }};
+
+GEN.g11_expLogSolve = function(){
+  var qs=[
+    {q:'Solve: 2ˣ = 8',a:3,ctx:'2³ = 8'},
+    {q:'Solve: 3ˣ = 27',a:3,ctx:'3³ = 27'},
+    {q:'Solve: log₂(16) = ?',a:4,ctx:'2⁴ = 16'},
+    {q:'Solve: log₃(81) = ?',a:4,ctx:'3⁴ = 81'},
+    {q:'Solve: 5ˣ = 25',a:2,ctx:'5² = 25'},
+    {q:'Solve: log₁₀(100) = ?',a:2,ctx:'10² = 100'}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'2A.4B',ctx:pick.ctx}};
+
+GEN.g11_parentTransforms = function(){
+  var qs=[
+    {q:'Which parent function has domain (−∞, ∞) and range [0, ∞)?',a:'y = x²',ctx:''},
+    {q:'Which parent function has domain [0, ∞)?',a:'y = √x',ctx:''},
+    {q:'Which parent function has range (0, ∞)?',a:'y = 2ˣ',ctx:''},
+    {q:'The parent function y = |x| reflected over the x-axis is:',a:'y = −|x|',ctx:''},
+    {q:'Shifting y = x³ down 2 gives:',a:'y = x³ − 2',ctx:''}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'2A.5A',ctx:pick.ctx}};
+
+GEN.g11_expLogDomain = function(){
+  var qs=[
+    {q:'What is the domain of f(x) = log(x)?',a:'(0, ∞)',ctx:'Log requires positive input.'},
+    {q:'What is the range of f(x) = eˣ?',a:'(0, ∞)',ctx:'Exponential is always positive.'},
+    {q:'What is the domain of f(x) = log(x − 2)?',a:'(2, ∞)',ctx:'Need x − 2 > 0.'},
+    {q:'What is the range of f(x) = 3ˣ?',a:'(0, ∞)',ctx:''}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'2A.6A',ctx:pick.ctx}};
+
+GEN.g11_expLogGraph = function(){
+  var qs=[
+    {q:'The graph of y = log(x) has an asymptote at:',a:'x = 0',ctx:''},
+    {q:'The graph of y = 2ˣ passes through which point?',a:'(0, 1)',ctx:'Any aˣ passes through (0,1).'},
+    {q:'As x → ∞, what happens to y = 2ˣ?',a:'y → ∞',ctx:'Exponential growth.'},
+    {q:'As x → 0⁺, what happens to y = log(x)?',a:'y → −∞',ctx:'Log approaches −∞.'}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'2A.6B',ctx:pick.ctx}};
+
+GEN.g11_polynomialOps = function(){
+  var a=ri(1,4),b=ri(1,4),c=ri(1,4);
+  if(ri(0,1)===0){
+    var sum1=a+b;var sum2=c;
+    return{q:'(x² + '+a+'x) + (x² + '+b+'x + '+c+') = ?',a:'2x² + '+(a+b)+'x + '+c,teks:'2A.7A',ctx:'Combine like terms.'};
+  }else{
+    var prod=a*b;
+    return{q:'(x + '+a+')(x + '+b+') = ?',a:'x² + '+(a+b)+'x + '+prod,teks:'2A.7A',ctx:'FOIL or distribute.'};
+  }};
+
+GEN.g11_polynomialDivide = function(){
+  var qs=[
+    {q:'(x² + 5x + 6) ÷ (x + 2) = ?',a:'x + 3',ctx:'Factor: (x+2)(x+3)/(x+2).'},
+    {q:'(x² − 9) ÷ (x + 3) = ?',a:'x − 3',ctx:'Difference of squares.'},
+    {q:'(x² − 4) ÷ (x − 2) = ?',a:'x + 2',ctx:'Factor numerator.'},
+    {q:'(2x² + 4x) ÷ (2x) = ?',a:'x + 2',ctx:'Factor out 2x.'}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'2A.7B',ctx:pick.ctx}};
+
+GEN.g11_polynomialSolve = function(){
+  var qs=[
+    {q:'Solve: x² − 4 = 0',a:'±2',ctx:'x² = 4 → x = ±2'},
+    {q:'Solve: x² − 9 = 0',a:'±3',ctx:'x² = 9 → x = ±3'},
+    {q:'Solve: x(x − 3) = 0',a:'0 or 3',ctx:'Zero product property.'},
+    {q:'Solve: (x + 2)(x − 5) = 0',a:'−2 or 5',ctx:'Zero product property.'},
+    {q:'Solve: x² − 16 = 0',a:'±4',ctx:''}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'2A.8A',ctx:pick.ctx}};
+
+GEN.g11_circleEquation = function(){
+  var h=ri(-2,2),k=ri(-2,2),r=ri(2,5);
+  var q='A circle has center ('+h+', '+k+') and radius '+r+'. What is its equation?';
+  var ans='(x − '+h+')² + (y − '+k+')² = '+r*r;
+  var opts=[ans,'(x + '+h+')² + (y + '+k+')² = '+r*r,'(x − '+h+')² + (y − '+k+')² = '+r,'x² + y² = '+r*r];
+  return{q:q,a:ans,teks:'2A.9A',ctx:'Standard form: (x − h)² + (y − k)² = r²',o:opts}};
+
+GEN.g11_complexNumbers = function(){
+  var qs=[
+    {q:'Simplify: i²',a:'−1',ctx:''},
+    {q:'Simplify: i⁴',a:1,ctx:''},
+    {q:'(3 + 2i) + (1 + 4i) = ?',a:'4 + 6i',ctx:'Add real and imaginary parts.'},
+    {q:'What is the conjugate of 5 − 3i?',a:'5 + 3i',ctx:''},
+    {q:'Simplify: √(−4)',a:'2i',ctx:'√(−4) = 2√(−1) = 2i'}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'2A.10A',ctx:pick.ctx}};
+
+GEN.g11_fundamentalTheorem = function(){
+  var qs=[
+    {q:'A polynomial of degree 4 has at most how many real zeros?',a:4,ctx:'Fundamental Theorem of Algebra.'},
+    {q:'A cubic polynomial has exactly how many complex roots (counting multiplicity)?',a:3,ctx:''},
+    {q:'If 2 + i is a root of a polynomial with real coefficients, what other root must exist?',a:'2 − i',ctx:'Complex roots come in conjugate pairs.'},
+    {q:'A polynomial of degree n has exactly n ___ (counting multiplicity).',a:'roots',ctx:'Fundamental Theorem.'}
+  ];
+  var pick=qs[ri(0,qs.length-1)];return{q:pick.q,a:pick.a,teks:'2A.11A',ctx:pick.ctx}};
+
+/* ── Build options for a question ── */
+/* ── Distractor pools for string-answer questions ── */
+var STRING_DISTRACTORS = {
+  '>':['<','=','>'],
+  '<':['<','=','>'],
+  '=':['<','=','>'],
+  'Capacity':['Capacity','Weight','Length','Temperature'],
+  'Weight':['Capacity','Weight','Length','Temperature'],
+  'Planned':['Planned','Unplanned','Saving','Credit'],
+  'Unplanned':['Planned','Unplanned','Saving','Credit'],
+  'Planned Spending':['Planned Spending','Unplanned Spending','Borrowing','Saving'],
+  'You stay in budget':['You stay in budget','You spend more','You borrow money','You lose money'],
+  'Credit':['Credit','Saving','Income','Tax'],
+  'Interest':['Interest','Credit','Savings','Income'],
+  'The Borrower':['The Borrower','The Lender','The Bank','Nobody'],
+  'Saving':['Saving','Spending','Borrowing','Credit'],
+  'For emergencies':['For emergencies','To spend now','To give away','No reason'],
+  'Savings Plan':['Savings Plan','Credit Card','Loan','Budget'],
+  'Education & Training':['Education & Training','Luck','Location','Age'],
+  'Income':['Income','Tax','Credit','Savings'],
+  'Human Capital':['Human Capital','Money','Luck','Inheritance'],
+  'Surgeon':['Surgeon','Teacher','Clerk','Cashier'],
+  'Goes Up':['Goes Up','Goes Down','Stays Same','Disappears'],
+  'Goes Down':['Goes Up','Goes Down','Stays Same','Doubles'],
+  'Scarcity':['Scarcity','Abundance','Savings','Credit'],
+  'Yes':['Yes','No'],
+  'No':['Yes','No'],
+  /* Grade 4 */
+  'Right':['Right','Acute','Obtuse','Straight'],
+  'Acute':['Right','Acute','Obtuse','Straight'],
+  'Obtuse':['Right','Acute','Obtuse','Straight'],
+  'Right triangle':['Right triangle','Acute triangle','Obtuse triangle','Equilateral triangle'],
+  'Acute triangle':['Right triangle','Acute triangle','Obtuse triangle','Equilateral triangle'],
+  'Obtuse triangle':['Right triangle','Acute triangle','Obtuse triangle','Equilateral triangle'],
+  'Fixed':['Fixed','Variable','Optional','Flexible'],
+  'Variable':['Fixed','Variable','Optional','Flexible'],
+  'Savings account':['Savings account','Piggy bank','Under mattress','Cash only'],
+  'Save some, spend some':['Save some, spend some','Spend all','Save all','Never save'],
+  'Financial institutions':['Financial institutions','Stores','Schools','Hospitals'],
+  'Intersect':['Intersect','Merge','Separate','Connect'],
+  'Degrees':['Degrees','Inches','Feet','Meters'],
+  'Protractor':['Protractor','Ruler','Compass','Calculator'],
+  'Infinitely many':['Infinitely many','4','8','12'],
+  'Less than 1':['Less than 1','Between 1 and 2','Greater than 2','Exactly 2'],
+  'Between 1 and 2':['Less than 1','Between 1 and 2','Greater than 2','Exactly 2'],
+  'Greater than 2':['Less than 1','Between 1 and 2','Greater than 2','Exactly 2'],
+  /* Grade 11 – Algebra II */
+  '[0, ∞)':['[0, ∞)','(−∞, ∞)','(0, ∞)','(−∞, 0]'],
+  '(0, ∞)':['(0, ∞)','[0, ∞)','(−∞, ∞)','(−∞, 0)'],
+  '[3, ∞)':['[3, ∞)','(3, ∞)','[0, ∞)','(−∞, 3]'],
+  '(2, ∞)':['(2, ∞)','[2, ∞)','(0, ∞)','(−∞, 2)'],
+  '[-4, ∞)':['[-4, ∞)','(−∞, −4]','[0, ∞)','(−4, ∞)'],
+  'x = 0':['x = 0','y = 0','x = 1','y = 1'],
+  'roots':['roots','zeros','factors','solutions'],
+  '(0, 1)':['(0, 1)','(1, 0)','(0, 0)','(1, 1)'],
+  'y → ∞':['y → ∞','y → 0','y → −∞','y → 1'],
+  'y → −∞':['y → −∞','y → ∞','y → 0','y → 1'],
+  '±2':['±2','±1','±3','2 only'],
+  '±3':['±3','±2','±4','3 only'],
+  '±4':['±4','±2','±3','4 only'],
+  '−1':['−1','1','i','−i'],
+  '2 − i':['2 − i','2 + i','−2 + i','−2 − i'],
+  /* Grade 10 – Geometry */
+  'congruent':['congruent','similar','equal','parallel'],
+  'supplementary':['supplementary','complementary','congruent','vertical'],
+  'undefined':['undefined','zero','infinite','one'],
+  'theorem':['theorem','postulate','definition','conjecture'],
+  'postulate':['postulate','theorem','definition','axiom'],
+  'parallel':['parallel','perpendicular','intersecting','skew'],
+  'circle':['circle','ellipse','rectangle','triangle'],
+  'rectangle':['rectangle','square','triangle','circle'],
+  'triangle':['triangle','rectangle','circle','hexagon'],
+  'run':['run','rise','slope','distance'],
+  '2πr':['2πr','πr²','πr','r²'],
+  'πr²':['πr²','2πr','πr','r²'],
+  '2πrh':['2πrh','2πr²','πr²','πrh'],
+  'wh':['wh','lh','lw','2(l+w)'],
+  'radius':['radius','diameter','circumference','area'],
+  'c²':['c²','a²','b²','a + b'],
+  'twice':['twice','half','equal','triple'],
+  '√3/2':['√3/2','1/2','√2/2','1'],
+  'opposite':['opposite','adjacent','hypotenuse','vertical'],
+  'proportional':['proportional','congruent','equal','similar'],
+  'remote interior angles':['remote interior angles','exterior angle','adjacent angles','vertical angles'],
+  'hypotenuse':['hypotenuse','leg','base','altitude'],
+  'stay the same':['stay the same','double','halve','square'],
+  /* Grades 5–9 – TExES 7-12 */
+  'Prime':['Prime','Composite','Neither','Both'],
+  'Composite':['Composite','Prime','Neither','Both'],
+  'origin':['origin','vertex','center','axis'],
+  'x-axis':['x-axis','y-axis','origin','quadrant'],
+  'rectangle':['rectangle','rhombus','trapezoid','triangle'],
+  '1 and 2':['1 and 2','2 and 3','0 and 1','3 and 4'],
+  'diameter':['diameter','radius','circumference','area'],
+  'all reals':['all reals','positive only','integers only','natural numbers'],
+  'y ≥ 0':['y ≥ 0','y ≤ 0','all reals','y > 0'],
+  'congruence':['congruence','similarity','orientation','size'],
+  'orientation':['orientation','size','congruence','position'],
+  /* Grade 1–2 – EC-6 */
+  '1/2':['1/2','1/4','2/4','1/3'],
+  '1/4':['1/4','1/2','2/4','1/3']
+};
+function buildOpts(a) {
+  var opts;
+  if(typeof a==='string'){
+    if(a==='Even'||a==='Odd') opts=['Even','Odd'];
+    else if(a.includes('/')){var nm0=parseInt(a.split('/')[0]),dn=parseInt(a.split('/')[1]);opts=new Set([a]);for(var i=1;i<=dn&&opts.size<6;i++){if(i!==nm0)opts.add(i+'/'+dn)}var nearby=[2,3,4,6,8];for(var di=0;di<nearby.length&&opts.size<6;di++){var dd=nearby[di];if(dd!==dn){for(var ni=1;ni<dd&&opts.size<6;ni++)opts.add(ni+'/'+dd)}}opts=[].concat(Array.from(opts));while(opts.length<4)opts.push((ri(1,3))+'/'+([2,3,4,6,8])[ri(0,4)]);opts=opts.filter(function(v,i,arr){return arr.indexOf(v)===i}).slice(0,4)}
+    else if(STRING_DISTRACTORS[a]){opts=STRING_DISTRACTORS[a].slice();if(opts.indexOf(a)===-1)opts.push(a);while(opts.length<4)opts.push('N/A');opts=opts.filter(function(v,i,arr){return arr.indexOf(v)===i}).slice(0,4)}
+    else{
+      opts=[a];
+      var yMatch=a.match(/^y\s*=\s*(-?\d+)\s*x\s*\+\s*(-?\d+)$/);
+      if(yMatch){var m=parseInt(yMatch[1],10),b=parseInt(yMatch[2],10);opts.push('y = '+b+'x + '+m);opts.push('y = '+m+'x - '+Math.abs(b));opts.push('y = '+(-m)+'x + '+b);}
+      else{var yMatch2=a.match(/^y\s*=\s*(-?\d+)\s*x\s*-\s*(\d+)$/);if(yMatch2){var m2=parseInt(yMatch2[1],10),b2=parseInt(yMatch2[2],10);opts.push('y = '+m2+'x + '+b2);opts.push('y = '+b2+'x - '+m2);opts.push('y = '+(-m2)+'x - '+b2);}}
+      if(opts.length<4){opts.push('None of these');opts.push('All of these');}
+      opts=opts.filter(function(v,i,arr){return arr.indexOf(v)===i});
+      var extraEqs=['y = x','y = 0','x = 0','y = 1'];
+      for(var ei=0;opts.length<4&&ei<extraEqs.length;ei++){if(opts.indexOf(extraEqs[ei])===-1)opts.push(extraEqs[ei]);}
+      var k=2;while(opts.length<4){var cand='y = '+k+'x';if(opts.indexOf(cand)===-1)opts.push(cand);k++;}
+    }
+    for(var i=opts.length-1;i>0;i--){var j=ri(0,i);var tmp=opts[i];opts[i]=opts[j];opts[j]=tmp}
+  } else {
+    opts=new Set([a]);var att=0;
+    while(opts.size<4&&att<100){var offsets=[-3,-2,-1,1,2,3,5,-5,10,-10];var v=a+offsets[ri(0,offsets.length-1)];if(v>0&&v!==a)opts.add(v);att++}
+    while(opts.size<4)opts.add(a+opts.size*7);
+    opts=Array.from(opts);
+    for(var i=opts.length-1;i>0;i--){var j=ri(0,i);var tmp=opts[i];opts[i]=opts[j];opts[j]=tmp}
+  }
+  return opts;
+}
+
+/* ── Generate a question based on mode ── */
+function mkQ(d) {
+  var pool;
+  if (d === 'focused' && focusTeksList.length > 0) {
+    var fromLoop = (urlParams.get('from') === 'loop');
+    var useMixed = !fromLoop && (gradeParam === 'grade7-12' || gradeParam === 'grade4-8');
+    if (useMixed) {
+      pool = [];
+      if (gradeParam === 'grade7-12') pool = ['g7_rationalOperations','g7_constantRates','g7_constantProportionality','g7_ratiosRatesPercents','g7_piRatio','g7_theoreticalProbability','g7_volume3D','g7_circleMeasures','g7_twoStepEquations','g8_irrationalApproximate','g8_scientificNotation','g8_slopeFormula','g8_linearNonProportional','g8_writeLinearEquation','g8_pythagoreanSolve','g8_volumeCylinderConeSphere','g8_solveEquationsBothSides','g8_angleTheorems','g8_transformationProperties','g9_domainRange','g9_writeLinearEquation','g9_slope','g9_graphLinear','g9_solveLinear','g9_solveInequality','g9_systems','g9_quadraticDomainRange','g9_solveQuadratic','g9_factorTrinomial','g9_simplifyRadicals','g9_lawsOfExponents','g10_constructions','g10_geometricConjectures','g10_angleTheorems','g10_triangleTheorems','g10_pythagoreanApply','g10_similarTrig','g10_arcSector','g10_crossSections','g10_surfaceArea3D','g10_slopeSimilar','g10_dilationMeasurements','g11_domainRange','g11_quadraticWrite','g11_transformations','g11_quadraticSqrtSolve','g11_expLogSolve','g11_polynomialOps','g11_polynomialDivide','g11_polynomialSolve','g11_circleEquation','g11_complexNumbers','g11_fundamentalTheorem'];
+      else if (gradeParam === 'grade4-8') pool = ['g4_addSubDecimals','g4_twoDigitProducts','g4_divisionStrategies','g4_multDivFluency','g4_perimeterAreaProblems','g4_compareOrder','g4_rounding','g4_addSubFractions','g4_equivalentFractions','g4_geometricFigures','g4_dataProblems','g4_profit','g5_decimalExpanded','g5_compareDecimals','g5_multiply3x2','g5_division4x2','g5_decimalMultiply','g5_addSubRational','g5_primeComposite','g5_volumeFormula','g5_perimeterAreaVolume','g5_measurementConversions','g5_dataProblems','g6_oppositeAbsolute','g6_compareOrderNumberLine','g6_integerOperations','g6_rationalOperations','g6_ratioRateReasoning','g6_percentProblems','g6_orderOperations','g6_areaVolumeSolve','g6_writeEquations','g6_solveEquations','g7_rationalOperations','g7_constantProportionality','g7_ratiosRatesPercents','g7_volume3D','g7_circleMeasures','g7_twoStepEquations','g8_scientificNotation','g8_slopeFormula','g8_linearNonProportional','g8_pythagoreanSolve','g8_volumeCylinderConeSphere','g8_solveEquationsBothSides','g8_angleTheorems','g8_transformationProperties'];
+    }
+    if (!pool || pool.length === 0) {
+      pool = [];
+      for (var i = 0; i < focusTeksList.length; i++) {
+        var gens = TEKS_GENERATORS[focusTeksList[i]];
+        if (gens) pool = pool.concat(gens);
+      }
+    }
+    if (pool.length === 0) pool = ['addSub','multiply','divide'];
+  } else if (d === 'compute') {
+    if (gradeParam === 'grade-ec6') pool = ['g1_addSub20','g1_composeTen','g1_countCoins','g2_addSub20','g2_addTwoDigit','g2_coinValue','g2_equalGroups','g2_equalShares','addSub','multiply','divide','placeValue_expanded','g4_addSubDecimals','g5_multiply3x2','g5_volumeFormula','g6_integerOperations','g6_percentProblems'];
+    else if (gradeParam === 'grade4-8') pool = ['g4_addSubDecimals','g4_twoDigitProducts','g4_divisionStrategies','g4_multDivFluency','g5_multiply3x2','g5_division4x2','g5_decimalMultiply','g5_volumeFormula','g5_addSubRational','g6_integerOperations','g6_rationalOperations','g6_percentProblems','g6_solveEquations','g6_orderOperations','g7_rationalOperations','g7_twoStepEquations','g7_ratiosRatesPercents','g7_constantProportionality','g7_volume3D','g8_pythagoreanSolve','g8_solveEquationsBothSides','g8_linearNonProportional','g8_scientificNotation','g8_volumeCylinderConeSphere'];
+    else if (gradeParam === 'grade7-12') pool = ['g7_rationalOperations','g7_twoStepEquations','g7_ratiosRatesPercents','g7_constantProportionality','g7_volume3D','g8_pythagoreanSolve','g8_solveEquationsBothSides','g8_linearNonProportional','g8_scientificNotation','g8_volumeCylinderConeSphere','g9_solveLinear','g9_systems','g9_solveQuadratic','g9_factorTrinomial','g9_simplifyRadicals','g9_lawsOfExponents','g10_pythagoreanApply','g10_arcSector','g10_surfaceArea3D','g10_angleTheorems','g10_triangleTheorems','g10_dilationMeasurements','g11_quadraticSqrtSolve','g11_expLogSolve','g11_polynomialOps','g11_polynomialDivide','g11_polynomialSolve','g11_complexNumbers'];
+    else if (gradeParam === 'grade1') pool = ['g1_subitizing','g1_composeDecompose','g1_addSub20','g1_composeTen','g1_countCoins','g1_tenMoreLess','g1_wordProblems'];
+    else if (gradeParam === 'grade2') pool = ['g2_composeDecompose1200','g2_addSub20','g2_addTwoDigit','g2_coinValue','g2_equalGroups','g2_equalShares','g2_evenOdd','g2_tenHundredMoreLess'];
+    else if (gradeParam === 'grade11') pool = ['g11_quadraticSqrtSolve','g11_expLogSolve','g11_polynomialOps','g11_polynomialDivide','g11_polynomialSolve','g11_complexNumbers'];
+    else if (gradeParam === 'grade10') pool = ['g10_pythagoreanApply','g10_arcSector','g10_surfaceArea3D','g10_angleTheorems','g10_triangleTheorems','g10_dilationMeasurements'];
+    else if (gradeParam === 'grade9') pool = ['g9_solveLinear','g9_systems','g9_solveQuadratic','g9_factorTrinomial','g9_simplifyRadicals','g9_lawsOfExponents'];
+    else if (gradeParam === 'grade8') pool = ['g8_pythagoreanSolve','g8_solveEquationsBothSides','g8_linearNonProportional','g8_scientificNotation','g8_volumeCylinderConeSphere'];
+    else if (gradeParam === 'grade7') pool = ['g7_rationalOperations','g7_twoStepEquations','g7_ratiosRatesPercents','g7_constantProportionality','g7_volume3D'];
+    else if (gradeParam === 'grade6') pool = ['g6_integerOperations','g6_rationalOperations','g6_percentProblems','g6_solveEquations','g6_orderOperations'];
+    else if (gradeParam === 'grade5') pool = ['g5_multiply3x2','g5_division4x2','g5_decimalMultiply','g5_volumeFormula','g5_addSubRational'];
+    else if (gradeParam === 'grade4') pool = ['g4_addSubDecimals','g4_multiplyTenHundred','g4_twoDigitProducts','g4_divisionStrategies','g4_roundingEstimation','g4_multDivFluency','g4_multiStepEquations'];
+    else pool = ['addSub','multiply','divide','twoDigitByOne','missingFactor','rounding','evenOdd','addSubWord','multiplyWord','divideWord'];
+  } else if (d === 'measure') {
+    if (gradeParam === 'grade-ec6') pool = ['g1_identifyShapes','g1_identifySolids','g1_halvesFourths','g1_tellTime','g1_graphConclusions','g2_polygonSides','g2_areaRectangle','g2_graphWordProblems','area','perimeter','time','placeValue_expanded','g4_perimeterAreaProblems','g5_volumeFormula','g6_areaVolumeSolve'];
+    else if (gradeParam === 'grade4-8') pool = ['g4_perimeterAreaProblems','g4_geometricFigures','g4_measureAngles','g4_elapsedTime','g4_measurementUnits','g4_convertMeasurements','g5_volumeFormula','g5_perimeterAreaVolume','g5_measurementConversions','g6_areaVolumeSolve','g6_compareOrderNumberLine','g7_circleMeasures','g7_volume3D','g7_piRatio','g8_volumeCylinderConeSphere','g8_pythagoreanSolve','g8_transformationProperties'];
+    else if (gradeParam === 'grade7-12') pool = ['g7_circleMeasures','g7_volume3D','g7_piRatio','g8_volumeCylinderConeSphere','g8_pythagoreanSolve','g8_transformationProperties','g9_domainRange','g9_graphLinear','g9_quadraticDomainRange','g10_crossSections','g10_surfaceArea3D','g10_arcSector','g10_slopeSimilar','g10_geometricConjectures','g11_domainRange','g11_expLogDomain','g11_expLogGraph','g11_circleEquation','g11_transformations'];
+    else if (gradeParam === 'grade1') pool = ['g1_identifyShapes','g1_identifySolids','g1_partitionEqual','g1_halvesFourths','g1_tellTime','g1_graphConclusions'];
+    else if (gradeParam === 'grade2') pool = ['g2_polygonSides','g2_areaRectangle','g2_graphWordProblems'];
+    else if (gradeParam === 'grade11') pool = ['g11_domainRange','g11_expLogDomain','g11_expLogGraph','g11_circleEquation','g11_transformations'];
+    else if (gradeParam === 'grade10') pool = ['g10_crossSections','g10_surfaceArea3D','g10_arcSector','g10_slopeSimilar','g10_geometricConjectures'];
+    else if (gradeParam === 'grade9') pool = ['g9_domainRange','g9_graphLinear','g9_quadraticDomainRange'];
+    else if (gradeParam === 'grade8') pool = ['g8_volumeCylinderConeSphere','g8_pythagoreanSolve','g8_transformationProperties'];
+    else if (gradeParam === 'grade7') pool = ['g7_circleMeasures','g7_volume3D','g7_piRatio'];
+    else if (gradeParam === 'grade6') pool = ['g6_areaVolumeSolve','g6_compareOrderNumberLine'];
+    else if (gradeParam === 'grade5') pool = ['g5_volumeFormula','g5_perimeterAreaVolume','g5_measurementConversions'];
+    else if (gradeParam === 'grade4') pool = ['g4_perimeterAreaProblems','g4_geometricFigures','g4_measureAngles','g4_elapsedTime','g4_measurementUnits','g4_convertMeasurements'];
+    else pool = ['area','perimeter','time','placeValue_expanded','placeValue_digit','compareFractions','pattern'];
+  } else {
+    if (gradeParam === 'grade-ec6') pool = ['g1_subitizing','g1_composeDecompose','g1_addSub20','g1_composeTen','g1_countCoins','g1_identifyShapes','g1_halvesFourths','g2_composeDecompose1200','g2_addTwoDigit','g2_coinValue','g2_equalGroups','g2_evenOdd','g2_areaRectangle','addSub','multiply','divide','placeValue_expanded','placeValue_round','compareFractions','area','perimeter','g4_addSubDecimals','g4_equivalentFractions','g5_decimalMultiply','g5_volumeFormula','g6_integerOperations','g6_percentProblems'];
+    else if (gradeParam === 'grade1') pool = ['g1_subitizing','g1_composeDecompose','g1_compareNumbers','g1_addSub20','g1_composeTen','g1_identifyCoins','g1_countCoins','g1_skipCount','g1_tenMoreLess','g1_identifyShapes','g1_identifySolids','g1_halvesFourths','g1_tellTime','g1_graphConclusions'];
+    else if (gradeParam === 'grade2') pool = ['g2_composeDecompose1200','g2_compareOrder','g2_addSub20','g2_addTwoDigit','g2_coinValue','g2_equalGroups','g2_equalShares','g2_evenOdd','g2_tenHundredMoreLess','g2_polygonSides','g2_areaRectangle','g2_graphWordProblems'];
+    else if (gradeParam === 'grade4-8') pool = ['g4_addSubDecimals','g4_twoDigitProducts','g4_divisionStrategies','g4_multDivFluency','g4_perimeterAreaProblems','g4_compareOrder','g4_rounding','g4_addSubFractions','g4_equivalentFractions','g4_geometricFigures','g4_dataProblems','g4_profit','g5_decimalExpanded','g5_compareDecimals','g5_roundDecimals','g5_multiply3x2','g5_division4x2','g5_decimalMultiply','g5_addSubRational','g5_primeComposite','g5_volumeFormula','g5_perimeterAreaVolume','g5_classifyHierarchy','g5_measurementConversions','g5_dataProblems','g6_oppositeAbsolute','g6_compareOrderNumberLine','g6_integerOperations','g6_rationalOperations','g6_ratioRateReasoning','g6_percentProblems','g6_representYkx','g6_orderOperations','g6_areaVolumeSolve','g6_writeEquations','g6_solveEquations','g7_rationalOperations','g7_constantRates','g7_constantProportionality','g7_ratiosRatesPercents','g7_piRatio','g7_theoreticalProbability','g7_volume3D','g7_circleMeasures','g7_twoStepEquations','g8_irrationalApproximate','g8_scientificNotation','g8_slopeFormula','g8_linearNonProportional','g8_writeLinearEquation','g8_pythagoreanSolve','g8_volumeCylinderConeSphere','g8_solveEquationsBothSides','g8_angleTheorems','g8_transformationProperties'];
+    else if (gradeParam === 'grade7-12') pool = ['g7_rationalOperations','g7_constantRates','g7_constantProportionality','g7_ratiosRatesPercents','g7_piRatio','g7_theoreticalProbability','g7_volume3D','g7_circleMeasures','g7_twoStepEquations','g8_irrationalApproximate','g8_scientificNotation','g8_slopeFormula','g8_linearNonProportional','g8_writeLinearEquation','g8_pythagoreanSolve','g8_volumeCylinderConeSphere','g8_solveEquationsBothSides','g8_angleTheorems','g8_transformationProperties','g9_domainRange','g9_writeLinearEquation','g9_slope','g9_graphLinear','g9_solveLinear','g9_solveInequality','g9_systems','g9_quadraticDomainRange','g9_solveQuadratic','g9_factorTrinomial','g9_simplifyRadicals','g9_lawsOfExponents','g10_constructions','g10_geometricConjectures','g10_conditionalLogic','g10_definitionsTheorems','g10_patternsConjectures','g10_angleTheorems','g10_triangleTheorems','g10_pythagoreanApply','g10_similarTrig','g10_arcSector','g10_crossSections','g10_surfaceArea3D','g10_slopeSimilar','g10_dilationMeasurements','g11_domainRange','g11_quadraticWrite','g11_transformations','g11_quadraticSqrtSolve','g11_expLogSolve','g11_parentTransforms','g11_expLogDomain','g11_expLogGraph','g11_polynomialOps','g11_polynomialDivide','g11_polynomialSolve','g11_circleEquation','g11_complexNumbers','g11_fundamentalTheorem'];
+    else if (gradeParam === 'grade11') pool = ['g11_domainRange','g11_quadraticWrite','g11_transformations','g11_quadraticSqrtSolve','g11_expLogSolve','g11_parentTransforms','g11_expLogDomain','g11_expLogGraph','g11_polynomialOps','g11_polynomialDivide','g11_polynomialSolve','g11_circleEquation','g11_complexNumbers','g11_fundamentalTheorem'];
+    else if (gradeParam === 'grade10') pool = ['g10_constructions','g10_geometricConjectures','g10_conditionalLogic','g10_definitionsTheorems','g10_patternsConjectures','g10_angleTheorems','g10_triangleTheorems','g10_pythagoreanApply','g10_similarTrig','g10_arcSector','g10_crossSections','g10_surfaceArea3D','g10_slopeSimilar','g10_dilationMeasurements'];
+    else if (gradeParam === 'grade9') pool = ['g9_domainRange','g9_writeLinearEquation','g9_slope','g9_graphLinear','g9_solveLinear','g9_solveInequality','g9_systems','g9_quadraticDomainRange','g9_solveQuadratic','g9_factorTrinomial','g9_simplifyRadicals','g9_lawsOfExponents'];
+    else if (gradeParam === 'grade8') pool = ['g8_irrationalApproximate','g8_scientificNotation','g8_slopeFormula','g8_linearNonProportional','g8_writeLinearEquation','g8_pythagoreanSolve','g8_volumeCylinderConeSphere','g8_solveEquationsBothSides','g8_angleTheorems','g8_transformationProperties'];
+    else if (gradeParam === 'grade7') pool = ['g7_rationalOperations','g7_constantRates','g7_constantProportionality','g7_ratiosRatesPercents','g7_piRatio','g7_theoreticalProbability','g7_volume3D','g7_circleMeasures','g7_twoStepEquations'];
+    else if (gradeParam === 'grade6') pool = ['g6_oppositeAbsolute','g6_compareOrderNumberLine','g6_integerOperations','g6_rationalOperations','g6_ratioRateReasoning','g6_percentProblems','g6_representYkx','g6_orderOperations','g6_areaVolumeSolve','g6_writeEquations','g6_solveEquations'];
+    else if (gradeParam === 'grade5') pool = ['g5_decimalExpanded','g5_compareDecimals','g5_roundDecimals','g5_multiply3x2','g5_division4x2','g5_decimalMultiply','g5_addSubRational','g5_primeComposite','g5_volumeFormula','g5_perimeterAreaVolume','g5_classifyHierarchy','g5_measurementConversions','g5_dataProblems'];
+    else if (gradeParam === 'grade4') pool = ['g4_addSubDecimals','g4_twoDigitProducts','g4_divisionStrategies','g4_multDivFluency','g4_perimeterAreaProblems','g4_compareOrder','g4_rounding','g4_addSubFractions','g4_equivalentFractions','g4_geometricFigures','g4_dataProblems','g4_profit'];
+    else pool = ['addSub','multiply','divide','twoDigitByOne','missingFactor','rounding','evenOdd','addSubWord','multiplyWord','divideWord','area','perimeter','time','coins','placeValue_expanded','placeValue_digit','placeValue_round','compareFractions','pattern'];
+  }
+  var gen = pool[ri(0, pool.length - 1)];
+  var result = GEN[gen]();
+  if (!result.o || !Array.isArray(result.o) || result.o.length < 4) result.o = buildOpts(result.a);
+  else { var o=result.o; for(var i=o.length-1;i>0;i--){ var j=ri(0,i); var t=o[i]; o[i]=o[j]; o[j]=t } }
+  return result;
+}
+
+var userAnswers=[];
+function go(d){diff=d;score=0;streak=0;best=0;pts=0;cur=0;times=[];results=[];userAnswers=[];qs=[];for(var i=0;i<N;i++)qs.push(mkQ(d));document.getElementById('startScreen').style.display='none';document.getElementById('res').classList.remove('vis');document.getElementById('game').style.display='flex';el('sScore','0');el('sStreak','0 🔥');el('sPts','0');buildDots();show()}
+
+function show(){done=false;var q=qs[cur];el('qNum','Question '+(cur+1)+' of '+N);el('qTeks','TEKS '+q.teks);var qTxt=document.getElementById('qTxt');var isEq=!q.ctx&&q.q.indexOf('=')!==-1;qTxt.className='q-text'+(isEq?' big':'');var html='';if(q.ctx)html+='<div class="q-context">'+q.ctx+'</div>';html+='<div>'+q.q.replace('= ?','= <span class="hl">?</span>')+'</div>';qTxt.innerHTML=html;var g=document.getElementById('opts');g.innerHTML='';var L=['A','B','C','D'];g.style.gridTemplateColumns='1fr 1fr';q.o.forEach(function(v,i){var b=document.createElement('button');b.className='opt';b.innerHTML='<span class="letter">'+L[i]+'</span>'+v;b.onclick=function(){sfxClick();pick(v,b)};g.appendChild(b)});fb('','','');hidNext();updateDots();startTimer();t0=Date.now()}
+
+function startTimer(){clearInterval(timer);tl=TL;updTimer();timer=setInterval(function(){tl--;updTimer();if(tl<=5&&tl>0)sfxTick();if(tl<=3&&tl>0)sfxTimeWarn();if(tl<=0){clearInterval(timer);timeup()}},1000)}
+function updTimer(){document.getElementById('tNum').textContent=tl;var p=document.getElementById('prog');p.style.strokeDasharray=C;p.style.strokeDashoffset=C*(1-tl/TL);p.classList.remove('warn','danger');if(tl<=3)p.classList.add('danger');else if(tl<=7)p.classList.add('warn')}
+
+function pick(v,btn){if(done)return;done=true;clearInterval(timer);var elapsed=((Date.now()-t0)/1000).toFixed(1);times.push(+elapsed);userAnswers.push(String(v));var q=qs[cur],ok=(String(v)===String(q.a));document.querySelectorAll('.opt').forEach(function(b){b.classList.add('locked');var bv=b.textContent.replace(/^[A-D]/,'').trim();if(bv===String(q.a))b.classList.add(ok?'correct':'reveal')});if(!ok)btn.classList.add('wrong');if(ok){score++;streak++;if(streak>best)best=streak;var tb=Math.max(0,Math.round(tl*5)),p=100+tb;pts+=p;fb('ok',rndMsg(),'+'+p+' pts \u00b7 '+elapsed+'s');particles(btn);results.push(true);sfxCorrect()}else{streak=0;fb('no','Oops! Answer: '+q.a,elapsed+'s');results.push(false);sfxWrong()}upScore();setTimeout(function(){var nb=document.getElementById('nextBtn');nb.classList.add('vis');nb.textContent=cur<N-1?'Next Question \u2192':'See Results 🏆'},500)}
+
+function timeup(){if(done)return;done=true;times.push(TL);userAnswers.push('(timed out)');streak=0;results.push(false);sfxWrong();var q=qs[cur];document.querySelectorAll('.opt').forEach(function(b){b.classList.add('locked');var bv=b.textContent.replace(/^[A-D]/,'').trim();if(bv===String(q.a))b.classList.add('reveal')});fb('to','\u23f0 Time\'s up! Answer: '+q.a,'');upScore();setTimeout(function(){var nb=document.getElementById('nextBtn');nb.classList.add('vis');nb.textContent=cur<N-1?'Next Question \u2192':'See Results 🏆'},500)}
+
+function next(){cur++;if(cur>=N)showRes();else show()}
+
+function showRes(){document.getElementById('game').style.display='none';var r=document.getElementById('res');r.classList.add('vis');var isPerfect=score===N;document.getElementById('normalRes').style.display=isPerfect?'none':'block';var pb=document.getElementById('perfectBanner');pb.style.display='none';pb.classList.remove('vis');if(isPerfect){setTimeout(function(){pb.style.display='block';setTimeout(function(){pb.classList.add('vis')},50);document.getElementById('pPts').textContent=pts;launchConfetti();sfxPerfect()},200)}else{var p=score/N;var e,t,s;if(p>=.66){e='🌟';t='Nice Work!';s='So close to perfect \u2014 try again!'}else if(p>=.33){e='🎯';t='Good Try!';s='Practice makes perfect!'}else{e='📚';t='Keep Going!';s='Every challenge makes you stronger!'}el('rE',e);el('rT',t);el('rS',score+'/'+N);el('rSub',s)}var avg=times.length?(times.reduce(function(a,b){return a+b},0)/times.length).toFixed(1):'0';el('rAvg',avg+'s');el('rStr',best+' 🔥');el('rPts',pts);buildEmojiGrid();var perQuestion=[];for(var i=0;i<qs.length;i++){perQuestion.push({teks:qs[i].teks,correct:results[i]===true,time:times[i]||0,question:(qs[i].ctx?qs[i].ctx+' ':'')+qs[i].q,correctAnswer:String(qs[i].a),userAnswer:userAnswers[i]||'',choices:qs[i].o.map(String)})}var teksToSend=focusTeksList.length>0?focusTeksList:perQuestion.map(function(p){return p.teks}).filter(function(v,i,a){return a.indexOf(v)===i});try{window.parent.postMessage({type:'mathSprintResult',score:score,total:N,pts:pts,avg:+avg,streak:best,diff:diff,teks:teksToSend,questions:perQuestion},'*')}catch(e){}}
+
+function launchConfetti(){var wrap=document.getElementById('confettiWrap');wrap.innerHTML='';var colors=['#FFD700','#00E5FF','#2ECC71','#FF6BFF','#A78BFA','#FF6B6B','#FFA726','#fff'];for(var i=0;i<80;i++){var el=document.createElement('div');el.className='confetti-piece';var color=colors[ri(0,colors.length-1)];var size=6+Math.random()*8;el.style.left=Math.random()*100+'%';el.style.background=color;el.style.setProperty('--rot',(360+Math.random()*720)+'deg');el.style.animationDuration=(2+Math.random()*2)+'s';el.style.animationDelay=Math.random()*0.8+'s';el.style.width=size+'px';el.style.height=size+'px';el.style.borderRadius=ri(0,1)?'50%':'1px';wrap.appendChild(el)}setTimeout(function(){wrap.innerHTML=''},4500)}
+
+function reset(){document.getElementById('res').classList.remove('vis');document.getElementById('perfectBanner').classList.remove('vis');document.getElementById('confettiWrap').innerHTML='';document.getElementById('game').style.display='none';document.getElementById('startScreen').style.display='block';if(focusTeksList.length>0){document.getElementById('normalStart').style.display='none';document.getElementById('focusStart').style.display='block'}else{document.getElementById('normalStart').style.display='block';document.getElementById('focusStart').style.display='none'}}
+
+function el(id,v){document.getElementById(id).textContent=v}
+function fb(cls,t,s){var a=document.getElementById('fbT'),b=document.getElementById('fbS');a.className='fb-text'+(cls?' '+cls:'');a.textContent=t;b.className='fb-sub';b.textContent=s;setTimeout(function(){if(t)a.classList.add('on');if(s)b.classList.add('on')},50)}
+function hidNext(){document.getElementById('nextBtn').classList.remove('vis')}
+function upScore(){el('sScore',score);el('sStreak',streak+' 🔥');el('sPts',pts)}
+function rndMsg(){return['🎉 Correct!','✅ Nailed it!','🚀 Brilliant!','⚡ Fast!','💯 Perfect!'][ri(0,4)]}
+function buildDots(){var d=document.getElementById('dots');d.innerHTML='';for(var i=0;i<N;i++){var e=document.createElement('div');e.className='dot';d.appendChild(e)}}
+function updateDots(){var ds=document.querySelectorAll('.dot');ds.forEach(function(d,i){d.className='dot';if(i===cur)d.classList.add('now');else if(i<cur)d.classList.add(results[i]?'ok':'fail')})}
+function particles(btn){var r=btn.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,co=document.getElementById('particles'),cs=['#FFD700','#00E5FF','#2ECC71','#FF6BFF','#A78BFA'];for(var i=0;i<14;i++){var p=document.createElement('div');p.className='particle';var ang=(Math.PI*2/14)*i,dist=50+Math.random()*70;p.style.left=cx+'px';p.style.top=cy+'px';p.style.setProperty('--dx',Math.cos(ang)*dist+'px');p.style.setProperty('--dy',Math.sin(ang)*dist+'px');p.style.background=cs[i%cs.length];var sz=5+Math.random()*7;p.style.width=sz+'px';p.style.height=sz+'px';co.appendChild(p);setTimeout(function(){p.remove()},800)}}
+function buildEmojiGrid(){var grid=document.getElementById('emojiGrid');grid.innerHTML='';results.forEach(function(ok,i){var item=document.createElement('div');item.className='eg-item';var icon=document.createElement('div');icon.className='eg-icon';icon.style.animationDelay=(i*0.15)+'s';icon.textContent=ok?'✅':(times[i]>=TL?'⏰':'❌');var time=document.createElement('div');time.className='eg-time';time.textContent=times[i]>=TL?'timeout':times[i]+'s';item.appendChild(icon);item.appendChild(time);grid.appendChild(item)})}
+function share(){var d=diff==='focused'?(focusLabel||focusTeksList.join(', ')):diff[0].toUpperCase()+diff.slice(1);var perfect=score===N?'👑 PERFECT SCORE!\n':'';var emoji=results.map(function(ok,i){return ok?'✅':(times[i]>=TL?'⏰':'❌')}).join(' ');var t='🤖 Q-Bot Math Sprint\n'+perfect+emoji+'\n📊 Score: '+score+'/'+N+' | ⚡ '+pts+' pts\n🔥 Best Streak: '+best+' | ⏱ Avg: '+(times.reduce(function(a,b){return a+b},0)/times.length).toFixed(1)+'s\n🎯 Topic: '+d+'\n\n#QBotChallenge #QuantegyAI';if(navigator.share)navigator.share({title:"Q-Bot Math Sprint",text:t});else if(navigator.clipboard)navigator.clipboard.writeText(t).then(function(){var toast=document.getElementById('toast');toast.textContent='📋 Score copied!';toast.classList.add('show');setTimeout(function(){toast.classList.remove('show')},2500)})}
+function shareImage(){var canvas=document.getElementById('scoreCanvas');var ctx=canvas.getContext('2d');var W=600,H=400;canvas.width=W;canvas.height=H;var bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#0B1A3B');bg.addColorStop(1,'#1E3F8B');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);ctx.textAlign='center';ctx.font='bold 28px Fredoka, sans-serif';ctx.fillStyle='#6BB8FF';ctx.fillText("🤖 Q-Bot Math Sprint",W/2,60);ctx.font='bold 64px Fredoka, sans-serif';var sg=ctx.createLinearGradient(W/2-60,120,W/2+60,180);sg.addColorStop(0,'#FFD700');sg.addColorStop(1,'#FFA726');ctx.fillStyle=sg;ctx.fillText(score+'/'+N,W/2,190);ctx.font='bold 22px Fredoka, sans-serif';ctx.fillStyle='#E8EEF4';ctx.fillText('⚡ '+pts+' points',W/2,230);ctx.font='32px serif';ctx.fillText(results.map(function(ok,i){return ok?'✅':(times[i]>=TL?'⏰':'❌')}).join('  '),W/2,280);ctx.font='bold 14px Fredoka, sans-serif';ctx.fillStyle='rgba(200,214,229,0.5)';ctx.fillText('Powered by Quantegy AI',W/2,H-30);canvas.toBlob(function(blob){var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='QBot-Score.png';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);var toast=document.getElementById('toast');toast.textContent='🖼️ Score card downloaded!';toast.classList.add('show');setTimeout(function(){toast.classList.remove('show')},2500)},'image/png')}
+</script>
+</body>
+</html>
