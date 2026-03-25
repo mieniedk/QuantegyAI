@@ -1,7 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   COLOR, CARD, BTN_PRIMARY, BTN_PRIMARY_DISABLED, BADGE, HEADING, BODY,
-  PAGE_WRAP,
+  PAGE_WRAP, MOBILE_BP,
 } from '../utils/loopStyles';
 import {
   studentSignup, studentLogin, isStudentLoggedIn, getStudentInfo,
@@ -35,6 +35,7 @@ const PLANS = [
 const INPUT_STYLE = {
   width: '100%',
   padding: '12px 14px',
+  minHeight: 42,
   fontSize: 15,
   borderRadius: 10,
   border: `1.5px solid ${COLOR.border}`,
@@ -44,6 +45,7 @@ const INPUT_STYLE = {
 };
 
 export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
+  const [viewportWidth, setViewportWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1200));
   const [mode, setMode] = useState(isStudentLoggedIn() ? 'pricing' : 'signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -52,6 +54,24 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
   const [busy, setBusy] = useState(false);
 
   const examLabel = EXAM_LABELS[examId] || examId;
+  const isMobile = viewportWidth < MOBILE_BP;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    let raf = null;
+    const onResize = () => {
+      if (raf != null) return;
+      raf = window.requestAnimationFrame(() => {
+        raf = null;
+        setViewportWidth(window.innerWidth);
+      });
+    };
+    window.addEventListener('resize', onResize);
+    return () => {
+      if (raf != null) window.cancelAnimationFrame(raf);
+      window.removeEventListener('resize', onResize);
+    };
+  }, []);
 
   const handleAuth = useCallback(async (e) => {
     e.preventDefault();
@@ -98,7 +118,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
   const studentInfo = getStudentInfo();
 
   return (
-    <div style={{ ...PAGE_WRAP, display: 'flex', justifyContent: 'center', padding: '40px 16px' }}>
+    <div style={{ ...PAGE_WRAP, display: 'flex', justifyContent: 'center', padding: isMobile ? '16px 10px 24px' : '40px 16px' }}>
       <div style={{ maxWidth: 520, width: '100%' }}>
 
         {/* Locked badge */}
@@ -176,7 +196,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
               <button
                 type="submit"
                 disabled={busy}
-                style={busy ? BTN_PRIMARY_DISABLED : BTN_PRIMARY}
+                style={{ ...(busy ? BTN_PRIMARY_DISABLED : BTN_PRIMARY), minHeight: 44 }}
               >
                 {busy ? 'Please wait...' : mode === 'signup' ? 'Create Account & Continue' : 'Log In & Continue'}
               </button>
@@ -205,13 +225,13 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
               </p>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: 12, marginBottom: 24 }}>
               {PLANS.map((plan) => (
                 <div
                   key={plan.id}
                   style={{
                     ...CARD,
-                    padding: 20,
+                    padding: isMobile ? 16 : 20,
                     textAlign: 'center',
                     border: plan.highlight ? `2px solid ${COLOR.green}` : `1px solid ${COLOR.border}`,
                     position: 'relative',
@@ -238,6 +258,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
                     style={{
                       ...(busy ? BTN_PRIMARY_DISABLED : BTN_PRIMARY),
                       padding: '10px 16px',
+                      minHeight: 42,
                       fontSize: 14,
                     }}
                   >

@@ -39,6 +39,11 @@ export const COLOR = {
   successText: '#065f46',
 };
 
+/* ── Responsive tokens ── */
+export const MOBILE_BP = 768;
+export const SMALL_PHONE_BP = 390;
+export const TIGHT_LANDSCAPE_HEIGHT_BP = 430;
+
 /* ── Page-level layout ── */
 export const PAGE_WRAP = {
   minHeight: '100vh',

@@ -23,6 +23,7 @@ import {
   COLOR, CARD, BTN_PRIMARY, BTN_GAME_LINK, BADGE, HEADING, BODY,
   SCOPE_BADGE, OPTION_BASE, OPTION_SELECTED, OPTION_DISABLED,
   resultBanner, resultTitle, resultScore, PROGRESS_TRACK, progressFill,
+  MOBILE_BP, SMALL_PHONE_BP, TIGHT_LANDSCAPE_HEIGHT_BP,
 } from '../utils/loopStyles';
 import learningLoopConfig from '../data/learning-loop-config.json';
 import {
@@ -453,13 +454,13 @@ function PhaseHeader({ badgeColor, badgeLabel, title, description, scopeBadge })
   );
 }
 
-function StepProgress({ current, total }) {
+function StepProgress({ current, total, compact = false, smallPhone = false }) {
   const safeCurrent = Math.max(0, current || 0);
   const safeTotal = Math.max(1, total || 1);
   const pct = Math.round((safeCurrent / safeTotal) * 100);
   return (
-    <div style={{ marginBottom: 14 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, color: COLOR.textMuted, marginBottom: 4 }}>
+    <div style={{ marginBottom: compact ? 8 : 14 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: compact ? (smallPhone ? 9 : 10) : 11, fontWeight: 700, color: COLOR.textMuted, marginBottom: 4, lineHeight: 1.3 }}>
         <span>Step {safeCurrent + 1} of {safeTotal}</span><span>{pct}%</span>
       </div>
       <div style={PROGRESS_TRACK}><div style={progressFill(pct)} /></div>
@@ -491,25 +492,25 @@ function ExamBar({ label, mastered, total, countLabel = 'mastered' }) {
   );
 }
 
-function MicroGoalBanner({ phase, whyMatters }) {
+function MicroGoalBanner({ phase, whyMatters, compact = false, smallPhone = false }) {
   const text = MICRO_GOALS_BY_PHASE[phase];
   if (!text && !whyMatters) return null;
   return (
-    <div style={{ marginBottom: 14 }}>
+    <div style={{ marginBottom: compact ? 8 : 14 }}>
       {whyMatters && (
         <div
           style={{
-            marginBottom: 10,
-            padding: '10px 14px',
+            marginBottom: compact ? 8 : 10,
+            padding: compact ? (smallPhone ? '8px 10px' : '9px 12px') : '10px 14px',
             borderRadius: 10,
             background: '#f0fdf4',
             border: `1px solid ${COLOR.green}44`,
-            fontSize: 13,
+            fontSize: compact ? 12 : 13,
             color: COLOR.text,
-            lineHeight: 1.55,
+            lineHeight: compact ? 1.45 : 1.55,
           }}
         >
-          <span style={{ fontWeight: 800, color: COLOR.green, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>
+          <span style={{ fontWeight: 800, color: COLOR.green, fontSize: compact ? 9 : 10, textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>
             Why this matters
           </span>
           {whyMatters}
@@ -518,16 +519,16 @@ function MicroGoalBanner({ phase, whyMatters }) {
       {text && (
         <div
           style={{
-            padding: '10px 14px',
+            padding: compact ? (smallPhone ? '8px 10px' : '9px 12px') : '10px 14px',
             borderRadius: 10,
             background: '#eff6ff',
             border: `1px solid ${COLOR.blue}33`,
-            fontSize: 13,
+            fontSize: compact ? 12 : 13,
             color: COLOR.text,
-            lineHeight: 1.55,
+            lineHeight: compact ? 1.45 : 1.55,
           }}
         >
-          <span style={{ fontWeight: 800, color: COLOR.blue, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>
+          <span style={{ fontWeight: 800, color: COLOR.blue, fontSize: compact ? 9 : 10, textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>
             Goal for this step
           </span>
           {text}
@@ -613,6 +614,14 @@ function QuizBlock({
   stepIndex, totalSteps, phaseKey, speedFeedback,
 }) {
   const quizContainerRef = useRef(null);
+  const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1200;
+  const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 900;
+  const compactLandscape = viewportWidth > viewportHeight && viewportHeight <= 430;
+  const compactQuiz = viewportWidth <= 430 || compactLandscape;
+  const tinyQuiz = viewportWidth <= 360;
+  const actionBtnStyle = compactQuiz
+    ? { ...BTN_PRIMARY, width: '100%', minHeight: 44, padding: tinyQuiz ? '10px 12px' : '10px 14px', fontSize: 14 }
+    : BTN_PRIMARY;
   const firstIncompleteQuestionId = useMemo(() => {
     if (!Array.isArray(pool)) return null;
     const pending = pool.find((q) => answers[q.id] == null);
@@ -651,16 +660,16 @@ function QuizBlock({
       />
       <div ref={quizContainerRef} data-quiz-block="true">
       {pool.map((q, qi) => (
-        <div key={q.id} className="quiz-question" data-question-id={q.id} data-hotkey-target={String(firstIncompleteQuestionId === q.id)} style={{ marginBottom: 20 }}>
+        <div key={q.id} className="quiz-question" data-question-id={q.id} data-hotkey-target={String(firstIncompleteQuestionId === q.id)} style={{ marginBottom: compactQuiz ? 16 : 20 }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <p style={{ fontWeight: 700, color: COLOR.text, margin: 0, fontSize: 15, lineHeight: 1.5, flex: '1 1 200px' }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(`Q${qi + 1}: ${q.question}`)) }} />
+            <p style={{ fontWeight: 700, color: COLOR.text, margin: 0, fontSize: tinyQuiz ? 14 : 15, lineHeight: compactQuiz ? 1.45 : 1.5, flex: '1 1 200px' }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(`Q${qi + 1}: ${q.question}`)) }} />
             {q.spacedReview && (
               <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '4px 10px', borderRadius: 999, background: COLOR.amberBg, color: '#92400e', border: `1px solid ${COLOR.amber}` }}>
                 Spaced review
               </span>
             )}
           </div>
-          <div role="radiogroup" aria-label={`Question ${qi + 1} options`} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div role="radiogroup" aria-label={`Question ${qi + 1} options`} style={{ display: 'flex', flexDirection: 'column', gap: compactQuiz ? 6 : 8 }}>
             {(q.options || []).map((opt, optIdx) => {
               const selected = answers[q.id] === opt;
               const isCorrect = submitted && opt === q.correct;
@@ -681,7 +690,7 @@ function QuizBlock({
                   role="radio"
                   aria-checked={selected}
                   onClick={() => setAnswers((prev) => ({ ...prev, [q.id]: opt }))}
-                  style={{ ...style, outlineOffset: 2 }}
+                  style={{ ...style, outlineOffset: 2, minHeight: compactQuiz ? 44 : undefined, padding: compactQuiz ? (tinyQuiz ? '10px 12px' : '10px 14px') : style.padding, fontSize: compactQuiz ? 14 : style.fontSize, lineHeight: compactQuiz ? 1.35 : style.lineHeight }}
                 >
                   <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(String(opt))) }} />
                 </button>
@@ -710,7 +719,8 @@ function QuizBlock({
                 style={{
                   fontSize: 12,
                   fontWeight: 600,
-                  padding: '6px 12px',
+                  padding: compactQuiz ? '8px 12px' : '6px 12px',
+                  minHeight: compactQuiz ? 40 : undefined,
                   borderRadius: 8,
                   border: `1px solid ${flaggedSet.has(q.id) ? COLOR.amber : COLOR.border}`,
                   background: flaggedSet.has(q.id) ? COLOR.amberBg : '#fff',
@@ -726,7 +736,7 @@ function QuizBlock({
       ))}
       </div>
       {!submitted ? (
-        <button type="button" onClick={onSubmit} disabled={Object.keys(answers).length < pool.length} style={Object.keys(answers).length < pool.length ? { ...BTN_PRIMARY, opacity: 0.5, cursor: 'not-allowed' } : BTN_PRIMARY}>Submit</button>
+        <button type="button" onClick={onSubmit} disabled={Object.keys(answers).length < pool.length} style={Object.keys(answers).length < pool.length ? { ...actionBtnStyle, opacity: 0.5, cursor: 'not-allowed' } : actionBtnStyle}>Submit</button>
       ) : (
         <>
           <div style={resultBanner(correctCount === pool.length)}>
@@ -736,10 +746,10 @@ function QuizBlock({
           <div style={{ marginTop: -4, marginBottom: 10, fontSize: 13, color: COLOR.text, lineHeight: 1.6 }}>{resultMessage}</div>
           {speedFeedback && <div style={{ marginBottom: 8, fontSize: 12, color: COLOR.blue, fontWeight: 600 }}>{speedFeedback}</div>}
           <div style={{ marginBottom: 12, fontSize: 12, color: COLOR.textMuted }}>{nextStepMessage}</div>
-          <button type="button" onClick={onContinue} style={BTN_PRIMARY}>Continue</button>
+          <button type="button" onClick={onContinue} style={actionBtnStyle}>Continue</button>
         </>
       )}
-      {!submitted && onSkip && <button type="button" onClick={onSkip} style={{ ...BTN_PRIMARY, background: COLOR.borderLight, color: COLOR.textSecondary, border: `1px solid ${COLOR.border}`, boxShadow: 'none', marginTop: 8 }}>Skip</button>}
+      {!submitted && onSkip && <button type="button" onClick={onSkip} style={{ ...actionBtnStyle, background: COLOR.borderLight, color: COLOR.textSecondary, border: `1px solid ${COLOR.border}`, boxShadow: 'none', marginTop: 8 }}>Skip</button>}
     </PhaseCard>
   );
 }
@@ -1204,9 +1214,14 @@ export default function PracticeLoop() {
   const [pacingPref, setPacingPref] = useState(() => (typeof window !== 'undefined' ? getPacingPreference() : 'balanced'));
   const [goalsPanelOpen, setGoalsPanelOpen] = useState(false);
   const [coachExpanded, setCoachExpanded] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1200));
+  const [viewportHeight, setViewportHeight] = useState(() => (typeof window !== 'undefined' ? window.innerHeight : 900));
   const [isCompactDock, setIsCompactDock] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 700 : false));
   const [dockCollapsed, setDockCollapsed] = useState(false);
   const dockAutoCollapsedRef = useRef(false);
+  const [showSecondaryPanels, setShowSecondaryPanels] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= MOBILE_BP : true));
+  const secondaryPanelsPrimedRef = useRef(false);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
   const [showSaveProgressModal, setShowSaveProgressModal] = useState(false);
   const saveProgressPromptedRef = useRef(
     typeof window !== 'undefined' && window.sessionStorage.getItem(savePromptSessionKey) === '1',
@@ -1216,13 +1231,98 @@ export default function PracticeLoop() {
   const confidenceModalRef = useRef(null);
 
   const CONFIDENCE_CHECKIN_TILES = [4, 8, 12, 16, 20];
+  const isMobile = viewportWidth < MOBILE_BP;
+  const isSmallPhone = viewportWidth < SMALL_PHONE_BP;
+  const isLandscapeTight = isMobile && viewportWidth > viewportHeight && viewportHeight <= TIGHT_LANDSCAPE_HEIGHT_BP;
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
-    const onResize = () => setIsCompactDock(window.innerWidth < 700);
+    let raf = null;
+    const onResize = () => {
+      if (raf != null) return;
+      raf = window.requestAnimationFrame(() => {
+        raf = null;
+        setViewportWidth(window.innerWidth);
+        setViewportHeight(window.innerHeight);
+        setIsCompactDock(window.innerWidth < 700);
+      });
+    };
     window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+    return () => {
+      if (raf != null) window.cancelAnimationFrame(raf);
+      window.removeEventListener('resize', onResize);
+    };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !isMobile) {
+      setKeyboardOpen(false);
+      return undefined;
+    }
+    let raf = null;
+    const vv = window.visualViewport;
+    const isTextEntry = (el) => {
+      if (!el || typeof el !== 'object') return false;
+      const tag = el.tagName;
+      return tag === 'INPUT' || tag === 'TEXTAREA' || el.isContentEditable === true;
+    };
+    const computeKeyboardState = () => {
+      const baseHeight = window.innerHeight || 0;
+      const vvHeight = vv?.height ?? baseHeight;
+      const vvOffsetTop = vv?.offsetTop ?? 0;
+      const insetLoss = baseHeight - vvHeight - vvOffsetTop;
+      const activeIsTextEntry = isTextEntry(document.activeElement);
+      setKeyboardOpen(insetLoss > 120 || (activeIsTextEntry && insetLoss > 40));
+    };
+    const onViewportChange = () => {
+      if (raf != null) return;
+      raf = window.requestAnimationFrame(() => {
+        raf = null;
+        computeKeyboardState();
+      });
+    };
+    const onFocusIn = () => onViewportChange();
+    const onFocusOut = () => window.setTimeout(computeKeyboardState, 120);
+
+    computeKeyboardState();
+    vv?.addEventListener('resize', onViewportChange);
+    vv?.addEventListener('scroll', onViewportChange);
+    document.addEventListener('focusin', onFocusIn);
+    document.addEventListener('focusout', onFocusOut);
+    return () => {
+      if (raf != null) window.cancelAnimationFrame(raf);
+      vv?.removeEventListener('resize', onViewportChange);
+      vv?.removeEventListener('scroll', onViewportChange);
+      document.removeEventListener('focusin', onFocusIn);
+      document.removeEventListener('focusout', onFocusOut);
+    };
+  }, [isMobile]);
+
+  useEffect(() => {
+    if (!isMobile) {
+      setShowSecondaryPanels(true);
+      secondaryPanelsPrimedRef.current = false;
+      return undefined;
+    }
+    if (isLandscapeTight) {
+      setShowSecondaryPanels(false);
+      return undefined;
+    }
+    if (secondaryPanelsPrimedRef.current) {
+      setShowSecondaryPanels(true);
+      return undefined;
+    }
+    setShowSecondaryPanels(false);
+    const t = setTimeout(() => {
+      secondaryPanelsPrimedRef.current = true;
+      setShowSecondaryPanels(true);
+    }, 280);
+    return () => clearTimeout(t);
+  }, [isMobile, isLandscapeTight]);
+
+  useEffect(() => {
+    if (isLandscapeTight) setDockCollapsed(true);
+  }, [isLandscapeTight]);
 
   const adaptiveScope = learningLoopConfig.adaptiveScope || {};
   const adaptiveExamIds = Array.isArray(adaptiveScope.examIds) && adaptiveScope.examIds.length > 0
@@ -2496,11 +2596,21 @@ export default function PracticeLoop() {
   const speedFeedback = lastQuizAvgMs || null;
 
   const teachingMoveLine = comp ? getTeachingMove(comp) : '';
+  const pageShellStyle = useMemo(() => ({
+    minHeight: '100vh',
+    background: COLOR.bg,
+    padding: isMobile ? (keyboardOpen ? '10px 10px 14px' : '14px 10px 28px') : '24px 16px 40px',
+    fontFamily: "'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif",
+  }), [isMobile, keyboardOpen]);
+  const pageInnerStyle = useMemo(() => ({
+    maxWidth: isMobile ? 860 : 800,
+    margin: '0 auto',
+  }), [isMobile]);
 
   if (!validExam) {
     return (
-      <div style={{ minHeight: '100vh', background: COLOR.bg, padding: '24px 16px 40px', fontFamily: "'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif" }}>
-        <div style={{ maxWidth: 800, margin: '0 auto' }}>
+      <div style={pageShellStyle}>
+        <div style={pageInnerStyle}>
           <PhaseCard>
             <PhaseHeader badgeColor={COLOR.red} badgeLabel="Unknown exam" title="Exam not found" description={`The exam "${examId}" is not recognised. Please go back and pick a valid test.`} />
             <Link to="/texes-prep" style={BTN_PRIMARY}>Back to TExES Prep</Link>
@@ -2511,8 +2621,8 @@ export default function PracticeLoop() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: COLOR.bg, padding: '24px 16px 40px', fontFamily: "'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif" }}>
-      <div style={{ maxWidth: 800, margin: '0 auto' }}>
+    <div style={pageShellStyle}>
+      <div style={pageInnerStyle}>
 
         {(!isOnline || localSaveWarning) && hasTopic && (
           <div style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 10, background: '#fef3c7', border: '1px solid #fcd34d', fontSize: 13, color: '#78350f', lineHeight: 1.5 }}>
@@ -2604,12 +2714,12 @@ export default function PracticeLoop() {
               zIndex: 150,
               background: 'rgba(15, 23, 42, 0.5)',
               display: 'flex',
-              alignItems: 'center',
+              alignItems: isMobile ? 'flex-start' : 'center',
               justifyContent: 'center',
-              padding: 16,
+              padding: isMobile ? '12px 10px' : 16,
             }}
           >
-            <div ref={breakModalRef} tabIndex={-1} style={{ maxWidth: 400, width: '100%', padding: 22, borderRadius: 16, background: '#fff', border: `1px solid ${COLOR.border}`, outline: 'none' }}>
+            <div ref={breakModalRef} tabIndex={-1} style={{ maxWidth: 400, width: '100%', maxHeight: 'calc(100dvh - 24px)', overflowY: 'auto', marginTop: isMobile ? 10 : 0, padding: isMobile ? 16 : 22, borderRadius: 16, background: '#fff', border: `1px solid ${COLOR.border}`, outline: 'none' }}>
               <h3 id="break-modal-title" style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 800 }}>Take a short break?</h3>
               <p style={{ margin: '0 0 16px', fontSize: 14, color: COLOR.textSecondary, lineHeight: 1.55 }}>
                 You have been in this loop for a while. A 5-minute break often improves focus for the next quizzes.
@@ -2632,11 +2742,37 @@ export default function PracticeLoop() {
           </div>
         )}
 
-        {hasTopic && (
+        {keyboardOpen && hasTopic && (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              marginBottom: 10,
+              padding: '8px 10px',
+              borderRadius: 10,
+              background: '#eff6ff',
+              border: `1px solid ${COLOR.blue}55`,
+              color: '#1e3a8a',
+              fontSize: 12,
+              lineHeight: 1.4,
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <span aria-hidden>⌨</span>
+            <span>Typing mode: header tools are hidden while the keyboard is open.</span>
+          </div>
+        )}
+
+        {hasTopic && !keyboardOpen && (
           <div style={{
-            position: 'sticky', top: isCompactDock ? 4 : 8, zIndex: 20,
-            marginBottom: isCompactDock ? 14 : 18,
-            padding: dockCollapsed ? (isCompactDock ? '8px 10px' : '8px 14px') : (isCompactDock ? '10px 10px' : '12px 14px'),
+            position: 'sticky', top: isLandscapeTight ? 0 : (isCompactDock ? (isSmallPhone ? 0 : 2) : 8), zIndex: 20,
+            marginBottom: isLandscapeTight ? 8 : (isCompactDock ? 10 : 18),
+            padding: isLandscapeTight
+              ? (dockCollapsed ? '7px 8px' : '8px 8px')
+              : (dockCollapsed ? (isCompactDock ? '8px 9px' : '8px 14px') : (isCompactDock ? '9px 9px' : '12px 14px')),
             borderRadius: 14,
             background: COLOR.card, border: `1px solid ${COLOR.border}`,
             boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
@@ -2649,22 +2785,22 @@ export default function PracticeLoop() {
                 <button
                   type="button"
                   onClick={() => setDockCollapsed(false)}
-                  style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}
+                  style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: isSmallPhone ? '6px 0' : 0, minHeight: 38, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
-                    <span style={{ fontSize: 11, fontWeight: 800, color: COLOR.blue, whiteSpace: 'nowrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', flexWrap: isSmallPhone ? 'wrap' : 'nowrap', gap: 8, minWidth: 0, flex: 1 }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: COLOR.blue, whiteSpace: isSmallPhone ? 'normal' : 'nowrap' }}>
                       Step {displayPhaseIndex + 1}/{STEPS_PER_CYCLE}
                     </span>
                     {conceptTitle && (
-                      <span style={{ fontSize: 11, fontWeight: 600, color: COLOR.textMuted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: COLOR.textMuted, whiteSpace: isSmallPhone ? 'normal' : 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {conceptTitle} · {masteryScore}%
                       </span>
                     )}
                   </div>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: COLOR.textMuted, whiteSpace: 'nowrap', flexShrink: 0 }}>▼ Details</span>
+                  <span style={{ fontSize: isSmallPhone ? 9 : 10, fontWeight: 700, color: COLOR.textMuted, whiteSpace: 'nowrap', flexShrink: 0 }}>{isSmallPhone ? '▼' : '▼ Details'}</span>
                 </button>
                 <div style={{ marginTop: 6, overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 2 }}>
-                  <div style={{ display: 'grid', gap: 2, alignItems: 'center', gridTemplateColumns: `repeat(${Math.max(1, STEPS_PER_CYCLE)}, minmax(8px, 1fr))`, minWidth: Math.max(160, STEPS_PER_CYCLE * 10) }}>
+                  <div style={{ display: 'grid', gap: isSmallPhone ? 1 : 2, alignItems: 'center', gridTemplateColumns: `repeat(${Math.max(1, STEPS_PER_CYCLE)}, minmax(8px, 1fr))`, minWidth: Math.max(isSmallPhone ? 150 : 160, STEPS_PER_CYCLE * (isSmallPhone ? 9 : 10)) }}>
                     {tileProgress.map((t) => {
                       const clickable = t.status === 'done' || t.status === 'passed';
                       return (
@@ -2677,15 +2813,15 @@ export default function PracticeLoop() {
                           onClick={clickable ? () => revisitTile(t.key) : undefined}
                           onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') revisitTile(t.key); } : undefined}
                           style={{
-                            height: 7, borderRadius: 3,
+                            height: isSmallPhone ? 10 : 9, borderRadius: 4,
                             background: t.color || '#e5e7eb',
                             opacity: t.status === 'future' ? 0.35 : 1,
                             border: t.status === 'current' ? `2px solid ${COLOR.blue}` : '1px solid transparent',
                             cursor: clickable ? 'pointer' : 'default',
                             transition: 'background 0.3s, opacity 0.3s, transform 0.15s',
                           }}
-                          onMouseEnter={clickable ? (e) => { e.currentTarget.style.transform = 'scaleY(1.6)'; } : undefined}
-                          onMouseLeave={clickable ? (e) => { e.currentTarget.style.transform = 'scaleY(1)'; } : undefined}
+                          onMouseEnter={!isMobile && clickable ? (e) => { e.currentTarget.style.transform = 'scaleY(1.6)'; } : undefined}
+                          onMouseLeave={!isMobile && clickable ? (e) => { e.currentTarget.style.transform = 'scaleY(1)'; } : undefined}
                         />
                       );
                     })}
@@ -2728,18 +2864,20 @@ export default function PracticeLoop() {
                     <button
                       type="button"
                       onClick={() => setDockCollapsed(true)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: 700, color: COLOR.textMuted, padding: '2px 6px' }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: 700, color: COLOR.textMuted, padding: '6px 8px', minHeight: 34 }}
                     >
                       ▲ Collapse
                     </button>
                   )}
                 </div>
                 <div style={{ marginBottom: isCompactDock ? 8 : 10 }}>
-                  <StepProgress current={displayPhaseIndex} total={STEPS_PER_CYCLE} />
+                  <StepProgress current={displayPhaseIndex} total={STEPS_PER_CYCLE} compact={isCompactDock} smallPhone={isSmallPhone} />
                 </div>
-                <div style={{ marginBottom: isCompactDock ? 8 : 10 }}>
-                  <MicroGoalBanner phase={phase} whyMatters={whyMattersLine} />
-                </div>
+                {!isLandscapeTight && (
+                  <div style={{ marginBottom: isCompactDock ? 8 : 10 }}>
+                    <MicroGoalBanner phase={phase} whyMatters={whyMattersLine} compact={isCompactDock} smallPhone={isSmallPhone} />
+                  </div>
+                )}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: isCompactDock ? 9 : 10, fontWeight: 800, color: COLOR.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   <span aria-hidden>◍</span>
                   <span>Performance</span>
@@ -2754,7 +2892,7 @@ export default function PracticeLoop() {
                   />
                 )}
                 {compDisplay && (
-                  <div style={{ marginTop: 6, fontSize: isCompactDock ? 10 : 11, color: COLOR.textMuted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ marginTop: 6, fontSize: isCompactDock ? 10 : 11, color: COLOR.textMuted, whiteSpace: isCompactDock ? 'normal' : 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: isCompactDock ? 1.3 : 1.35, wordBreak: isCompactDock ? 'break-word' : 'normal' }}>
                     {compDisplay}{currentStdObj ? ` · ${currentStdObj.name}` : ''}
                   </div>
                 )}
@@ -2768,7 +2906,7 @@ export default function PracticeLoop() {
                   </div>
                 </div>
                 <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 2 }}>
-                  <div style={{ display: 'grid', gap: isCompactDock ? 2 : 3, alignItems: 'center', gridTemplateColumns: `repeat(${Math.max(1, STEPS_PER_CYCLE)}, minmax(10px, 1fr))`, minWidth: Math.max(isCompactDock ? 180 : 220, STEPS_PER_CYCLE * (isCompactDock ? 12 : 14)) }}>
+                  <div style={{ display: 'grid', gap: isCompactDock ? 2 : 3, alignItems: 'center', gridTemplateColumns: `repeat(${Math.max(1, STEPS_PER_CYCLE)}, minmax(10px, 1fr))`, minWidth: Math.max(isCompactDock ? (isSmallPhone ? 170 : 180) : 220, STEPS_PER_CYCLE * (isCompactDock ? (isSmallPhone ? 11 : 12) : 14)) }}>
                     {tileProgress.map((t) => {
                       const clickable = t.status === 'done' || t.status === 'passed';
                       return (
@@ -2781,7 +2919,7 @@ export default function PracticeLoop() {
                           onClick={clickable ? () => revisitTile(t.key) : undefined}
                           onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') revisitTile(t.key); } : undefined}
                           style={{
-                            height: isCompactDock ? 8 : 10,
+                            height: isCompactDock ? (isSmallPhone ? 12 : 11) : 10,
                             borderRadius: 4,
                             background: t.color || '#e5e7eb',
                             opacity: t.status === 'future' ? 0.35 : 1,
@@ -2789,8 +2927,8 @@ export default function PracticeLoop() {
                             cursor: clickable ? 'pointer' : 'default',
                             transition: 'background 0.3s, opacity 0.3s, transform 0.15s',
                           }}
-                          onMouseEnter={clickable ? (e) => { e.currentTarget.style.transform = 'scaleY(1.6)'; } : undefined}
-                          onMouseLeave={clickable ? (e) => { e.currentTarget.style.transform = 'scaleY(1)'; } : undefined}
+                          onMouseEnter={!isMobile && clickable ? (e) => { e.currentTarget.style.transform = 'scaleY(1.6)'; } : undefined}
+                          onMouseLeave={!isMobile && clickable ? (e) => { e.currentTarget.style.transform = 'scaleY(1)'; } : undefined}
                         />
                       );
                     })}
@@ -2802,7 +2940,7 @@ export default function PracticeLoop() {
                   <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><span style={{ width: 8, height: 8, borderRadius: 3, background: COLOR.red, display: 'inline-block' }} /> &lt;45%</span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><span style={{ width: 8, height: 8, borderRadius: 3, background: COLOR.blue, border: '1.5px solid ' + COLOR.blue, display: 'inline-block' }} /> Now</span>
                 </div>
-                {!isCompactDock && (
+                {!isCompactDock && !isLandscapeTight && (
                   <div style={{ marginTop: 4, fontSize: 10, color: COLOR.textSecondary, fontStyle: 'italic' }}>
                     Click a completed tile to revisit.
                   </div>
@@ -2817,7 +2955,7 @@ export default function PracticeLoop() {
                       goToPhase(returnTo, { skipProgress: true, _fromRevisitReturn: true });
                     }}
                     style={{
-                      marginTop: 8, width: '100%', padding: isCompactDock ? '6px 0' : '7px 0',
+                      marginTop: 8, width: '100%', padding: isCompactDock ? '8px 0' : '9px 0', minHeight: 40,
                       borderRadius: 8, border: `1.5px solid ${COLOR.blue}`,
                       background: 'transparent', color: COLOR.blue,
                       fontWeight: 700, fontSize: isCompactDock ? 11 : 12, cursor: 'pointer',
@@ -2864,9 +3002,9 @@ export default function PracticeLoop() {
               zIndex: 100,
               background: 'rgba(15, 23, 42, 0.55)',
               display: 'flex',
-              alignItems: 'center',
+              alignItems: isMobile ? 'flex-start' : 'center',
               justifyContent: 'center',
-              padding: 16,
+              padding: isMobile ? '12px 10px' : 16,
             }}
           >
             <div
@@ -2876,7 +3014,10 @@ export default function PracticeLoop() {
                 maxWidth: 440,
                 width: '100%',
                 borderRadius: 16,
-                padding: '24px 22px',
+                maxHeight: 'calc(100dvh - 24px)',
+                overflowY: 'auto',
+                marginTop: isMobile ? 8 : 0,
+                padding: isMobile ? '16px 14px' : '24px 22px',
                 background: '#fff',
                 outline: 'none',
                 boxShadow: '0 25px 50px rgba(0,0,0,0.18)',
@@ -2906,6 +3047,7 @@ export default function PracticeLoop() {
                       ...BTN_PRIMARY,
                       textAlign: 'left',
                       padding: '12px 16px',
+                      minHeight: 44,
                       background: '#f8fafc',
                       color: COLOR.text,
                       border: `1px solid ${COLOR.border}`,
@@ -2938,7 +3080,7 @@ export default function PracticeLoop() {
                       setLastCheckInMilestone(tilesCompleted);
                       setShowConfidenceCheckIn(false);
                     }}
-                    style={{ ...BTN_PRIMARY, textAlign: 'left', padding: '10px 14px', background: '#f1f5f9', color: COLOR.text, border: `1px solid ${COLOR.border}`, boxShadow: 'none', fontSize: 13 }}
+                    style={{ ...BTN_PRIMARY, textAlign: 'left', padding: '10px 14px', minHeight: 42, background: '#f1f5f9', color: COLOR.text, border: `1px solid ${COLOR.border}`, boxShadow: 'none', fontSize: 13 }}
                   >
                     I want more support — slower, more explanations
                   </button>
@@ -2959,7 +3101,7 @@ export default function PracticeLoop() {
                       setLastCheckInMilestone(tilesCompleted);
                       setShowConfidenceCheckIn(false);
                     }}
-                    style={{ ...BTN_PRIMARY, textAlign: 'left', padding: '10px 14px', background: '#f1f5f9', color: COLOR.text, border: `1px solid ${COLOR.border}`, boxShadow: 'none', fontSize: 13 }}
+                    style={{ ...BTN_PRIMARY, textAlign: 'left', padding: '10px 14px', minHeight: 42, background: '#f1f5f9', color: COLOR.text, border: `1px solid ${COLOR.border}`, boxShadow: 'none', fontSize: 13 }}
                   >
                     I feel ready — let me move faster when I can
                   </button>
@@ -2974,7 +3116,8 @@ export default function PracticeLoop() {
                 style={{
                   marginTop: 14,
                   width: '100%',
-                  padding: '8px',
+                  padding: '10px',
+                  minHeight: 40,
                   fontSize: 12,
                   fontWeight: 600,
                   color: COLOR.textMuted,
@@ -3462,17 +3605,17 @@ export default function PracticeLoop() {
           </PhaseCard>
         )}
 
-        {hasTopic && (
-          <div style={{ marginTop: 24, padding: '14px 18px', borderRadius: 12, background: '#f8fafc', border: `1px solid ${COLOR.border}` }}>
+        {hasTopic && showSecondaryPanels && !keyboardOpen && (
+          <div style={{ marginTop: isMobile ? 12 : 24, padding: isMobile ? '12px 12px' : '14px 18px', borderRadius: 12, background: '#f8fafc', border: `1px solid ${COLOR.border}` }}>
             <button
               type="button"
               onClick={() => setCoachExpanded((v) => !v)}
-              style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+              style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: isSmallPhone ? 'flex-start' : 'center', flexWrap: isSmallPhone ? 'wrap' : 'nowrap', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: 0, minHeight: 36 }}
             >
               <div style={{ fontSize: 12, fontWeight: 800, color: COLOR.blue, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {coachExpanded ? '▼' : '▶'} Learning Coach
               </div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.textSecondary }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.textSecondary, textAlign: isSmallPhone ? 'left' : 'right' }}>
                 XP {xpPoints} · Streak {quizStreak}{quizStreak >= 3 ? ' · On Fire' : ''}
               </div>
             </button>
@@ -3536,13 +3679,13 @@ export default function PracticeLoop() {
           </div>
         )}
 
-        {hasTopic && (
+        {hasTopic && showSecondaryPanels && !keyboardOpen && (
           <div style={{ marginBottom: 14, borderRadius: 12, background: COLOR.card, border: `1px solid ${COLOR.border}`, overflow: 'hidden' }}>
             <button
               type="button"
               onClick={() => setStudyNavOpen(o => !o)}
               aria-expanded={studyNavOpen}
-              style={{ width: '100%', padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textAlign: 'left' }}
+              style={{ width: '100%', padding: isMobile ? '12px 12px' : '10px 14px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textAlign: 'left', minHeight: 42 }}
             >
               <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: COLOR.textMuted }}>
                 Study Navigation & Goals

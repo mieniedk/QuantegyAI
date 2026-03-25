@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { studentSignup, pushProgress } from '../utils/studentAuth';
-import { COLOR, BTN_PRIMARY } from '../utils/loopStyles';
+import { COLOR, BTN_PRIMARY, MOBILE_BP } from '../utils/loopStyles';
 
 const MASTERY_KEY = 'quantegyai-mastery';
 const EXPERIENCE_KEY = 'quantegyai-learning-experience';
@@ -34,10 +34,25 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
   const [busy, setBusy] = useState(false);
   const [success, setSuccess] = useState(false);
   const modalRef = useRef(null);
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth < MOBILE_BP : false;
 
   useEffect(() => {
     modalRef.current?.focus();
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') onClose?.();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [onClose]);
 
   useEffect(() => {
     if (!success) return;
@@ -87,8 +102,8 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
         background: 'rgba(15, 23, 42, 0.55)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: 16,
+        display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'center',
+        padding: isMobile ? '12px 10px' : 16,
       }}
     >
       <div
@@ -96,7 +111,10 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
         tabIndex={-1}
         style={{
           maxWidth: 420, width: '100%', borderRadius: 16,
-          padding: '28px 24px', background: '#fff', outline: 'none',
+          maxHeight: 'calc(100dvh - 24px)',
+          overflowY: 'auto',
+          marginTop: isMobile ? 10 : 0,
+          padding: isMobile ? '18px 14px' : '28px 24px', background: '#fff', outline: 'none',
           boxShadow: '0 25px 50px rgba(0,0,0,0.18)',
           border: `1px solid ${COLOR.border}`,
         }}
@@ -134,7 +152,7 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
                 placeholder="How should we call you?"
                 autoComplete="name"
                 style={{
-                  width: '100%', padding: '10px 12px', borderRadius: 8,
+                  width: '100%', padding: '12px 12px', minHeight: 42, borderRadius: 8,
                   border: `1px solid ${COLOR.border}`, fontSize: 14,
                   marginBottom: 12, boxSizing: 'border-box',
                 }}
@@ -151,7 +169,7 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
                 autoComplete="email"
                 required
                 style={{
-                  width: '100%', padding: '10px 12px', borderRadius: 8,
+                  width: '100%', padding: '12px 12px', minHeight: 42, borderRadius: 8,
                   border: `1px solid ${COLOR.border}`, fontSize: 14,
                   marginBottom: 12, boxSizing: 'border-box',
                 }}
@@ -169,7 +187,7 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
                 required
                 minLength={4}
                 style={{
-                  width: '100%', padding: '10px 12px', borderRadius: 8,
+                  width: '100%', padding: '12px 12px', minHeight: 42, borderRadius: 8,
                   border: `1px solid ${COLOR.border}`, fontSize: 14,
                   marginBottom: 16, boxSizing: 'border-box',
                 }}
@@ -187,6 +205,7 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
                 style={{
                   ...BTN_PRIMARY,
                   fontSize: 15,
+                  minHeight: 44,
                   padding: '12px 24px',
                   opacity: busy ? 0.7 : 1,
                   cursor: busy ? 'wait' : 'pointer',
@@ -200,7 +219,7 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
               type="button"
               onClick={onClose}
               style={{
-                marginTop: 12, width: '100%', padding: '8px',
+                marginTop: 12, width: '100%', padding: '10px', minHeight: 40,
                 fontSize: 13, fontWeight: 600, color: COLOR.textMuted,
                 background: 'none', border: 'none', cursor: 'pointer',
                 textDecoration: 'underline',
