@@ -120,7 +120,24 @@ function parseAtom(tokens, pos) {
 
 function safeEval(expr) {
   try {
-    const tokens = tokenize(expr);
+    const normalized = String(expr || '')
+      .replace(/×/g, '*')
+      .replace(/÷/g, '/')
+      .replace(/[−–]/g, '-')
+      .replace(/\*\*/g, '^')
+      .replace(/[ˆ˄]/g, '^')
+      .replace(/⁰/g, '^0')
+      .replace(/¹/g, '^1')
+      .replace(/²/g, '^2')
+      .replace(/³/g, '^3')
+      .replace(/⁴/g, '^4')
+      .replace(/⁵/g, '^5')
+      .replace(/⁶/g, '^6')
+      .replace(/⁷/g, '^7')
+      .replace(/⁸/g, '^8')
+      .replace(/⁹/g, '^9');
+
+    const tokens = tokenize(normalized);
     if (tokens.length === 0) return '';
     const [result] = parseExpr(tokens, 0);
     if (!isFinite(result)) return 'Error';
@@ -153,6 +170,7 @@ export default function Calculator({ mode = 'basic', open, onClose }) {
   const [graphTab, setGraphTab] = useState(false);
   const [graphEq, setGraphEq] = useState('');
   const panelRef = useRef(null);
+  const graphInputRef = useRef(null);
   const dragState = useRef(null);
   const [pos, setPos] = useState({ x: -1, y: -1 });
 
@@ -162,6 +180,18 @@ export default function Calculator({ mode = 'basic', open, onClose }) {
       setPos({ x: Math.max(8, w - 340), y: 80 });
     }
   }, [open, pos.x]);
+
+  useEffect(() => {
+    if (!open) return;
+    // Ensure keyboard shortcuts work immediately after opening.
+    requestAnimationFrame(() => panelRef.current?.focus());
+  }, [open]);
+
+  useEffect(() => {
+    if (!open || !graphTab) return;
+    // In graph mode, focus equation input so number/operator keys type there.
+    requestAnimationFrame(() => graphInputRef.current?.focus());
+  }, [open, graphTab]);
 
   const append = useCallback((v) => {
     setDisplay((d) => {
@@ -189,11 +219,26 @@ export default function Calculator({ mode = 'basic', open, onClose }) {
   }, []);
 
   const onKey = useCallback((e) => {
+    const target = e.target;
+    if (
+      target instanceof HTMLElement &&
+      (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable
+      )
+    ) {
+      return;
+    }
+
+    // Graph tab has its own text input; avoid swallowing typed keys here.
+    if (graphTab) return;
+
     if (/[\d.+\-*/%^()]/.test(e.key)) { append(e.key); e.preventDefault(); }
     else if (e.key === 'Enter' || e.key === '=') { evaluate(); e.preventDefault(); }
-    else if (e.key === 'Backspace') { backspace(); e.preventDefault(); }
+    else if (e.key === 'Backspace' || e.key === 'Delete') { backspace(); e.preventDefault(); }
     else if (e.key === 'Escape') { clear(); }
-  }, [append, evaluate, backspace, clear]);
+  }, [append, evaluate, backspace, clear, graphTab]);
 
   const onDragStart = useCallback((e) => {
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -275,7 +320,16 @@ export default function Calculator({ mode = 'basic', open, onClose }) {
       <button type="button" style={FN_BTN} onClick={() => append('e')}>e</button>
       <button type="button" style={FN_BTN} onClick={() => append('^2')}>x²</button>
 
-      <button type="button" style={{ ...FN_BTN, fontSize: 11 }} onClick={() => setMemory((m) => m + parseFloat(display) || 0)}>M+</button>
+      <button
+        type="button"
+        style={{ ...FN_BTN, fontSize: 11 }}
+        onClick={() => setMemory((m) => {
+          const value = parseFloat(display);
+          return Number.isFinite(value) ? m + value : m;
+        })}
+      >
+        M+
+      </button>
       <button type="button" style={{ ...FN_BTN, fontSize: 11 }} onClick={() => { setDisplay(String(memory)); setHasResult(true); }}>MR</button>
       <button type="button" style={{ ...FN_BTN, fontSize: 11 }} onClick={() => setMemory(0)}>MC</button>
       <button type="button" style={FN_BTN} onClick={() => append('abs(')}>|x|</button>
@@ -288,12 +342,23 @@ export default function Calculator({ mode = 'basic', open, onClose }) {
       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>y =</span>
         <input
+          ref={graphInputRef}
           type="text"
           value={graphEq}
           onChange={(e) => setGraphEq(e.target.value)}
           placeholder="x^2 + 1"
           style={{ flex: 1, padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, fontFamily: 'monospace', outline: 'none' }}
         />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 5 }}>
+        <button type="button" style={{ ...FN_BTN, minHeight: 36, fontSize: 12 }} onClick={() => setGraphEq((v) => `${v}x`)}>x</button>
+        <button type="button" style={{ ...FN_BTN, minHeight: 36, fontSize: 12 }} onClick={() => setGraphEq((v) => `${v}^`)}>^</button>
+        <button type="button" style={{ ...FN_BTN, minHeight: 36, fontSize: 12 }} onClick={() => setGraphEq((v) => `${v}^2`)}>x²</button>
+        <button type="button" style={{ ...FN_BTN, minHeight: 36, fontSize: 12 }} onClick={() => setGraphEq((v) => `${v}(`)}>(</button>
+        <button type="button" style={{ ...FN_BTN, minHeight: 36, fontSize: 12 }} onClick={() => setGraphEq((v) => `${v})`)}>)</button>
+        <button type="button" style={{ ...FN_BTN, minHeight: 36, fontSize: 12 }} onClick={() => setGraphEq((v) => `${v}sqrt(`)}>√</button>
+        <button type="button" style={{ ...FN_BTN, minHeight: 36, fontSize: 12 }} onClick={() => setGraphEq((v) => `${v}π`)}>π</button>
+        <button type="button" style={{ ...ACT_BTN, minHeight: 36, fontSize: 12 }} onClick={() => setGraphEq((v) => (v.length > 0 ? v.slice(0, -1) : v))}>⌫</button>
       </div>
       <GraphCanvas equation={graphEq} />
     </div>
@@ -387,10 +452,17 @@ function GraphCanvas({ equation }) {
     if (!equation.trim()) return;
 
     const evalAt = (xVal) => {
-      const prepared = equation
-        .replace(/\bx\b/g, `(${xVal})`)
-        .replace(/(\d)\(/g, '$1*(')
-        .replace(/\)\(/g, ')*(');
+      const prepared = String(equation || '')
+        .replace(/[−–]/g, '-')
+        .replace(/×/g, '*')
+        .replace(/÷/g, '/')
+        .replace(/\*\*/g, '^')
+        .replace(/[ˆ˄]/g, '^')
+        .replace(/x/gi, `(${xVal})`)
+        .replace(/(\d|π|e)\s*\(/gi, '$1*(')
+        .replace(/\)\s*(\d|π|e)/gi, ')*$1')
+        .replace(/\)\s*\(/g, ')*(')
+        .replace(/(\d|\)|π|e)\s*(sin|cos|tan|asin|acos|atan|log|ln|sqrt|abs)\s*\(/gi, '$1*$2(');
       return safeEval(prepared);
     };
 
