@@ -63,6 +63,19 @@ import { showAppToast } from '../utils/appToast';
 const COMPETENCY_EXPLORER = { id: 'concept-explorer', name: 'Concept Explorer', path: '/concept-explorer' };
 const FREE_TILE_LIMIT = 5;
 const SAVE_PROGRESS_TILE_THRESHOLD = 3;
+const QUIZ_PHASES = new Set([
+  'diagnostic',
+  'check-quiz',
+  'check-quiz-2',
+  'check-quiz-3',
+  'check-quiz-4',
+  'check-quiz-5',
+  'check-quiz-6',
+  'check-quiz-7',
+  'check-quiz-8',
+  'readiness-quiz',
+  'mastery-check',
+]);
 
 function shuffle(arr) {
   const a = [...arr];
@@ -376,6 +389,7 @@ const TILE_TYPE_META = {
   'concept-reminder': { icon: '\uD83D\uDCA1', label: 'Concept', accent: COLOR.purple },
   'mastery-test': { icon: '\uD83C\uDFC6', label: 'Mastery', accent: COLOR.green },
 };
+const SOLVE_TILE_TYPES = new Set(['quiz', 'game', 'interactive']);
 
 const PHASE_TO_TILE_TYPE = {};
 (learningLoopConfig.sequence || []).forEach((tile) => {
@@ -409,28 +423,41 @@ const _phaseStyleInjected = (() => {
 
 function PhaseCard({ children, stepIndex, totalSteps, phaseKey }) {
   const meta = phaseKey ? getTileMeta(phaseKey) : null;
+  const tileType = phaseKey ? (PHASE_TO_TILE_TYPE[phaseKey] || 'quiz') : null;
+  const compactSolveCard = !!tileType && SOLVE_TILE_TYPES.has(tileType);
+  const narrowScreen = typeof window !== 'undefined' && window.innerWidth < 900;
   const stepNum = typeof stepIndex === 'number' ? stepIndex + 1 : null;
   return (
-    <div className="phase-card-enter" style={{ ...CARD, marginBottom: 20, position: 'relative', overflow: 'hidden', animation: motionTransition('phaseEnter 0.35s ease-out') }}>
+    <div
+      className="phase-card-enter"
+      style={{
+        ...CARD,
+        padding: compactSolveCard ? (narrowScreen ? '14px 12px' : '18px 16px') : CARD.padding,
+        marginBottom: 20,
+        position: 'relative',
+        overflow: 'hidden',
+        animation: motionTransition('phaseEnter 0.35s ease-out'),
+      }}
+    >
       {stepNum != null && totalSteps && (
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          marginBottom: 14, paddingBottom: 12,
+          marginBottom: compactSolveCard ? 10 : 14, paddingBottom: compactSolveCard ? 8 : 12,
           borderBottom: `1px solid ${COLOR.borderLight}`,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {meta && <span style={{ fontSize: 18 }}>{meta.icon}</span>}
-            <span style={{ fontSize: 12, fontWeight: 800, color: meta?.accent || COLOR.blue, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            {meta && <span style={{ fontSize: compactSolveCard ? 16 : 18 }}>{meta.icon}</span>}
+            <span style={{ fontSize: compactSolveCard ? 11 : 12, fontWeight: 800, color: meta?.accent || COLOR.blue, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               Step {stepNum} of {totalSteps}
             </span>
           </div>
           <div style={{
             display: 'flex', alignItems: 'center', gap: 6,
           }}>
-            <div style={{ width: 80, height: 6, borderRadius: 6, background: '#e5e7eb', overflow: 'hidden' }}>
+            <div style={{ width: compactSolveCard ? 66 : 80, height: 6, borderRadius: 6, background: '#e5e7eb', overflow: 'hidden' }}>
               <div style={{ height: '100%', borderRadius: 6, background: meta?.accent || COLOR.green, width: `${Math.round((stepNum / totalSteps) * 100)}%`, transition: motionTransition('width 0.4s ease') }} />
             </div>
-            <span style={{ fontSize: 11, fontWeight: 700, color: COLOR.textMuted }}>{Math.round((stepNum / totalSteps) * 100)}%</span>
+            <span style={{ fontSize: compactSolveCard ? 10 : 11, fontWeight: 700, color: COLOR.textMuted }}>{Math.round((stepNum / totalSteps) * 100)}%</span>
           </div>
         </div>
       )}
@@ -1214,6 +1241,8 @@ export default function PracticeLoop() {
   const [pacingPref, setPacingPref] = useState(() => (typeof window !== 'undefined' ? getPacingPreference() : 'balanced'));
   const [goalsPanelOpen, setGoalsPanelOpen] = useState(false);
   const [coachExpanded, setCoachExpanded] = useState(false);
+  const [focusMode, setFocusMode] = useState(false);
+  const [showFocusTools, setShowFocusTools] = useState(false);
   const [viewportWidth, setViewportWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1200));
   const [viewportHeight, setViewportHeight] = useState(() => (typeof window !== 'undefined' ? window.innerHeight : 900));
   const [isCompactDock, setIsCompactDock] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 700 : false));
@@ -2386,6 +2415,18 @@ export default function PracticeLoop() {
   }, [tilesCompleted]);
 
   useEffect(() => {
+    if (!focusMode && displayPhaseIndex >= 1) {
+      setFocusMode(true);
+      setShowFocusTools(false);
+    }
+  }, [displayPhaseIndex, focusMode]);
+
+  useEffect(() => {
+    if (!focusMode) return;
+    setDockCollapsed(true);
+  }, [focusMode, phase]);
+
+  useEffect(() => {
     if (dockAutoCollapsedRef.current) return;
     if (displayPhaseIndex >= 2) {
       dockAutoCollapsedRef.current = true;
@@ -2596,6 +2637,9 @@ export default function PracticeLoop() {
   const speedFeedback = lastQuizAvgMs || null;
 
   const teachingMoveLine = comp ? getTeachingMove(comp) : '';
+  const isQuizPhase = QUIZ_PHASES.has(phase);
+  const currentTileType = PHASE_TO_TILE_TYPE[phase] || 'quiz';
+  const slimDockForSolve = SOLVE_TILE_TYPES.has(currentTileType) && !isLandscapeTight;
   const pageShellStyle = useMemo(() => ({
     minHeight: '100vh',
     background: COLOR.bg,
@@ -2603,7 +2647,7 @@ export default function PracticeLoop() {
     fontFamily: "'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif",
   }), [isMobile, keyboardOpen]);
   const pageInnerStyle = useMemo(() => ({
-    maxWidth: isMobile ? 860 : 800,
+    maxWidth: isMobile ? 860 : 980,
     margin: '0 auto',
   }), [isMobile]);
 
@@ -2772,6 +2816,8 @@ export default function PracticeLoop() {
             marginBottom: isLandscapeTight ? 8 : (isCompactDock ? 10 : 18),
             padding: isLandscapeTight
               ? (dockCollapsed ? '7px 8px' : '8px 8px')
+              : (slimDockForSolve && !dockCollapsed)
+                ? (isCompactDock ? '8px 9px' : '9px 12px')
               : (dockCollapsed ? (isCompactDock ? '8px 9px' : '8px 14px') : (isCompactDock ? '9px 9px' : '12px 14px')),
             borderRadius: 14,
             background: COLOR.card, border: `1px solid ${COLOR.border}`,
@@ -2873,27 +2919,36 @@ export default function PracticeLoop() {
                 <div style={{ marginBottom: isCompactDock ? 8 : 10 }}>
                   <StepProgress current={displayPhaseIndex} total={STEPS_PER_CYCLE} compact={isCompactDock} smallPhone={isSmallPhone} />
                 </div>
-                {!isLandscapeTight && (
+                {!isLandscapeTight && !slimDockForSolve && (
                   <div style={{ marginBottom: isCompactDock ? 8 : 10 }}>
                     <MicroGoalBanner phase={phase} whyMatters={whyMattersLine} compact={isCompactDock} smallPhone={isSmallPhone} />
                   </div>
                 )}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: isCompactDock ? 9 : 10, fontWeight: 800, color: COLOR.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  <span aria-hidden>◍</span>
-                  <span>Performance</span>
-                </div>
-                {conceptTitle && <MasteryBar label={conceptTitle} score={masteryScore} status={masteryStatus} />}
-                {examProgress.total > 0 && examLabel && (
-                  <ExamBar
-                    label={examLabel}
-                    mastered={examProgress.mastered}
-                    total={examProgress.total}
-                    countLabel={examProgress.mode === 'standards' ? 'competencies (≥85%)' : 'domains mastered'}
-                  />
+                {!slimDockForSolve && (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: isCompactDock ? 9 : 10, fontWeight: 800, color: COLOR.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                      <span aria-hidden>◍</span>
+                      <span>Performance</span>
+                    </div>
+                    {conceptTitle && <MasteryBar label={conceptTitle} score={masteryScore} status={masteryStatus} />}
+                    {examProgress.total > 0 && examLabel && (
+                      <ExamBar
+                        label={examLabel}
+                        mastered={examProgress.mastered}
+                        total={examProgress.total}
+                        countLabel={examProgress.mode === 'standards' ? 'competencies (≥85%)' : 'domains mastered'}
+                      />
+                    )}
+                    {compDisplay && (
+                      <div style={{ marginTop: 6, fontSize: isCompactDock ? 10 : 11, color: COLOR.textMuted, whiteSpace: isCompactDock ? 'normal' : 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: isCompactDock ? 1.3 : 1.35, wordBreak: isCompactDock ? 'break-word' : 'normal' }}>
+                        {compDisplay}{currentStdObj ? ` · ${currentStdObj.name}` : ''}
+                      </div>
+                    )}
+                  </>
                 )}
-                {compDisplay && (
-                  <div style={{ marginTop: 6, fontSize: isCompactDock ? 10 : 11, color: COLOR.textMuted, whiteSpace: isCompactDock ? 'normal' : 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: isCompactDock ? 1.3 : 1.35, wordBreak: isCompactDock ? 'break-word' : 'normal' }}>
-                    {compDisplay}{currentStdObj ? ` · ${currentStdObj.name}` : ''}
+                {slimDockForSolve && (
+                  <div style={{ marginTop: -2, marginBottom: 6, fontSize: isCompactDock ? 10 : 11, color: COLOR.textSecondary, fontWeight: 600 }}>
+                    Focus mode: more room to solve this tile.
                   </div>
                 )}
 
@@ -2940,7 +2995,7 @@ export default function PracticeLoop() {
                   <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><span style={{ width: 8, height: 8, borderRadius: 3, background: COLOR.red, display: 'inline-block' }} /> &lt;45%</span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><span style={{ width: 8, height: 8, borderRadius: 3, background: COLOR.blue, border: '1.5px solid ' + COLOR.blue, display: 'inline-block' }} /> Now</span>
                 </div>
-                {!isCompactDock && !isLandscapeTight && (
+                {!isCompactDock && !isLandscapeTight && !slimDockForSolve && (
                   <div style={{ marginTop: 4, fontSize: 10, color: COLOR.textSecondary, fontStyle: 'italic' }}>
                     Click a completed tile to revisit.
                   </div>
@@ -3605,7 +3660,7 @@ export default function PracticeLoop() {
           </PhaseCard>
         )}
 
-        {hasTopic && showSecondaryPanels && !keyboardOpen && (
+        {hasTopic && showSecondaryPanels && !keyboardOpen && (!focusMode || showFocusTools) && (
           <div style={{ marginTop: isMobile ? 12 : 24, padding: isMobile ? '12px 12px' : '14px 18px', borderRadius: 12, background: '#f8fafc', border: `1px solid ${COLOR.border}` }}>
             <button
               type="button"
@@ -3679,7 +3734,34 @@ export default function PracticeLoop() {
           </div>
         )}
 
-        {hasTopic && showSecondaryPanels && !keyboardOpen && (
+        {hasTopic && focusMode && !keyboardOpen && !showFocusTools && (
+          <div style={{ marginBottom: 12, padding: isMobile ? '10px 12px' : '10px 14px', borderRadius: 10, background: '#f8fafc', border: `1px solid ${COLOR.border}` }}>
+            <button
+              type="button"
+              onClick={() => setShowFocusTools(true)}
+              style={{
+                width: '100%',
+                minHeight: 38,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                textAlign: 'left',
+                color: COLOR.textSecondary,
+                fontSize: 12,
+                fontWeight: 700,
+              }}
+            >
+              <span>Focus mode is on — loop tile first.</span>
+              <span style={{ color: COLOR.blue }}>Show tools</span>
+            </button>
+          </div>
+        )}
+
+        {hasTopic && showSecondaryPanels && !keyboardOpen && (!focusMode || showFocusTools) && (
           <div style={{ marginBottom: 14, borderRadius: 12, background: COLOR.card, border: `1px solid ${COLOR.border}`, overflow: 'hidden' }}>
             <button
               type="button"
@@ -3694,6 +3776,27 @@ export default function PracticeLoop() {
             </button>
             {studyNavOpen && (
               <div style={{ padding: '0 14px 14px', borderTop: `1px solid ${COLOR.borderLight}` }}>
+                {focusMode && (
+                  <div style={{ margin: '10px 0 12px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowFocusTools(false)}
+                      style={{
+                        width: '100%',
+                        minHeight: 36,
+                        borderRadius: 8,
+                        border: `1px solid ${COLOR.border}`,
+                        background: '#fff',
+                        color: COLOR.textSecondary,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Hide tools and return to loop focus
+                    </button>
+                  </div>
+                )}
                 {examId === 'math712' && (
                   <div style={{ marginBottom: 12 }}>
                     <button
