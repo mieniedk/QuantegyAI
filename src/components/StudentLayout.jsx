@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -24,25 +24,11 @@ export default function StudentLayout({ children }) {
   const location = useLocation();
   const { isDark, toggleTheme } = useTheme();
   const { t } = useLanguage();
-  const [platformStatus, setPlatformStatus] = useState('operational');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-
-  useEffect(() => {
-    fetch('/api/status')
-      .then((res) => res.json())
-      .then((data) => { if (data?.success && data?.status) setPlatformStatus(data.status); })
-      .catch(() => {});
-  }, []);
-
-  const statusPill = platformStatus === 'operational'
-    ? { bg: '#dcfce7', fg: '#166534', border: '#86efac', label: 'Operational' }
-    : platformStatus === 'degraded'
-      ? { bg: '#fef3c7', fg: '#92400e', border: '#fcd34d', label: 'Degraded' }
-      : { bg: '#fee2e2', fg: '#991b1b', border: '#fca5a5', label: 'Incident' };
 
   const isActive = (item) => {
     if (item.to.startsWith('/student?')) {
-      const [path, query] = item.to.split('?');
+      const [, query] = item.to.split('?');
       const tab = query?.replace('tab=', '');
       return location.pathname === '/student' && new URLSearchParams(location.search).get('tab') === tab;
     }
@@ -196,26 +182,6 @@ export default function StudentLayout({ children }) {
           </button>
           <HelpMenu />
           {getAuthToken() && <NotificationBell />}
-          <Link
-            to="/status"
-            style={{
-              padding: '4px 10px',
-              borderRadius: 999,
-              border: `1px solid ${statusPill.border}`,
-              background: statusPill.bg,
-              color: statusPill.fg,
-              textDecoration: 'none',
-              fontSize: 11,
-              fontWeight: 800,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-            title="Platform status"
-          >
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: statusPill.fg, display: 'inline-block' }} />
-            {statusPill.label}
-          </Link>
           <LanguageSelector compact />
         </div>
       </header>

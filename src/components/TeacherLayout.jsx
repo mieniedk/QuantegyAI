@@ -15,42 +15,29 @@ import HelpMenu from './HelpMenu';
 const TeacherLayout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { lang, setLang, t } = useLanguage();
+  const { t } = useLanguage();
   const { isDark, toggleTheme } = useTheme();
   const username = localStorage.getItem('quantegy-teacher-user');
   const userRole = localStorage.getItem('quantegy-teacher-role');
 
   const [inboxUnread, setInboxUnread] = useState(0);
-  const [platformStatus, setPlatformStatus] = useState('operational');
 
   useEffect(() => {
     autoDropoutScan();
-    if (username) setInboxUnread(getUnreadCount(username));
-
-    fetch('/api/status')
-      .then((res) => res.json())
-      .then((data) => { if (data?.success && data?.status) setPlatformStatus(data.status); })
-      .catch(() => {});
-  }, [location.pathname]);
+    if (!username) return undefined;
+    const id = window.setTimeout(() => {
+      setInboxUnread(getUnreadCount(username));
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [location.pathname, username]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       autoDropoutScan();
       if (username) setInboxUnread(getUnreadCount(username));
-
-      fetch('/api/status')
-        .then((res) => res.json())
-        .then((data) => { if (data?.success && data?.status) setPlatformStatus(data.status); })
-        .catch(() => {});
     }, 300000);
     return () => clearInterval(interval);
-  }, []);
-
-  const statusPill = platformStatus === 'operational'
-    ? { bg: '#dcfce7', fg: '#166534', border: '#86efac', label: 'Operational' }
-    : platformStatus === 'degraded'
-      ? { bg: '#fef3c7', fg: '#92400e', border: '#fcd34d', label: 'Degraded' }
-      : { bg: '#fee2e2', fg: '#991b1b', border: '#fca5a5', label: 'Incident' };
+  }, [username]);
 
   const statusLabel = username ? getStatusLabel(username) : '';
   const hasPro = username ? hasProAccess(username) : false;
@@ -160,26 +147,6 @@ const TeacherLayout = ({ children }) => {
           }}>
             {statusLabel || t('free')}
           </span>
-          <Link
-            to="/status"
-            style={{
-              padding: '4px 10px',
-              borderRadius: 999,
-              border: `1px solid ${statusPill.border}`,
-              background: statusPill.bg,
-              color: statusPill.fg,
-              textDecoration: 'none',
-              fontSize: 11,
-              fontWeight: 800,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-            title="Open platform status page"
-          >
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: statusPill.fg, display: 'inline-block' }} />
-            {statusPill.label}
-          </Link>
           <span style={{ color: 'var(--color-text-muted)' }}>{username}</span>
           <button
             type="button"
