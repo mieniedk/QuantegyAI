@@ -2201,21 +2201,20 @@ export default function PracticeLoop() {
 
   const tileProgress = useMemo(() => {
     const currentIdx = PHASES.indexOf(phase);
-    const watermark = Math.max(highWatermark, currentIdx);
     return PHASES.map((p, i) => {
       const meta = getTileMeta(p);
       const label = meta?.icon || '';
       const name = phaseTileMeta[p]?.label || p.replace(/-/g, ' ');
-      if (quizPhaseScores[p] != null) {
+      if (i <= currentIdx && quizPhaseScores[p] != null) {
         const pct = Math.max(0, Math.min(100, Math.round(quizPhaseScores[p])));
         const color = pct >= 75 ? COLOR.green : pct >= 45 ? COLOR.amber : COLOR.red;
         return { key: p, label, name, pct, color, status: 'done' };
       }
-      if (i < watermark) return { key: p, label, name, pct: null, color: COLOR.green, status: 'passed' };
-      if (i === watermark) return { key: p, label, name, pct: null, color: COLOR.blue, status: 'current' };
+      if (i < currentIdx) return { key: p, label, name, pct: null, color: COLOR.green, status: 'passed' };
+      if (i === currentIdx) return { key: p, label, name, pct: null, color: COLOR.blue, status: 'current' };
       return { key: p, label, name, pct: null, color: null, status: 'future' };
     });
-  }, [phase, highWatermark, phaseTileMeta, quizPhaseScores]);
+  }, [phase, phaseTileMeta, quizPhaseScores]);
 
   const quizResetMap = useMemo(() => ({
     'check-quiz': [setCheckQuizAnswers, setCheckQuizSubmitted],
@@ -3467,7 +3466,7 @@ export default function PracticeLoop() {
                     <iframe title={getTileLabel('video', 'Intro video')} src={introVideoEmbed} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ width: '100%', aspectRatio: '16/9', border: 'none' }} />
                   </div>
                 ) : null}
-                {!(introLecture && comp !== 'comp001') && <p style={BODY}>{reminderText}</p>}
+                {!(introLecture && comp !== 'comp001') && <p style={BODY} dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(reminderText)) }} />}
                 <button type="button" onClick={() => goToPhase('check-quiz')} style={BTN_PRIMARY}>Continue</button>
               </>
             ) : (

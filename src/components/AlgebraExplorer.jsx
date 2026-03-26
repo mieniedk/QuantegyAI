@@ -138,6 +138,15 @@ const PARENT_FNS = [
   { name: '2^x', fn: (x) => 2 ** x, label: 'Exponential' },
 ];
 
+/** y = a·f(x−h) + k; explicit · before numeric/functional bases (e.g. 2^(x−h)) so it is not read as a2. */
+function transformEquationDisplay(parentName) {
+  const inner = parentName.replace('x', '(x\u2212h)');
+  if (parentName.includes('^')) {
+    return `y = a\u00B7${inner} + k`;
+  }
+  return `y = a${inner} + k`;
+}
+
 function FunctionTransform({ onComplete, continueLabel, badgeLabel, embedded }) {
   const [roundIdx, setRound] = useState(0);
 
@@ -195,7 +204,7 @@ function FunctionTransform({ onComplete, continueLabel, badgeLabel, embedded }) 
     <div style={embedded ? {} : CARD}>
       {!embedded && <div style={{ ...BADGE, background: `${COLOR.purple}14`, color: COLOR.purple }}>{badgeLabel}</div>}
       <p style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 800, color: COLOR.text }}>
-        Transform: y = a{parent.name.replace('x', '(x\u2212h)')} + k
+        Transform: {transformEquationDisplay(parent.name)}
       </p>
       <p style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 700, color: COLOR.text }}>
         Objective: Match the solid graph to the dashed target using a, h, and k across different function families.

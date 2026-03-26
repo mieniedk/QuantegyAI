@@ -21,6 +21,28 @@ function renderFrac(numHtml, denHtml) {
   return `<span style="${FRAC}"><span style="${FRAC_NUM}">${numHtml}</span><span style="${FRAC_DEN}">${denHtml}</span></span>`;
 }
 
+/* ── Limit operator: lim with subscript underneath ── */
+const LIM_WRAP =
+  'display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;' +
+  'margin:0 3px;line-height:1';
+const LIM_OP = 'font-weight:700;font-size:1em;line-height:1.1';
+const LIM_SUB = 'font-size:0.72em;line-height:1;margin-top:-1px;white-space:nowrap';
+
+function renderLimit(subscriptHtml) {
+  return `<span style="${LIM_WRAP}"><span style="${LIM_OP}">lim</span><span style="${LIM_SUB}">${subscriptHtml}</span></span>`;
+}
+
+/* ── Integral with bounds: upper/lower limits beside ∫ ── */
+const INT_WRAP =
+  'display:inline-flex;align-items:center;vertical-align:middle;margin:0 2px';
+const INT_BOUNDS =
+  'display:inline-flex;flex-direction:column;align-items:center;font-size:0.68em;' +
+  'line-height:1.1;margin-left:-1px;margin-right:2px';
+
+function renderIntegralBounds(upperHtml, lowerHtml) {
+  return `<span style="${INT_WRAP}"><span style="font-size:1.25em;line-height:1">∫</span><span style="${INT_BOUNDS}"><span>${upperHtml}</span><span>${lowerHtml}</span></span></span>`;
+}
+
 /* ── Radical (square root) via Unicode √ + CSS flex alignment ── */
 const RAD_WRAP =
   'display:inline-flex;align-items:flex-start;vertical-align:baseline;' +
@@ -69,6 +91,19 @@ function matchBracket(s, i) {
   while (j < s.length && depth > 0) {
     if (s[j] === '[') depth++;
     else if (s[j] === ']') depth--;
+    j++;
+  }
+  return depth === 0 ? j - 1 : -1;
+}
+
+/* ── Balanced-brace matcher ── */
+function matchBrace(s, i) {
+  if (i >= s.length || s[i] !== '{') return -1;
+  let depth = 1;
+  let j = i + 1;
+  while (j < s.length && depth > 0) {
+    if (s[j] === '{') depth++;
+    else if (s[j] === '}') depth--;
     j++;
   }
   return depth === 0 ? j - 1 : -1;
@@ -211,7 +246,49 @@ function parseMath(s) {
       continue;
     }
 
-    /* ── 4. Simple fraction: token/token (no spaces around /) ── */
+    /* ── 4. Limit notation: lim_(sub), lim(sub), or lim_{sub} ── */
+    if (
+      s.slice(i, i + 3) === 'lim' &&
+      (i === 0 || /[\s(=,;:+\-]/.test(s[i - 1])) &&
+      i + 3 < s.length
+    ) {
+      let j = i + 3;
+      if (s[j] === '_') j++;
+      if (j < s.length && (s[j] === '(' || s[j] === '{')) {
+        const opener = s[j];
+        const close = opener === '(' ? matchParen(s, j) : matchBrace(s, j);
+        if (close > j) {
+          tokens.push({ type: 'html', html: renderLimit(parseMath(s.slice(j + 1, close))) });
+          i = close + 1;
+          continue;
+        }
+      }
+    }
+
+    /* ── 4b. Integral with bounds: ∫_(lo)^(hi) or ∫(lo)(hi) ── */
+    if ((s[i] === '\u222B' || s[i] === '∫') && i + 1 < s.length) {
+      let j = i + 1;
+      if (s[j] === '_') j++;
+      if (j < s.length && s[j] === '(') {
+        const loClose = matchParen(s, j);
+        if (loClose > j) {
+          let k = loClose + 1;
+          if (k < s.length && s[k] === '^') k++;
+          if (k < s.length && s[k] === '(') {
+            const hiClose = matchParen(s, k);
+            if (hiClose > k) {
+              const lower = s.slice(j + 1, loClose);
+              const upper = s.slice(k + 1, hiClose);
+              tokens.push({ type: 'html', html: renderIntegralBounds(parseMath(upper), parseMath(lower)) });
+              i = hiClose + 1;
+              continue;
+            }
+          }
+        }
+      }
+    }
+
+    /* ── 5. Simple fraction: token/token (no spaces around /) ── */
     if (s[i] === '/' && i > 0 && i + 1 < s.length && s[i - 1] !== ' ' && s[i + 1] !== ' ') {
       // Gather denominator (forward)
       let denEnd = i + 1;

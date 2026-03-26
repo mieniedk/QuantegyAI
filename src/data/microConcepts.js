@@ -99,15 +99,15 @@ export const MICRO_CONCEPTS = {
   // Domain II — Patterns and Algebra
   'math712:c004': {
     title: 'Patterns & Sequences',
-    conceptText: 'Arithmetic sequence: aₙ = a₁ + (n−1)d; sum Sₙ = (n)/(2)(a₁+aₙ). Geometric sequence: aₙ = a₁·r^(n−1); sum Sₙ = a₁(1−r^n)/(1−r). Fibonacci: each term is sum of two preceding. Sigma notation: Σ compresses series. Mathematical induction: base case + inductive step proves ∀n. Finance: compound interest A = P(1 + (r)/(n))^(nt).',
+    conceptText: 'Arithmetic sequence: aₙ = a₁ + (n−1)d; sum Sₙ = (n)/(2)(a₁+aₙ). Geometric sequence: aₙ = a₁·r^(n−1); sum Sₙ = a₁(1−r^(n))/(1−r). Fibonacci: each term is sum of two preceding. Sigma notation: Σ compresses series. Mathematical induction: base case + inductive step proves ∀n. Finance: compound interest A = P·(1 + (r)/(n))^(nt).',
     workedExample: 'Arithmetic: a₁ = 3, d = 5. a₂₀ = 3 + 19·5 = 98. S₂₀ = (20)/(2)(3+98) = 1010.',
     misconception: 'Confusing arithmetic and geometric: "adds 2 each time" is arithmetic (d=2), not geometric. Geometric multiplies by a fixed ratio.',
     variants: [
-      { conceptText: 'Geometric series: finite Sₙ = a₁(1−r^n)/(1−r); infinite (|r|<1) S = a₁/(1−r). Recursive vs. explicit formulas: recursive defines aₙ in terms of previous terms; explicit gives aₙ directly from n. Sigma notation: Σ(k=1 to n) k = n(n+1)/2. Mathematical induction: prove P(1), then assume P(k) → prove P(k+1).',
+      { conceptText: 'Geometric series: finite Sₙ = a₁(1−r^(n))/(1−r); infinite (|r|<1) S = a₁/(1−r). Recursive vs. explicit formulas: recursive defines aₙ in terms of previous terms; explicit gives aₙ directly from n. Sigma notation: Σ(k=1 to n) k = n(n+1)/2. Mathematical induction: prove P(1), then assume P(k) → prove P(k+1).',
         workedExample: 'Infinite geometric: a₁ = 12, r = (1)/(3). S = 12/(1−(1)/(3)) = 12/((2)/(3)) = 18.',
         misconception: 'An infinite series always diverges. Wrong — if |r| < 1, a geometric series converges to a finite sum.' },
-      { conceptText: 'Recognizing sequence type: constant difference → arithmetic; constant ratio → geometric; neither → check Fibonacci, quadratic, or other patterns. Finance applications: simple interest I = Prt; compound A = P(1+(r)/(n))^(nt); continuous A = Pe^(rt). Annuities use geometric series. Recursion in CS: loops and recursive functions model sequences directly.',
-        workedExample: 'Sequence: 2, 6, 18, 54… Ratio = 3 (geometric). a₁₀ = 2·3^9 = 2·19683 = 39366.',
+      { conceptText: 'Recognizing sequence type: constant difference → arithmetic; constant ratio → geometric; neither → check Fibonacci, quadratic, or other patterns. Finance applications: simple interest I = Prt; compound A = P·(1 + (r)/(n))^(nt); continuous A = P·e^(rt). Annuities use geometric series. Recursion in CS: loops and recursive functions model sequences directly.',
+        workedExample: 'Sequence: 2, 6, 18, 54… Ratio = 3 (geometric). a₁₀ = 2·3^(9) = 2·19683 = 39366.',
         misconception: 'Compound interest is just simple interest applied many times. Wrong — compound interest earns interest on previous interest, causing exponential (not linear) growth.' },
     ],
   },
@@ -155,16 +155,16 @@ export const MICRO_CONCEPTS = {
   },
   'math712:c008': {
     title: 'Exponential & Logarithmic Functions',
-    conceptText: 'Exponential: f(x) = a·b^x; growth if b > 1, decay if 0 < b < 1. Logarithm: log_b(x) = y ⟺ b^y = x. Laws: log(ab) = log a + log b; log(a/b) = log a − log b; log(a^n) = n·log a. Change of base: log_b(x) = (ln x)/(ln b). Compound interest: A = Pe^(rt) (continuous). Half-life: t_(1/2) = (ln 2)/(k).',
-    workedExample: 'Solve 3^x = 81: 81 = 3^4, so x = 4. Or: x = log₃(81) = (ln 81)/(ln 3) = 4.',
+    conceptText: 'Exponential: f(x) = a·b^(x); a = initial value, b = growth factor (b > 1 growth, 0 < b < 1 decay). Transforms: y = a·b^(x−h) + k — shift h right, k up, vertical scale |a|, horizontal asymptote y = k. Logarithm: log_b(x) = y ⟺ b^(y) = x. Laws: log(ab) = log a + log b; log(a/b) = log a − log b; log(a^(n)) = n·log a. Change of base: log_b(x) = (ln x)/(ln b). Log transforms: y = a·log_b(x−h) + k — vertical asymptote x = h, domain x > h. Discrete compounding: A = P·(1 + r/n)^(nt). Continuous: A = P·e^(rt). Half-life (N = N₀·e^(kt), k < 0): (ln 2)/|k|.',
+    workedExample: 'Solve 3^(x) = 81: 81 = 3^(4), so x = 4. Or: x = log_3(81) = (ln 81)/(ln 3) = 4.',
     misconception: 'log(a+b) = log a + log b. Wrong — the log of a sum has no simple rule. The product rule is log(a·b) = log a + log b.',
     variants: [
-      { conceptText: 'Exponential growth/decay: N(t) = N₀·e^(kt). k > 0 growth, k < 0 decay. Doubling time: t_d = (ln 2)/(k). Half-life: t_(1/2) = (ln 2)/(|k|). Logarithmic scales: Richter (earthquakes), decibels (sound), pH (acidity). The graph of y = log_b(x) is the reflection of y = b^x about the line y = x. Domain of log: x > 0; range: all reals.',
-        workedExample: 'A population doubles every 5 years. k = (ln 2)/(5) ≈ 0.1386. After 15 years: N = N₀·e^(0.1386·15) = N₀·e^(2.079) ≈ 8N₀ (tripled the doublings: 2³ = 8).',
+      { conceptText: 'Exponential growth/decay: N(t) = N₀·e^(kt). k > 0 growth, k < 0 decay. Doubling time: (ln 2)/k when k > 0. Half-life: (ln 2)/|k| when k < 0. Logarithmic scales: Richter (earthquakes), decibels (sound), pH (acidity). The graph of y = log_b(x) is the reflection of y = b^(x) about the line y = x. Domain of log: x > 0; range: all reals.',
+        workedExample: 'A population doubles every 5 years. k = (ln 2)/(5) ≈ 0.1386. After 15 years: N = N₀·e^(0.1386·15) = N₀·e^(2.079) ≈ 8N₀ (three doubling periods: 2^(3) = 8).',
         misconception: 'Exponential growth means the rate is constant. Wrong — the rate of change itself increases. What\'s constant is the growth factor (percentage increase per unit time).' },
-      { conceptText: 'Solving exponential equations: same base → set exponents equal; different bases → take ln of both sides. Solving log equations: convert to exponential form, solve, check domain. Natural log: ln x = log_e(x). Properties: ln(e^x) = x and e^(ln x) = x. Inverse relationship: exponential and log undo each other. Applications: carbon dating, bacterial growth, Newton\'s cooling law.',
-        workedExample: 'Solve: log₂(x) + log₂(x−2) = 3. Combine: log₂(x(x−2)) = 3 → x²−2x = 8 → x²−2x−8 = 0 → (x−4)(x+2) = 0. x = 4 (x = −2 excluded: log of negative).',
-        misconception: 'ln(0) = 0. Wrong — ln(0) is undefined (−∞ as a limit). ln(1) = 0 because e^0 = 1.' },
+      { conceptText: 'Solving exponential equations: same base → set exponents equal; different bases → take ln of both sides. Solving log equations: convert to exponential form, solve, check domain. Natural log: ln x = log_e(x). Properties: ln(e^(x)) = x and e^(ln(x)) = x. Inverse relationship: exponential and log undo each other. Applications: carbon dating, bacterial growth, Newton\'s cooling law.',
+        workedExample: 'Solve: log_2(x) + log_2(x−2) = 3. Combine: log_2(x(x−2)) = 3 → 2^(3) = x(x−2) → x²−2x = 8 → x²−2x−8 = 0 → (x−4)(x+2) = 0. x = 4 (x = −2 excluded: log of negative).',
+        misconception: 'ln(0) = 0. Wrong — ln(0) is undefined (−∞ as a limit). ln(1) = 0 because e^(0) = 1.' },
     ],
   },
   'math712:c009': {
@@ -398,10 +398,10 @@ export const EXPONENT_RULES = [
   { rule: 'Product (same base)', formula: 'a^m · a^n = a^(m+n)' },
   { rule: 'Quotient (same base)', formula: 'a^m ÷ a^n = a^(m−n)' },
   { rule: 'Power of a power', formula: '(a^m)^n = a^(mn)' },
-  { rule: 'Zero exponent', formula: 'a^0 = 1 (a ≠ 0)' },
-  { rule: 'Negative exponent', formula: 'a^(−n) = (1)/(a^n) (a ≠ 0)' },
-  { rule: 'Product to a power', formula: '(ab)^n = a^n · b^n' },
-  { rule: 'Quotient to a power', formula: '((a)/(b))^n = (a^n)/(b^n) (b ≠ 0)' },
+  { rule: 'Zero exponent', formula: 'a^(0) = 1 (a ≠ 0)' },
+  { rule: 'Negative exponent', formula: 'a^(−n) = (1)/(a^(n)) (a ≠ 0)' },
+  { rule: 'Product to a power', formula: '(ab)^(n) = a^(n) · b^(n)' },
+  { rule: 'Quotient to a power', formula: '((a)/(b))^(n) = (a^(n))/(b^(n)) (b ≠ 0)' },
 ];
 
 /**

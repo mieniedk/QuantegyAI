@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import qbotImg from '../assets/qbot.svg';
+import { formatMathHtml } from '../utils/mathFormat';
+import { sanitizeHtml } from '../utils/sanitize';
 
 /**
  * AnimatedLecture – A video-like micro-lecture player built from structured
@@ -270,9 +272,9 @@ export default function AnimatedLecture({ lecture, compName, onDone, variant = '
         <h3 style={{
           margin: '0 0 14px', fontSize: 22, fontWeight: 800, color: '#f1f5f9',
           lineHeight: 1.3, animation: 'slideIn 0.35s ease-out',
-        }}>
-          {slide.heading}
-        </h3>
+        }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(slide.heading)) }}
+        />
 
         {/* Body text with reveal effect */}
         <div style={{ flex: 1 }}>
@@ -280,8 +282,8 @@ export default function AnimatedLecture({ lecture, compName, onDone, variant = '
             margin: 0, fontSize: 17, lineHeight: 1.8, color: '#cbd5e1',
             whiteSpace: 'pre-wrap', fontWeight: 500,
           }}>
-            <span>{revealedText}</span>
-            <span style={{ color: '#334155' }}>{bodyFull.slice(revealedText.length)}</span>
+            <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(revealedText)) }} />
+            <span style={{ color: '#334155' }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(bodyFull.slice(revealedText.length))) }} />
             {playing && revealedText.length < bodyFull.length && (
               <span style={{ animation: 'blink 0.8s step-end infinite', color: slide.accent }}>|</span>
             )}
@@ -294,9 +296,9 @@ export default function AnimatedLecture({ lecture, compName, onDone, variant = '
               background: 'rgba(22,163,74,0.15)', border: '1px solid rgba(22,163,74,0.3)',
               textAlign: 'center',
             }}>
-              <span style={{ fontSize: 20, fontWeight: 800, color: '#4ade80' }}>
-                {slide.answer}
-              </span>
+              <span style={{ fontSize: 20, fontWeight: 800, color: '#4ade80' }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(slide.answer)) }}
+              />
             </div>
           )}
         </div>

@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, useSearchParams } from "react-router-dom";
 import "./index.css";
 import { LanguageProvider } from "./contexts/LanguageContext.jsx";
 import ProGate from "./components/ProGate.jsx";
@@ -15,8 +15,14 @@ import StudentLayout from "./components/StudentLayout.jsx";
 import GlobalLoopCalculator from "./components/GlobalLoopCalculator.jsx";
 import AppToaster from "./components/AppToaster.jsx";
 import { migrateBrandStorageKeys } from "./utils/storageKeyMigration.js";
+import { practiceLoopInstanceKey } from "./utils/practiceLoopScope.js";
 
 migrateBrandStorageKeys();
+
+function PracticeLoopKeyed() {
+  const [params] = useSearchParams();
+  return <PracticeLoop key={practiceLoopInstanceKey(params)} />;
+}
 
 function lazyWithPreload(loader) {
   const Component = React.lazy(loader);
@@ -400,7 +406,7 @@ if (!rootEl) {
           <Route path="/quiz/:id" element={<Quiz />} />
           <Route path="/assessment/:assessmentId" element={<TakeAssessment />} />
           <Route path="/warmup" element={<WarmUp />} />
-          <Route path="/practice-loop" element={<StudentLayout><ErrorBoundary><PracticeLoop /></ErrorBoundary></StudentLayout>} />
+          <Route path="/practice-loop" element={<StudentLayout><ErrorBoundary><PracticeLoopKeyed /></ErrorBoundary></StudentLayout>} />
           <Route path="/math-712-learning-path" element={<StudentLayout><ErrorBoundary><Math712LearningPath /></ErrorBoundary></StudentLayout>} />
           <Route path="/concept-explorer" element={<ErrorBoundary><ConceptExplorer /></ErrorBoundary>} />
           <Route path="/pricing" element={<Pricing />} />

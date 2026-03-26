@@ -306,6 +306,63 @@ const CATEGORY_BANKS = {
       { q: 'Radius is ____ the diameter.', choices: ['Double', 'Half', 'Equal to', 'Unrelated to'], answer: 'Half' },
     ],
   },
+
+  /* ── Differential & Integral Calculus (c010) ── */
+  'c010-lim': {
+    label: 'Limits',
+    icon: '🎯',
+    questions: [
+      { q: 'What is lim(x→3) of (x² − 9)/(x − 3)?', choices: ['6', '0', '3', 'Undefined'], answer: '6' },
+      { q: 'If lim(x→a) f(x) = f(a), the function is ___ at a.', choices: ['Continuous', 'Differentiable', 'Increasing', 'Bounded'], answer: 'Continuous' },
+      { q: 'lim(x→0) sin(x)/x = ?', choices: ['1', '0', '∞', 'Undefined'], answer: '1' },
+      { q: 'A limit that approaches different values from left and right is called:', choices: ['Does not exist', 'Continuous', 'Finite', 'Removable'], answer: 'Does not exist' },
+      { q: 'lim(x→∞) 1/x = ?', choices: ['0', '1', '∞', 'Undefined'], answer: '0' },
+    ],
+  },
+  'c010-der': {
+    label: 'Derivatives',
+    icon: '📈',
+    questions: [
+      { q: 'The derivative of x³ is:', choices: ['3x²', 'x²', '3x³', 'x⁴/4'], answer: '3x²' },
+      { q: 'f\'(x) = 0 at a point means the tangent line is:', choices: ['Horizontal', 'Vertical', 'Undefined', 'Steep'], answer: 'Horizontal' },
+      { q: 'The derivative of sin(x) is:', choices: ['cos(x)', '−cos(x)', 'sin(x)', '−sin(x)'], answer: 'cos(x)' },
+      { q: 'The chain rule is used when you have:', choices: ['A composition of functions', 'Two added functions', 'A constant', 'A polynomial only'], answer: 'A composition of functions' },
+      { q: 'If f\'(x) > 0 on an interval, f is:', choices: ['Increasing', 'Decreasing', 'Constant', 'Undefined'], answer: 'Increasing' },
+    ],
+  },
+  'c010-int': {
+    label: 'Integrals',
+    icon: '∫',
+    questions: [
+      { q: '∫x² dx = ?', choices: ['x³/3 + C', 'x³ + C', '2x + C', 'x²/2 + C'], answer: 'x³/3 + C' },
+      { q: 'A definite integral computes:', choices: ['Net area under the curve', 'The slope', 'A derivative', 'The y-intercept'], answer: 'Net area under the curve' },
+      { q: 'The Fundamental Theorem of Calculus links:', choices: ['Derivatives and integrals', 'Limits and slopes', 'Area and perimeter', 'Sine and cosine'], answer: 'Derivatives and integrals' },
+      { q: '∫cos(x) dx = ?', choices: ['sin(x) + C', '−sin(x) + C', 'cos(x) + C', 'tan(x) + C'], answer: 'sin(x) + C' },
+      { q: 'The "C" in an indefinite integral represents:', choices: ['Constant of integration', 'Coefficient', 'Cosine', 'Chain rule result'], answer: 'Constant of integration' },
+    ],
+  },
+  'c010-fun': {
+    label: 'Functions',
+    icon: '⚡',
+    questions: [
+      { q: 'The domain of f(x) = 1/x excludes:', choices: ['x = 0', 'x = 1', 'All negatives', 'Nothing'], answer: 'x = 0' },
+      { q: 'An even function satisfies:', choices: ['f(−x) = f(x)', 'f(−x) = −f(x)', 'f(0) = 0', 'f(x) > 0'], answer: 'f(−x) = f(x)' },
+      { q: 'A vertical asymptote occurs where:', choices: ['The denominator is zero', 'The function is constant', 'The derivative is zero', 'The numerator is zero'], answer: 'The denominator is zero' },
+      { q: 'Which is a transcendental function?', choices: ['eˣ', 'x² + 1', '3x − 7', 'x⁵'], answer: 'eˣ' },
+      { q: 'If f(g(x)) = x and g(f(x)) = x, then f and g are:', choices: ['Inverses', 'Equal', 'Perpendicular', 'Parallel'], answer: 'Inverses' },
+    ],
+  },
+  'c010-app': {
+    label: 'Applications',
+    icon: '🚀',
+    questions: [
+      { q: 'To find maximum profit, set the ___ equal to zero.', choices: ['First derivative', 'Second derivative', 'Integral', 'Limit'], answer: 'First derivative' },
+      { q: 'Related rates problems use which rule?', choices: ['Chain rule', 'Power rule only', 'L\'Hôpital\'s rule', 'Sum rule'], answer: 'Chain rule' },
+      { q: 'The second derivative tells you about:', choices: ['Concavity', 'Slope', 'Area', 'Domain'], answer: 'Concavity' },
+      { q: 'To find area between two curves, you ___ their functions.', choices: ['Subtract and integrate', 'Add and differentiate', 'Multiply', 'Divide'], answer: 'Subtract and integrate' },
+      { q: 'If f\'\'(c) > 0 at a critical point c, the point is a:', choices: ['Local minimum', 'Local maximum', 'Saddle point', 'Inflection point'], answer: 'Local minimum' },
+    ],
+  },
   comp004: {
     label: 'Probability & Stats',
     icon: '🎲',
@@ -341,19 +398,34 @@ const STD_TO_COMP = {
   c020: 'comp006', c021: 'comp006',
 };
 
+const STD_JEOPARDY_CATS = {
+  c010: ['c010-lim', 'c010-der', 'c010-int', 'c010-fun', 'c010-app'],
+};
+
+function expandStdCats(keys) {
+  const expanded = [];
+  for (const k of keys) {
+    if (STD_JEOPARDY_CATS[k]) expanded.push(...STD_JEOPARDY_CATS[k]);
+    else expanded.push(k);
+  }
+  return [...new Set(expanded)];
+}
+
 function pickCategories(filterTeks, options = {}) {
   const { compId = '', currentStd = '', strictScope = false } = options;
   const teksIds = filterTeks
     ? filterTeks.split(',').map(t => t.trim()).filter(Boolean)
     : [];
 
-  const strictKeys = [...new Set([
+  const rawKeys = [...new Set([
     currentStd,
     ...teksIds,
     compId,
     STD_TO_COMP[currentStd],
     ...teksIds.map((id) => STD_TO_COMP[id]).filter(Boolean),
   ].filter(Boolean))];
+
+  const strictKeys = expandStdCats(rawKeys);
 
   if (strictScope) {
     const matchedStrict = strictKeys.filter((k) => CATEGORY_BANKS[k]);

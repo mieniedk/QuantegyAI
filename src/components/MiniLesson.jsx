@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import qbotImg from '../assets/qbot.svg';
+import { formatMathHtml } from '../utils/mathFormat';
+import { sanitizeHtml } from '../utils/sanitize';
 
 /**
  * MiniLesson – A short, engaging lesson modal for a TEKS standard.
@@ -193,9 +195,9 @@ const MiniLesson = ({ lecture, onClose, onPractice, onWarmUp, flow }) => {
                 <div style={{ fontSize: 11, fontWeight: 800, color: '#b45309', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
                   💡 The Big Idea
                 </div>
-                <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: '#78350f', lineHeight: 1.6 }}>
-                  {lecture.keyIdea}
-                </p>
+                <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: '#78350f', lineHeight: 1.6 }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(lecture.keyIdea)) }}
+                />
               </div>
             </div>
           )}
@@ -234,9 +236,9 @@ const MiniLesson = ({ lecture, onClose, onPractice, onWarmUp, flow }) => {
                 <p style={{
                   margin: 0, fontSize: 16, lineHeight: 1.7, color: '#3b0764',
                   paddingLeft: 52,
-                }}>
-                  {lecture.steps[teachIdx].content}
-                </p>
+                }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(lecture.steps[teachIdx].content)) }}
+                />
               </div>
 
               {/* Show all previous steps as mini cards */}
@@ -255,9 +257,9 @@ const MiniLesson = ({ lecture, onClose, onPractice, onWarmUp, flow }) => {
                           background: '#e2e8f0', color: '#64748b', fontSize: 11, fontWeight: 800,
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}>{i + 1}</span>
-                        <div style={{ fontSize: 13, color: '#64748b', lineHeight: 1.5 }}>
-                          <strong>{s.title}:</strong> {s.content}
-                        </div>
+                        <div style={{ fontSize: 13, color: '#64748b', lineHeight: 1.5 }}
+                          dangerouslySetInnerHTML={{ __html: `<strong>${sanitizeHtml(formatMathHtml(s.title))}:</strong> ${sanitizeHtml(formatMathHtml(s.content))}` }}
+                        />
                       </div>
                     ))}
                   </div>
@@ -290,9 +292,9 @@ const MiniLesson = ({ lecture, onClose, onPractice, onWarmUp, flow }) => {
                   margin: 0, fontSize: 20, fontWeight: 800, color: '#e2e8f0',
                   fontFamily: '"Fira Code", "Courier New", monospace',
                   textAlign: 'center', padding: '8px 0',
-                }}>
-                  {lecture.example.problem}
-                </p>
+                }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(lecture.example.problem)) }}
+                />
               </div>
 
               {/* Solution steps */}
@@ -311,9 +313,9 @@ const MiniLesson = ({ lecture, onClose, onPractice, onWarmUp, flow }) => {
                     }}>
                       {i + 1}
                     </div>
-                    <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: '#0c4a6e', paddingTop: 1 }}>
-                      {s}
-                    </p>
+                    <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: '#0c4a6e', paddingTop: 1 }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(s)) }}
+                    />
                   </div>
                 ))}
               </div>
@@ -327,9 +329,9 @@ const MiniLesson = ({ lecture, onClose, onPractice, onWarmUp, flow }) => {
                 <div style={{ fontSize: 10, fontWeight: 800, color: '#16a34a', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
                   ✅ Answer
                 </div>
-                <p style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#166534' }}>
-                  {lecture.example.answer}
-                </p>
+                <p style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#166534' }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(lecture.example.answer)) }}
+                />
               </div>
             </div>
           )}
@@ -371,9 +373,9 @@ const MiniLesson = ({ lecture, onClose, onPractice, onWarmUp, flow }) => {
                   <div style={{ fontSize: 11, fontWeight: 800, color: '#92400e', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
                     🧠 Remember This!
                   </div>
-                  <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#78350f', lineHeight: 1.6, fontStyle: 'italic' }}>
-                    "{lecture.tip}"
-                  </p>
+                  <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#78350f', lineHeight: 1.6, fontStyle: 'italic' }}
+                    dangerouslySetInnerHTML={{ __html: `\u201C${sanitizeHtml(formatMathHtml(lecture.tip))}\u201D` }}
+                  />
                 </div>
               )}
 
@@ -389,9 +391,9 @@ const MiniLesson = ({ lecture, onClose, onPractice, onWarmUp, flow }) => {
                   {lecture.steps.map((s, i) => (
                     <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                       <span style={{ fontSize: 14, flexShrink: 0 }}>✓</span>
-                      <span style={{ fontSize: 13, color: '#334155', lineHeight: 1.5 }}>
-                        <strong>{s.title}:</strong> {s.content}
-                      </span>
+                      <span style={{ fontSize: 13, color: '#334155', lineHeight: 1.5 }}
+                        dangerouslySetInnerHTML={{ __html: `<strong>${sanitizeHtml(formatMathHtml(s.title))}:</strong> ${sanitizeHtml(formatMathHtml(s.content))}` }}
+                      />
                     </div>
                   ))}
                 </div>
