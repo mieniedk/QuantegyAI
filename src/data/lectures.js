@@ -813,13 +813,13 @@ export function getLecture(teksCode) {
 
 /** Get a lecture appropriate for a given competency (comp001-comp006). Falls back to first matching TEKS lecture. */
 export function getLectureForComp(compId, teksCode) {
-  if (LECTURES[compId]) return LECTURES[compId];
   if (teksCode) {
     const codes = teksCode.split(',').map(t => t.trim());
     for (const code of codes) {
       if (LECTURES[code]) return LECTURES[code];
     }
   }
+  if (LECTURES[compId]) return LECTURES[compId];
   return null;
 }
 

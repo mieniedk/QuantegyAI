@@ -227,7 +227,7 @@ export default function LiveGamePlayer({ studentId, studentName }) {
       <div style={{ textAlign: 'center', padding: 20 }}>
         <div style={{ fontSize: 64, marginBottom: 8 }}>{isCorrect ? '🎉' : '😅'}</div>
         <h2 style={{ fontSize: 22, fontWeight: 900, color: isCorrect ? '#059669' : '#dc2626' }}>
-          {isCorrect ? 'Correct!' : answered ? 'Not quite' : "Time's up!"}
+          {isCorrect ? 'Correct response submitted' : answered ? 'Response not correct this round' : 'Timer ended before submission'}
         </h2>
         <div style={{ fontSize: 14, color: '#64748b', marginTop: 4 }}>The answer was <strong>{correct}</strong></div>
         <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 12 }}>Waiting for next question...</div>

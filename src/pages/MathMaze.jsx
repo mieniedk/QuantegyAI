@@ -110,11 +110,11 @@ const MAZE_SIZES = [
 const QBOT_MSGS = {
   start: ["Let's navigate this maze! 🗺️", "Find the exit! QBot believes in you! 🤖", "Watch out for traps! ⚠️"],
   door: ["A locked door! Solve to pass! 🔒", "Math is the key! 🔑", "Think carefully! 🧠"],
-  correct: ["Door unlocked! 🎉", "You're a genius! 💫", "Path cleared! Keep going! ✨"],
-  wrong: ["Wrong! The door stays locked! 🔒", "Try again, you got this! 💪", "Not quite — think it through! 🤔"],
+  correct: ["Door unlocked - your equation result is correct. 🎉", "Correct solve - arithmetic checks out. 💫", "Path cleared by accurate computation. ✨"],
+  wrong: ["Incorrect result - recompute the expression carefully. 🔒", "Incorrect - check operation order and signs. 💪", "Door stays locked - verify each step before answering. 🤔"],
   coin: ["Bonus coins! Nice find! 💰", "Treasure collected! 🪙", "Cha-ching! +50 points! 💎"],
   trap: ["Oh no, a trap! −25 points! 💀", "Watch your step! ⚡", "Trap sprung! Be careful! 🕳️"],
-  trapDisarm: ["Trap disarmed! You're safe! 🛡️", "Math saved the day! ✅", "Nice work — no penalty! 🎉"],
+  trapDisarm: ["Trap disarmed - correct computation prevented the penalty. 🛡️", "Correct trap solve - no points lost. ✅", "Trap cleared with accurate math. 🎉"],
   trapChallenge: ["A trap! Solve to disarm! ⚡", "Math can disarm it! 🛡️", "Quick — solve to avoid the penalty! 🧠"],
   exit: ["You found the exit! 🏆", "Maze complete! Amazing! 🎊", "Level cleared! 🌟"],
   levelUp: ["New maze unlocked! Bigger & harder! 📈", "Level up! The maze grows! 🌀", "Ready for the next challenge? 🔥"],
@@ -440,7 +440,7 @@ const MathMaze = () => {
         <div style={{ background: 'linear-gradient(170deg,#1e293b,#0f172a)', borderRadius: 24, padding: '40px 36px', textAlign: 'center', border: '2px solid rgba(255,255,255,0.1)', maxWidth: 440, width: '92%', color: '#fff' }}>
           <div style={{ fontSize: 56, marginBottom: 8 }}>🏆</div>
           <h2 style={{ margin: '0 0 6px', fontSize: 26, fontWeight: 900, color: '#22c55e' }}>Maze Conquered!</h2>
-          <QBotGuide msg="Incredible journey, maze runner! 🌟" />
+          <QBotGuide msg="Strong maze run - keep solving each lock with clean setup and arithmetic checks. 🌟" />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 6, background: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 14, marginBottom: 20, marginTop: 12 }}>
             <div><div style={{ fontSize: 20, fontWeight: 900, color: '#22c55e' }}>{score}</div><div style={{ fontSize: 9, color: '#94a3b8' }}>Score</div></div>
             <div><div style={{ fontSize: 20, fontWeight: 900, color: '#fbbf24' }}>{totalLevels + 1}</div><div style={{ fontSize: 9, color: '#94a3b8' }}>Levels</div></div>

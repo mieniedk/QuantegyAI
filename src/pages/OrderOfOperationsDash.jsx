@@ -196,7 +196,7 @@ export default function OrderOfOperationsDash() {
     setHistory(nextHistory);
     if (correct) {
       setScore((s) => s + 1);
-      setFeedback(`Correct! ${current.explain}`);
+      setFeedback(`Correct operation-order reasoning and result. ${current.explain}`);
     } else {
       const misconception = current.misconceptions?.[selected];
       let missCount = 0;

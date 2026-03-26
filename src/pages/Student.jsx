@@ -2045,7 +2045,7 @@ const Student = () => {
                       }}>
                         <div style={{ fontSize: 28, marginBottom: 6 }}>🌱</div>
                         <p style={{ margin: 0, color: '#64748b', fontSize: 13 }}>
-                          No mastered standards yet. Keep practicing — you'll get there!
+                          No mastered standards yet. Focus on one standard, analyze missed steps, and accuracy will rise.
                         </p>
                       </div>
                     ) : (
@@ -2142,8 +2142,8 @@ const Student = () => {
                                 </div>
                                 <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
                                   {c.stats.correct}/{c.stats.attempts} correct · Need 85% to master
-                                  {c.accuracy >= 65 && c.accuracy < 85 && ' · Almost there!'}
-                                  {c.accuracy < 40 && ' · Keep practicing!'}
+                                  {c.accuracy >= 65 && c.accuracy < 85 && ' · Rework missed items to push this standard above 85%.'}
+                                  {c.accuracy < 40 && ' · Rebuild core setup and operation steps before increasing speed.'}
                                 </div>
                               </div>
                             );
@@ -2176,7 +2176,7 @@ const Student = () => {
                       }}>
                         <div style={{ fontSize: 28, marginBottom: 6 }}>&#127942;</div>
                         <p style={{ margin: 0, color: '#92400e', fontSize: 13, fontWeight: 600 }}>
-                          Amazing — you've been working on everything! Keep going!
+                          Strong coverage across standards. Keep deepening accuracy by reviewing any recurring error patterns.
                         </p>
                       </div>
                     ) : (
@@ -2349,7 +2349,7 @@ const Student = () => {
                       {nextUp.length > 0
                         ? `Ready to keep going? Your next focus: ${nextUp[0].label}`
                         : mastered.length > 0
-                          ? 'Great work! Pick a new standard to explore.'
+                          ? 'Strong mastery momentum. Pick a new standard and transfer your solving process.'
                           : 'Start your first warm-up or game to track progress!'}
                     </p>
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>

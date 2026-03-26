@@ -616,10 +616,10 @@ const MathMillionaire = () => {
     }
 
     const hints = [
-      `Hmm, I'm pretty sure it's ${CHOICE_LABELS[hintIdx]}!`,
-      `I'd go with ${CHOICE_LABELS[hintIdx]} — my circuits say so!`,
-      `My best guess is ${CHOICE_LABELS[hintIdx]}. Good luck!`,
-      `I ran the numbers... I think ${CHOICE_LABELS[hintIdx]}!`,
+      `Solve hint: check operation order and simplify - this points to ${CHOICE_LABELS[hintIdx]}.`,
+      `Math hint: substitute/check constraints and compare choices; ${CHOICE_LABELS[hintIdx]} fits best.`,
+      `Reasoning hint: eliminate distractors with quick estimation; ${CHOICE_LABELS[hintIdx]} remains.`,
+      `I evaluated the expressions and ${CHOICE_LABELS[hintIdx]} is most consistent.`,
     ];
     setTimeout(() => {
       SFX.click();
@@ -785,7 +785,7 @@ const MathMillionaire = () => {
               <button onClick={goBack} style={btnStyle('#22c55e')}>Continue Practicing</button>
             )}
             <button onClick={resetGame} style={btnStyle(returnUrl ? '#6366f1' : '#22c55e')}>Play Again</button>
-            <button onClick={() => setShowReview(true)} style={btnStyle('#8b5cf6')}>Review Answers</button>
+            <button onClick={() => setShowReview(true)} style={btnStyle('#8b5cf6')}>Review Solutions</button>
             {!returnUrl && (
               <Link to="/games" style={{ ...btnStyle('#475569'), textDecoration: 'none', display: 'block' }}>Back to Games</Link>
             )}
@@ -900,7 +900,7 @@ const MathMillionaire = () => {
                 <img src={qbotImg} alt="QBot" style={{ width: 28 }} />
               </div>
               <div style={{ fontSize: 14, fontWeight: 600, color: '#93c5fd' }}>
-                {qbotAnim ? 'Hmm, let me think...' : qbotHint}
+                {qbotAnim ? 'Analyzing the math steps...' : qbotHint}
               </div>
             </div>
           )}
@@ -991,7 +991,7 @@ const MathMillionaire = () => {
                 <button
                   onClick={useAskQBot}
                   disabled={askQBotUsed}
-                  title="Ask QBot for a hint"
+                  title="Ask QBot for a math hint"
                   style={lifelineBtn(askQBotUsed, '#2563eb')}
                 >
                   <img src={qbotImg} alt="" role="presentation" style={{ width: 16, height: 'auto', marginRight: 4 }} />

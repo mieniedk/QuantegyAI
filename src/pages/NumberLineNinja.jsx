@@ -44,14 +44,14 @@ const NINJA_PERFECT = [
   "Dead center! Incredible precision! 💫",
 ];
 const NINJA_CLOSE = [
-  "Almost there! Keep going, you're so close! 💪",
-  "So close! Your skills are growing! 📈",
-  "Good aim! Just a tiny bit off! 🎯",
+  "Close placement - compare your point to benchmark ticks like 1/2 and 3/4. 💪",
+  "Close - count equal intervals from 0 before placing. 📈",
+  "Near target - estimate the fraction/percent position first, then place. 🎯",
 ];
 const NINJA_WRONG = [
-  "Not quite — but that's OK! Let QBot show you! 📖",
-  "Don't worry — every mistake is a lesson. Watch closely! 🔍",
-  "Every mistake is a chance to learn. Here's how it works! 🧠",
+  "Incorrect position - use interval counting to place the value exactly. 📖",
+  "Incorrect - identify the midpoint first, then locate the target relative to it. 🔍",
+  "Incorrect - convert the value to a decimal/percent and map it on the line. 🧠",
 ];
 const NINJA_TIPS = [
   "💡 Tip: The halfway point is your anchor!",
@@ -340,8 +340,8 @@ const NumberLineNinja = () => {
       <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FONT }}>
         <div style={{ background: 'linear-gradient(170deg,#1e293b,#0f172a)', borderRadius: 24, padding: '40px 36px', textAlign: 'center', border: pct >= 80 ? '3px solid #22c55e' : '2px solid rgba(255,255,255,0.1)', maxWidth: 420, width: '92%', color: '#fff' }}>
           <div style={{ fontSize: 56, marginBottom: 8 }}>{pct >= 80 ? '🏆' : pct >= 50 ? '⭐' : '🎯'}</div>
-          <h2 style={{ margin: '0 0 6px', fontSize: 26, fontWeight: 900, color: '#22c55e' }}>{pct >= 80 ? 'Number Line Pro!' : pct >= 50 ? 'Great Effort!' : 'Keep Practicing!'}</h2>
-          <NinjaQBot msg={pct >= 80 ? "QBot is SO proud of you! Amazing work! 🤖⭐" : "QBot says keep going — you're getting better! 💪"} />
+          <h2 style={{ margin: '0 0 6px', fontSize: 26, fontWeight: 900, color: '#22c55e' }}>{pct >= 80 ? 'Number Line Precision!' : pct >= 50 ? 'Solid Number-Line Progress' : 'Rebuild Number-Line Accuracy'}</h2>
+          <NinjaQBot msg={pct >= 80 ? "You placed values with strong precision across the line. 🤖⭐" : "Focus on benchmark points (0, 1/2, 1) and interval counting each round. 💪"} />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, background: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 16, marginBottom: 24 }}>
             <div><div style={{ fontSize: 24, fontWeight: 900, color: '#22c55e' }}>{score}</div><div style={{ fontSize: 10, color: '#94a3b8' }}>Score</div></div>
             <div><div style={{ fontSize: 24, fontWeight: 900, color: '#fbbf24' }}>{pct}%</div><div style={{ fontSize: 10, color: '#94a3b8' }}>Accuracy</div></div>

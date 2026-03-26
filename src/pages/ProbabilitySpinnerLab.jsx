@@ -232,7 +232,7 @@ export default function ProbabilitySpinnerLab() {
     setHistory(nextHistory);
     if (correct) {
       setScore((s) => s + 1);
-      setFeedback(`Correct! ${current.explain}`);
+      setFeedback(`Correct spinner-probability reasoning and result. ${current.explain}`);
     } else {
       const misconception = current.misconceptions?.[selected];
       let missCount = 0;

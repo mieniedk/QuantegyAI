@@ -237,7 +237,7 @@ export default function SurfaceAreaScramble() {
     const formulaText = showFormulaHint && current?.formula ? ` Formula: ${current.formula}.` : ' Turn on Formula Hint for a formula reminder.';
     if (correct) {
       setScore((s) => s + 1);
-      setFeedback(`Correct! ${current.explain}${formulaText}`);
+      setFeedback(`Correct surface-area setup and computation. ${current.explain}${formulaText}`);
     } else {
       const misconception = current.misconceptions?.[selected];
       let missCount = 0;

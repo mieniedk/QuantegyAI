@@ -1552,7 +1552,7 @@ const TeksCrush = () => {
                 Difficulty: {difficulty}
               </span>
             </div>
-            <QBotBubble msg="Nice work matching those expressions!" />
+            <QBotBubble msg="Accurate matching - each paired expression simplifies to the same value." />
             <div style={{
               display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8,
               background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 10, marginBottom: 16,

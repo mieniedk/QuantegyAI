@@ -126,7 +126,7 @@ function TransformLab({ onComplete, continueLabel, badgeLabel, embedded }) {
       </div>
 
       <QBotBubble
-        message={isCorrect ? 'Perfect transformation! You matched the target exactly.' : checked && !isCorrect ? 'Not quite. Look at how the target relates to the original \u2014 is it flipped, rotated, or shifted?' : 'Hint: compare orientation first (flip/rotate) and then position (translate) to match the dashed shape.'}
+        message={isCorrect ? 'Correct transformation sequence - the image matches the target exactly.' : checked && !isCorrect ? 'Transformation is not correct yet. Recheck orientation (reflection/rotation) and then translation distance.' : 'Hint: compare orientation first (flip/rotate) and then position (translate) to match the dashed shape.'}
         mood={isCorrect ? 'celebrate' : checked ? 'think' : 'wave'}
       />
       <div style={{ marginBottom: 10, padding: '8px 12px', borderRadius: 10, background: '#eff6ff', border: '1px solid #bfdbfe', fontSize: 12, color: '#1e3a8a', lineHeight: 1.45 }}>

@@ -437,14 +437,17 @@ const MathMatch = () => {
   const [bestScore, setBestScore] = useState(null);
   const [showReview, setShowReview] = useState(false);
   const [scopeUnavailable, setScopeUnavailable] = useState(false);
+  const [autoStarting, setAutoStarting] = useState(false);
   const [mismatchMap, setMismatchMap] = useState({});   // pairId → mismatch count
   const lockRef = useRef(false);
+  const autoStartRef = useRef(false);
 
   const teksParam = searchParams.get('teks') || '';
   const compParam = searchParams.get('comp') || '';
   const currentStd = searchParams.get('currentStd') || searchParams.get('std') || '';
   const examId = searchParams.get('examId') || '';
   const strictScope = searchParams.get('from') === 'loop' && !!(teksParam || compParam || currentStd);
+  const launchedFromLoop = searchParams.get('from') === 'loop';
   const labelParam = searchParams.get('label') || '';
   const gradeParamForUrl = searchParams.get('grade') || 'grade3';
   const fromParams = searchParams.get('returnUrl') || '';
@@ -580,6 +583,17 @@ const MathMatch = () => {
     setGameStarted(true);
   }, [selectedGrade, teksParam, pairCount, examId, compParam, currentStd, strictScope]);
 
+  // Loop launches should start immediately for snappier UX.
+  useEffect(() => {
+    if (!launchedFromLoop || autoStartRef.current || gameStarted || gameComplete) return;
+    autoStartRef.current = true;
+    setAutoStarting(true);
+    requestAnimationFrame(() => {
+      startGame();
+      setAutoStarting(false);
+    });
+  }, [launchedFromLoop, gameStarted, gameComplete, startGame]);
+
   const handleCardClick = (cardId) => {
     if (lockRef.current) return;
     if (matched.has(cardId)) return;
@@ -691,6 +705,11 @@ const MathMatch = () => {
       {/* ── Setup Screen ── */}
       {!gameStarted && (
         <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: 24 }}>
+          {autoStarting && launchedFromLoop && (
+            <div style={{ marginBottom: 12, padding: 12, background: '#eff6ff', borderRadius: 8, border: '1px solid #bfdbfe', fontSize: 13, color: '#1e3a8a' }}>
+              Loading Math Match board...
+            </div>
+          )}
           {scopeUnavailable && (
             <div style={{ marginBottom: 12, padding: 12, background: '#fef2f2', borderRadius: 8, border: '1px solid #fecaca', fontSize: 13, color: '#7f1d1d' }}>
               No competency-aligned Math Match set is available for this exact loop scope yet.
@@ -876,7 +895,7 @@ const MathMatch = () => {
             background: 'linear-gradient(135deg, #f0fdf4, #ecfdf5)',
             border: '1px solid #86efac',
           }}>
-            <QBotBubble msg="Great matching skills! QBot is impressed! 🤖🎯" />
+            <QBotBubble msg="Nice matching - use the review to reconnect each expression to its computed value. 🤖🎯" />
             <p style={{ margin: 0, fontSize: 36 }}>🎉</p>
             <h2 style={{ margin: '8px 0', color: '#166534' }}>You matched them all!</h2>
             <div style={{ display: 'flex', justifyContent: 'center', gap: 24, margin: '16px 0' }}>
@@ -928,7 +947,7 @@ const MathMatch = () => {
                     border: '2px solid #fbbf24', borderRadius: 10,
                     display: 'inline-flex', alignItems: 'center', gap: 8,
                   }}>
-                  <span style={{ fontSize: 18 }}>📝</span> Review Answers
+                  <span style={{ fontSize: 18 }}>📝</span> Review Solutions
                 </button>
                 <button type="button" onClick={startGame}
                   style={{

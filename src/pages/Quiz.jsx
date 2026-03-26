@@ -89,7 +89,11 @@ const Quiz = () => {
             {score.correct} / {score.total} correct ({Math.round(score.correct / score.total * 100)}%)
           </p>
           <p style={{ margin: '4px 0 0', fontSize: 14, color: '#475569' }}>
-            {score.correct === score.total ? 'Perfect score!' : score.correct >= score.total * 0.7 ? 'Good job! Review the ones you missed.' : 'Keep practicing. Review the answers below.'}
+            {score.correct === score.total
+              ? 'Perfect score - every item was solved correctly.'
+              : score.correct >= score.total * 0.7
+                ? 'Strong result - rework missed questions to identify the exact math step that failed.'
+                : 'Use the explanations below to rebuild setup, operations, and verification on each missed item.'}
           </p>
         </div>
       )}

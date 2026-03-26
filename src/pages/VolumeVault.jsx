@@ -184,7 +184,7 @@ export default function VolumeVault() {
     setHistory(nextHistory);
     if (correct) {
       setScore((s) => s + 1);
-      setFeedback(`Correct! ${current.explain}`);
+      setFeedback(`Correct volume setup and computation. ${current.explain}`);
     } else {
       const misconception = current.misconceptions?.[selected];
       let missCount = 0;

@@ -58,9 +58,9 @@ const DIFFICULTY = {
 
 const QBOT = {
   start: ["Let's explore shapes! 🔷🤖", "Shape Shifter mode activated! Can you identify them all? 🔶", "Geometry time with QBot! 📐"],
-  correct: ["That's right! You know your shapes! 🔷", "Correct! QBot is impressed! ⭐", "Nice geometry skills! 📐", "QBot approves! 🤖✅"],
-  wrong: ["Not quite — look at the shape's properties! 🔍", "Close! Count the sides carefully! 📐", "Think about the attributes! 💪"],
-  win: ["Shape Master achieved! 🏆📐", "You've conquered geometry! 🌟", "Incredible shape skills! 🤖🎉"],
+  correct: ["Correct classification using shape properties. 🔷", "Correct - side/angle attributes match. ⭐", "Nice geometry solve - properties identified accurately. 📐", "QBot confirms your geometric reasoning. 🤖✅"],
+  wrong: ["Not correct yet - verify side count and angle properties. 🔍", "Close - recount sides/vertices carefully. 📐", "Re-check the defining attributes before answering. 💪"],
+  win: ["Shape mastery achieved with solid geometric reasoning. 🏆📐", "You completed geometry challenges with strong evidence. 🌟", "Shape set complete - keep applying property-based classification. 🤖🎉"],
 };
 
 function genNumericOptions(correct, max) {
@@ -429,7 +429,7 @@ export default function ShapeShifter() {
           <div style={{ ...overlayBox, maxWidth: 380, textAlign: 'center' }}>
             <div style={{ fontSize: 42, marginBottom: 8 }}>🔷</div>
             <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', marginBottom: 4 }}>
-              {score === totalRounds ? 'Shape Master!' : score >= totalRounds * 0.7 ? 'Great Geometry!' : 'Keep Practicing!'}
+              {score === totalRounds ? 'Shape Mastery!' : score >= totalRounds * 0.7 ? 'Strong Geometry Reasoning' : 'Geometry Skills Building'}
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', gap: 4, marginBottom: 12 }}>
               {[1, 2, 3].map(s => <span key={s} style={{ fontSize: 28, filter: s <= stars ? 'none' : 'grayscale(1) opacity(0.3)' }}>⭐</span>)}
@@ -442,7 +442,7 @@ export default function ShapeShifter() {
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 16, flexWrap: 'wrap' }}>
               <button type="button" onPointerUp={() => startGame(difficulty)} style={btnStyle('linear-gradient(135deg,#7c3aed,#6d28d9)')}>Play Again</button>
               <button type="button" onPointerUp={() => setDifficulty(null)} style={btnStyle('linear-gradient(135deg,#475569,#334155)')}>Change Level</button>
-              <button type="button" onPointerUp={() => setShowReview(true)} style={btnStyle('linear-gradient(135deg,#2563eb,#1d4ed8)')}>Review</button>
+              <button type="button" onPointerUp={() => setShowReview(true)} style={btnStyle('linear-gradient(135deg,#2563eb,#1d4ed8)')}>Review Solutions</button>
             </div>
           </div>
         </div>

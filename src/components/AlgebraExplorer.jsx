@@ -107,7 +107,7 @@ function SequencePatterns({ onComplete, continueLabel, badgeLabel, embedded }) {
       </div>
       {checked && (
         <p style={{ margin: '0 0 12px', fontSize: 13, fontWeight: 700, color: isCorrect ? COLOR.green : COLOR.red }}>
-          {isCorrect ? '\u2713 Correct' : `\u2717 Not yet. Correct answer: ${task.answer}`}
+          {isCorrect ? '\u2713 Correct term value from the sequence rule.' : `\u2717 Not correct yet. Recompute using the sequence rule; target value is ${task.answer}.`}
         </p>
       )}
       {checked && (
@@ -449,7 +449,7 @@ function QuadraticExplorer({ onComplete, continueLabel, badgeLabel, embedded }) 
 
       {isMatch && (
         <div style={{ margin: '0 0 12px', padding: '10px 14px', borderRadius: 12, background: COLOR.greenLight, border: `1px solid ${COLOR.greenBorder}`, textAlign: 'center' }}>
-          <p aria-live="polite" style={{ margin: 0, fontSize: 14, fontWeight: 700, color: COLOR.green }}>{'\u2713'} Matched the target parabola! Great vertex-form control.</p>
+          <p aria-live="polite" style={{ margin: 0, fontSize: 14, fontWeight: 700, color: COLOR.green }}>{'\u2713'} Matched the target parabola with accurate vertex-form control.</p>
         </div>
       )}
 
@@ -541,7 +541,7 @@ function TrigCircle({ onComplete, continueLabel, badgeLabel, embedded }) {
           Unit Circle: {score}/{totalTasks} correct!
         </p>
         <QBotBubble
-          message={score === totalTasks ? 'You\'ve mastered the unit circle! The key relationships: sin = y-coordinate, cos = x-coordinate, tan = sin/cos.' : 'Keep practicing! Remember: on the unit circle, x = cos\u03B8 and y = sin\u03B8.'}
+          message={score === totalTasks ? 'Strong unit-circle accuracy: sin corresponds to y, cos to x, and tan = sin/cos.' : 'Rework missed prompts by matching each target value to x = cos\u03B8 and y = sin\u03B8 on the circle.'}
           mood={score === totalTasks ? 'celebrate' : 'encourage'}
         />
         <button type="button" onClick={onComplete} style={BTN_PRIMARY}>{continueLabel}</button>
@@ -567,7 +567,7 @@ function TrigCircle({ onComplete, continueLabel, badgeLabel, embedded }) {
       </div>
 
       <QBotBubble
-        message={checked ? (isCorrect ? 'Correct! Notice the reference triangle shows the sin and cos values as side lengths.' : `Not quite. The answer needed sin, cos, or tan to match. Your angle was ${degDisplay}°. Try the next one!`) : 'Drag the blue point around the unit circle. Watch how sin, cos, and tan change with the angle.'}
+        message={checked ? (isCorrect ? 'Correct angle relationship: the reference triangle confirms sin and cos as vertical and horizontal lengths.' : `Not correct yet. The target trig condition (sin, cos, or tan) was not met at ${degDisplay}°. Compare the live values and adjust to the required angle.`) : 'Drag the blue point around the unit circle. Watch how sin, cos, and tan change with the angle.'}
         mood={checked ? (isCorrect ? 'celebrate' : 'think') : 'wave'}
       />
       <div style={{ marginBottom: 10, padding: '8px 12px', borderRadius: 10, background: '#f0fdf4', border: '1px solid #bbf7d0', fontSize: 12, color: '#14532d', lineHeight: 1.45 }}>
@@ -641,7 +641,7 @@ function TrigCircle({ onComplete, continueLabel, badgeLabel, embedded }) {
       {checked && (
         <div style={{ margin: '0 0 12px', padding: '10px 14px', borderRadius: 12, background: isCorrect ? COLOR.greenLight : '#fef2f2', border: `1px solid ${isCorrect ? COLOR.greenBorder : '#fca5a5'}`, textAlign: 'center' }}>
           <p aria-live="polite" style={{ margin: 0, fontSize: 14, fontWeight: 700, color: isCorrect ? COLOR.green : '#ef4444' }}>
-            {isCorrect ? '\u2713 Correct! Great angle placement.' : '\u2717 Not quite — try the next task!'}
+            {isCorrect ? '\u2713 Correct angle placement for the trig condition.' : '\u2717 Not correct yet - revisit the target trig value and reposition the point.'}
           </p>
         </div>
       )}

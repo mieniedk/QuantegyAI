@@ -116,6 +116,70 @@ function normalizeDifficulty(value) {
   return 'medium';
 }
 
+function inferMathFocus(questionText = '') {
+  const text = String(questionText || '').toLowerCase();
+  if (!text) return 'algebraic setup';
+  if (/(slope|intercept|linear|y\s*=|mx\+b|rate of change)/.test(text)) return 'linear relationships';
+  if (/(quadratic|parabola|vertex|discriminant|factor)/.test(text)) return 'quadratic structure';
+  if (/(fraction|numerator|denominator|common denominator|rational)/.test(text)) return 'fraction operations';
+  if (/(percent|percentage|ratio|proportion|unit rate)/.test(text)) return 'ratio and percent reasoning';
+  if (/(probability|mean|median|mode|standard deviation|data|distribution)/.test(text)) return 'data and probability reasoning';
+  if (/(area|perimeter|volume|surface area|triangle|circle|angle|polygon|geometry)/.test(text)) return 'geometry measurement';
+  if (/(exponent|power|radical|sqrt|log|logarithm|exponential)/.test(text)) return 'exponent and radical rules';
+  if (/(inequality|<|>|<=|>=)/.test(text)) return 'inequality reasoning';
+  return 'algebraic setup';
+}
+
+function buildMathRecoveryHint(q) {
+  const questionText = String(q?.question || '');
+  const correct = q?.correct == null ? '' : String(q.correct);
+  const correctSnippet = correct ? ` For this item, the correct value/choice is ${correct}.` : '';
+  const focus = inferMathFocus(questionText);
+  if (focus === 'linear relationships') {
+    return `Set up the line explicitly (identify slope and intercept), then substitute values and verify the sign of your slope.${correctSnippet}`;
+  }
+  if (focus === 'quadratic structure') {
+    return `Rewrite the expression in a usable form (factor, complete the square, or use the quadratic formula), then check by substitution.${correctSnippet}`;
+  }
+  if (focus === 'fraction operations') {
+    return `Use a common denominator before adding/subtracting, simplify only after combining terms, and keep track of negatives.${correctSnippet}`;
+  }
+  if (focus === 'ratio and percent reasoning') {
+    return `Translate the prompt into a proportion or percent equation first, solve step-by-step, then check units and scale.${correctSnippet}`;
+  }
+  if (focus === 'data and probability reasoning') {
+    return `List the sample space or data values first, apply the exact formula (mean/median/probability), then verify denominator and interpretation.${correctSnippet}`;
+  }
+  if (focus === 'geometry measurement') {
+    return `Sketch and label all known measures, choose the matching geometry formula, and plug in units carefully.${correctSnippet}`;
+  }
+  if (focus === 'exponent and radical rules') {
+    return `Apply one exponent/radical rule at a time (do not combine unlike bases/terms), then simplify and check equivalent forms.${correctSnippet}`;
+  }
+  if (focus === 'inequality reasoning') {
+    return `Solve as an equation first, then apply inequality rules (including flipping the sign when multiplying/dividing by a negative), and test a point.${correctSnippet}`;
+  }
+  return `Translate the words into an equation, solve one algebra step at a time, and substitute back to verify.${correctSnippet}`;
+}
+
+function summarizeMathFocus(missedQuestions = []) {
+  if (!Array.isArray(missedQuestions) || missedQuestions.length === 0) return '';
+  const counts = new Map();
+  missedQuestions.forEach((q) => {
+    const focus = inferMathFocus(q?.question || '');
+    counts.set(focus, (counts.get(focus) || 0) + 1);
+  });
+  let top = '';
+  let topCount = 0;
+  counts.forEach((count, focus) => {
+    if (count > topCount) {
+      top = focus;
+      topCount = count;
+    }
+  });
+  return top;
+}
+
 function orderByDifficultyBias(items, bias = 'medium', seedInput = '') {
   const easy = [];
   const medium = [];
@@ -327,6 +391,19 @@ const QUIZ_SUFFIX_LABEL = {
   readiness: 'Readiness quiz',
   mastery: 'Mastery test',
 };
+const QUIZ_SUFFIX_TO_PHASE = {
+  diagnostic: 'diagnostic',
+  check: 'check-quiz',
+  check2: 'check-quiz-2',
+  check3: 'check-quiz-3',
+  check4: 'check-quiz-4',
+  check5: 'check-quiz-5',
+  check6: 'check-quiz-6',
+  check7: 'check-quiz-7',
+  check8: 'check-quiz-8',
+  readiness: 'readiness-quiz',
+  mastery: 'mastery-check',
+};
 
 const MICRO_GOALS_BY_PHASE = {
   diagnostic: 'A short quiz to find your starting point so the loop focuses on what you need most.',
@@ -484,7 +561,8 @@ function PhaseHeader({ badgeColor, badgeLabel, title, description, scopeBadge })
 function StepProgress({ current, total, compact = false, smallPhone = false }) {
   const safeCurrent = Math.max(0, current || 0);
   const safeTotal = Math.max(1, total || 1);
-  const pct = Math.round((safeCurrent / safeTotal) * 100);
+  // Include the current tile so visual progress matches "Step X of Y".
+  const pct = Math.round(((safeCurrent + 1) / safeTotal) * 100);
   return (
     <div style={{ marginBottom: compact ? 8 : 14 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: compact ? (smallPhone ? 9 : 10) : 11, fontWeight: 700, color: COLOR.textMuted, marginBottom: 4, lineHeight: 1.3 }}>
@@ -664,20 +742,22 @@ function QuizBlock({
   const flaggedSet = flaggedIds instanceof Set ? flaggedIds : new Set(flaggedIds || []);
   const correctCount = pool.filter((q) => answers[q.id] === q.correct).length;
   const scorePct = pool.length > 0 ? Math.round((correctCount / pool.length) * 100) : 0;
+  const missedQuestions = pool.filter((q) => answers[q.id] !== q.correct);
+  const topMissFocus = summarizeMathFocus(missedQuestions);
   const resultMessage = scorePct === 100
-    ? 'Outstanding! You nailed this checkpoint.'
+    ? 'Outstanding! You nailed this checkpoint with accurate setup and execution.'
     : scorePct >= 80
-      ? 'Great work. You are building strong momentum.'
+      ? `Strong checkpoint. You are mostly accurate; tighten one or two steps in ${topMissFocus || 'algebraic setup'} to prevent small misses.`
       : scorePct >= 50
-        ? 'Good effort. A quick review now will pay off on the next tile.'
-        : 'You are in the learning zone. Let us reinforce the concept and try again.';
+        ? `Good effort. Most misses are in ${topMissFocus || 'multi-step setup'} — rework those items by writing each transformation line-by-line.`
+        : `This checkpoint shows a gap in ${topMissFocus || 'core setup skills'}. Slow down, model each step, and verify with substitution before submitting.`;
   const nextStepMessage = scorePct === 100
-    ? 'Next best step: move ahead and take on a harder challenge.'
+    ? 'Next math step: continue and challenge yourself with harder items while keeping full written work.'
     : scorePct >= 80
-      ? 'Next best step: continue to keep the streak alive.'
+      ? `Next math step: revisit the missed ${topMissFocus || 'concept'} item(s), solve again without choices, then continue.`
       : scorePct >= 50
-        ? 'Next best step: focus on one missed idea while you continue.'
-        : 'Next best step: use the guided support to rebuild confidence.';
+        ? `Next math step: do one targeted redo on ${topMissFocus || 'the missed concept'} and check each arithmetic/algebra operation.`
+        : `Next math step: use the concept reminder, then reattempt with a strict routine: define variables, set equation, solve, and verify.`;
   return (
     <PhaseCard stepIndex={stepIndex} totalSteps={totalSteps} phaseKey={phaseKey}>
       <PhaseHeader
@@ -730,7 +810,7 @@ function QuizBlock({
           {submitted && answers[q.id] !== q.correct && !q.explanation && !q.misconception && showRecoveryHints && (
             <div style={{ marginTop: 8, padding: 10, borderRadius: 8, background: '#fffbeb', border: `1px solid ${COLOR.amber}55`, fontSize: 12, color: '#78350f', lineHeight: 1.5 }}>
               <strong style={{ display: 'block', marginBottom: 4 }}>Try this next</strong>
-              {getRecoveryHintForDifficulty(q.difficulty)}
+              <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(buildMathRecoveryHint(q) || getRecoveryHintForDifficulty(q.difficulty))) }} />
             </div>
           )}
           {submitted && answers[q.id] === q.correct && q.explanation && (
@@ -884,8 +964,8 @@ function MasteryScreen({
     if (!r.ok) {
       setReflError(
         r.code === 'QUOTA_EXCEEDED'
-          ? 'Storage is full — free space on this device, then try again.'
-          : 'Could not save your reflection. Try again.',
+          ? 'Storage is full — free space on this device, then retry saving your reflection.'
+          : 'Could not save your reflection. Retry in a moment.',
       );
       return;
     }
@@ -1169,10 +1249,17 @@ export default function PracticeLoop() {
     return doms.findIndex((d) => d.id === comp);
   }, [examId, comp]);
 
+  const resolvedStdId = useMemo(() => {
+    if (currentStd) return currentStd;
+    if (!compDomain || !singleTeks) return '';
+    const fallback = (compDomain.standards || []).find((s) => s.id === singleTeks);
+    return fallback?.id || '';
+  }, [currentStd, compDomain, singleTeks]);
+
   const currentStdObj = useMemo(() => {
-    if (!currentStd || !compDomain) return null;
-    return (compDomain.standards || []).find((s) => s.id === currentStd) || null;
-  }, [currentStd, compDomain]);
+    if (!resolvedStdId || !compDomain) return null;
+    return (compDomain.standards || []).find((s) => s.id === resolvedStdId) || null;
+  }, [resolvedStdId, compDomain]);
 
 
   const compDisplay = comp ? (compDomain ? `Domain ${ROMAN[compIdx] || compIdx + 1}: ${compDomain.name}` : getCompName(comp)) : null;
@@ -1210,6 +1297,7 @@ export default function PracticeLoop() {
   const [xpPoints, setXpPoints] = useState(0);
   const [quizStreak, setQuizStreak] = useState(0);
   const [quizHistory, setQuizHistory] = useState([]);
+  const [quizPhaseScores, setQuizPhaseScores] = useState({});
   /** Bumps when navigating tiles so quiz pools re-read weak/flagged data for spaced review */
   const [reviewPoolEpoch, setReviewPoolEpoch] = useState(0);
   const [revisitSeed, setRevisitSeed] = useState(0);
@@ -1753,7 +1841,7 @@ export default function PracticeLoop() {
       if (highConf && recentQuizAccuracy < 70) {
         core = 'You feel more ready than your last scores suggest — we will bridge that gap with targeted practice so confidence matches performance.';
       } else {
-        core = 'You are building momentum. Keep practicing with mixed quizzes and interactive tasks to lock in understanding.';
+        core = 'You are building momentum. Continue with mixed quizzes and interactives to reinforce setup, strategy, and verification steps.';
       }
     } else if (lowConf) {
       core = 'Scores look strong, but if you still feel unsure, use the next activities to prove it to yourself — confidence will follow.';
@@ -2087,10 +2175,16 @@ export default function PracticeLoop() {
       'mastery-check':  { pool: masteryPool,    answers: masteryAnswers,    submitted: masterySubmitted },
     };
     const currentIdx = PHASES.indexOf(phase);
+    const progressIdx = currentIdx >= 0 ? currentIdx : 0;
     return PHASES.map((p, i) => {
       const meta = getTileMeta(p);
       const label = meta?.icon || '';
       const name = phaseTileMeta[p]?.label || p.replace(/-/g, ' ');
+      if (quizPhaseScores[p] != null) {
+        const pct = Math.max(0, Math.min(100, Math.round(quizPhaseScores[p])));
+        const color = pct >= 75 ? COLOR.green : pct >= 45 ? COLOR.amber : COLOR.red;
+        return { key: p, label, name, pct, color, status: 'done' };
+      }
       const qs = quizState[p];
       if (qs && qs.submitted && qs.pool.length > 0) {
         const correct = qs.pool.filter((q) => qs.answers[q.id] === q.correct).length;
@@ -2098,12 +2192,12 @@ export default function PracticeLoop() {
         const color = pct >= 75 ? COLOR.green : pct >= 45 ? COLOR.amber : COLOR.red;
         return { key: p, label, name, pct, color, status: 'done' };
       }
-      if (i < currentIdx) return { key: p, label, name, pct: null, color: COLOR.green, status: 'passed' };
-      if (i === currentIdx) return { key: p, label, name, pct: null, color: COLOR.blue, status: 'current' };
+      if (i < progressIdx) return { key: p, label, name, pct: null, color: COLOR.green, status: 'passed' };
+      if (i === progressIdx) return { key: p, label, name, pct: null, color: COLOR.blue, status: 'current' };
       return { key: p, label, name, pct: null, color: null, status: 'future' };
     });
   }, [
-    phase, phaseTileMeta,
+    phase, phaseTileMeta, quizPhaseScores,
     diagnosticPool, diagnosticAnswers, diagnosticSubmitted,
     checkQuizPool, checkQuizAnswers, checkQuizSubmitted,
     checkQuiz2Pool, checkQuiz2Answers, checkQuiz2Submitted,
@@ -2239,6 +2333,22 @@ export default function PracticeLoop() {
   const gameDisplayName = game1?.name || 'Competency Explorer';
 
   const lecture = useMemo(() => (singleTeks && !compDomain ? getLecture(singleTeks) : null), [singleTeks, compDomain]);
+  const introLecture = useMemo(() => {
+    if (comp) return getLectureForComp(comp, resolvedStdId || singleTeks);
+    return lecture || null;
+  }, [comp, lecture, resolvedStdId, singleTeks]);
+
+  const deepDiveLecture = useMemo(() => {
+    // When a specific standard is active, keep both videos aligned to that standard.
+    if (resolvedStdId) return introLecture;
+    if (!compDomain) return introLecture;
+    const otherStd = (compDomain.standards || []).find((s) => s.id && s.id !== currentStd);
+    if (otherStd?.id) {
+      const l = getLectureForComp(comp, otherStd.id);
+      if (l) return l;
+    }
+    return introLecture;
+  }, [resolvedStdId, compDomain, introLecture, currentStd, comp]);
   const bankCount = useMemo(() => queryBank({ teks: singleTeks, grade, format: 'multiple-choice' }).length, [singleTeks, grade]);
   const usedBank = bankCount >= Math.max(DIAGNOSTIC_COUNT, CHECK_QUIZ_COUNT);
   const reminderText = useMemo(() => {
@@ -2256,30 +2366,24 @@ export default function PracticeLoop() {
       if (!embed) return;
       if (!uniqueEmbeds.includes(embed)) uniqueEmbeds.push(embed);
     };
-    (compDomain?.videos || []).forEach(pushUnique);
-    pushUnique(compDomain?.video);
-    pushUnique(lecture?.video);
-    pushUnique('https://www.youtube.com/embed/CLWpkv6ccpA');
+
+    // Always prioritize lecture videos tied to the active competency/standard.
+    pushUnique(introLecture?.video);
+    pushUnique(deepDiveLecture?.video);
+
+    // Only allow broad domain fallbacks when no specific standard is selected.
+    if (!resolvedStdId) {
+      (compDomain?.videos || []).forEach(pushUnique);
+      pushUnique(compDomain?.video);
+      pushUnique(lecture?.video);
+      pushUnique('https://www.youtube.com/embed/CLWpkv6ccpA');
+    }
+
     return {
       introVideoEmbed: uniqueEmbeds[0] || null,
       deepDiveVideoEmbed: uniqueEmbeds[1] || null,
     };
-  }, [compDomain, lecture]);
-
-  const introLecture = useMemo(() => {
-    if (comp) return getLectureForComp(comp, singleTeks);
-    return lecture || null;
-  }, [comp, lecture, singleTeks]);
-
-  const deepDiveLecture = useMemo(() => {
-    if (!compDomain) return introLecture;
-    const otherStd = (compDomain.standards || []).find((s) => s.id && s.id !== currentStd);
-    if (otherStd?.id) {
-      const l = getLectureForComp(otherStd.id, null);
-      if (l) return l;
-    }
-    return introLecture;
-  }, [compDomain, currentStd, introLecture]);
+  }, [compDomain, lecture, introLecture, deepDiveLecture, resolvedStdId]);
 
   const conceptTitle = useMemo(() => {
     if (currentStdObj) return currentStdObj.name;
@@ -2449,8 +2553,15 @@ export default function PracticeLoop() {
     if (typeof window === 'undefined') return;
     const search = window.location.search;
     if (!phaseNeedsUrlUpdate(search, phase)) return;
-    setSearchParams(withPhaseInSearch(search, phase), { replace: true });
+    // Push phase transitions so browser back can move through loop steps.
+    setSearchParams(withPhaseInSearch(search, phase), { replace: false });
   }, [phase, setSearchParams]);
+
+  useEffect(() => {
+    // Keep local phase state synced when the URL changes (browser/device back).
+    if (!requestedPhase || !PHASES.includes(requestedPhase)) return;
+    if (requestedPhase !== phase) setPhase(requestedPhase);
+  }, [requestedPhase, phase]);
 
   useEffect(() => {
     try { window.sessionStorage.setItem(sessionPhaseKey, phase); } catch {}
@@ -2538,6 +2649,11 @@ export default function PracticeLoop() {
     }
     const correctCount = pool.filter((q) => answers[q.id] === q.correct).length;
     const accuracy = pool.length > 0 ? correctCount / pool.length : 0;
+    const accuracyPct = Math.round(accuracy * 100);
+    const quizPhaseKey = QUIZ_SUFFIX_TO_PHASE[gameIdSuffix];
+    if (quizPhaseKey) {
+      setQuizPhaseScores((prev) => ({ ...prev, [quizPhaseKey]: accuracyPct }));
+    }
     trackEvent('practice_loop_quiz_submit', {
       phase: gameIdSuffix,
       examId,
@@ -2545,7 +2661,7 @@ export default function PracticeLoop() {
       currentStd: currentStd || '',
       total: pool.length,
       correct: correctCount,
-      accuracyPct: Math.round(accuracy * 100),
+      accuracyPct,
     });
     const wrongIds = pool.filter((q) => answers[q.id] !== q.correct).map((q) => q.id);
     if (loopReviewKey && wrongIds.length) {
@@ -2903,9 +3019,27 @@ export default function PracticeLoop() {
             {!dockCollapsed && (
               <>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isCompactDock ? 6 : 8 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: isCompactDock ? 9 : 10, fontWeight: 800, color: COLOR.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', flexWrap: isCompactDock ? 'wrap' : 'nowrap', gap: 6, minWidth: 0, fontSize: isCompactDock ? 9 : 10, fontWeight: 800, color: COLOR.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     <span aria-hidden>▣</span>
                     <span>Progress</span>
+                    {conceptTitle && (
+                      <span
+                        style={{
+                          fontWeight: 700,
+                          textTransform: 'none',
+                          letterSpacing: 0,
+                          color: COLOR.textSecondary,
+                          fontSize: isCompactDock ? 10 : 11,
+                          whiteSpace: isCompactDock ? 'normal' : 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          maxWidth: isCompactDock ? '100%' : 340,
+                        }}
+                        title={`Competency: ${conceptTitle}`}
+                      >
+                        · Competency: {conceptTitle}
+                      </span>
+                    )}
                   </div>
                   {displayPhaseIndex >= 2 && (
                     <button

@@ -180,7 +180,7 @@ export default function InequalitySprint() {
     setHistory(nextHistory);
     if (correct) {
       setScore((s) => s + 1);
-      setFeedback(`Correct! ${current.explain}`);
+      setFeedback(`Correct inequality reasoning and solution check. ${current.explain}`);
     } else {
       const misconception = current.misconceptions?.[selected];
       let missCount = 0;

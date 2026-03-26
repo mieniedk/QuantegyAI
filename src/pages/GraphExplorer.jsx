@@ -48,9 +48,9 @@ const DIFFICULTY = {
 
 const QBOT_MSGS = {
   start: ["Let's explore some data! 📊🤖", "Time to read some graphs! Can you find the answers? 📈", "Data Detective mode activated! 🔍"],
-  correct: ["Great reading! 📊", "Exactly right! You're a data pro! ⭐", "Nailed it! 🎉", "QBot approves! 🤖✅"],
-  wrong: ["Not quite — look at the graph again! 📊", "Close! Count carefully! 🔍", "Check the bars one more time! 💪"],
-  win: ["You've mastered data analysis! 🏆📊", "Incredible graph skills! 🌟", "Data Explorer complete! 🤖🎉"],
+  correct: ["Correct graph read - your count/value extraction is accurate. 📊", "Exactly right - category-to-value mapping is correct. ⭐", "Correct result - data comparison is sound. 🎉", "QBot confirms your graph interpretation. 🤖✅"],
+  wrong: ["Not correct yet - re-read axis labels and category values. 📊", "Close - recount bars/dots or icon scale carefully. 🔍", "Check totals/differences from the graph one more time. 💪"],
+  win: ["You finished with strong data-analysis reasoning. 🏆📊", "Graph interpretation skills are improving well. 🌟", "Data exploration complete with mathematical evidence. 🤖🎉"],
 };
 
 function generateDataSet(diff) {
@@ -398,7 +398,7 @@ export default function GraphExplorer() {
       SFX.correct();
       setScore(s => s + 1);
       setStreak(s => s + 1);
-      setFeedback({ correct: true, msg: `Correct! The answer is ${question.correctAnswer}` });
+      setFeedback({ correct: true, msg: `Correct graph interpretation - answer is ${question.correctAnswer}` });
       setQbotMsg(pick(QBOT_MSGS.correct));
     } else {
       SFX.wrong();
@@ -548,7 +548,7 @@ export default function GraphExplorer() {
           <div style={{ ...overlayBox, maxWidth: 380, textAlign: 'center' }}>
             <div style={{ fontSize: 42, marginBottom: 8 }}>{'\uD83D\uDCCA'}</div>
             <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', marginBottom: 4 }}>
-              {score === totalRounds ? 'Data Master!' : score >= totalRounds * 0.7 ? 'Great Analysis!' : 'Exploration Complete!'}
+              {score === totalRounds ? 'Data Mastery Achieved!' : score >= totalRounds * 0.7 ? 'Strong Data Analysis' : 'Data Skills Building'}
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', gap: 4, marginBottom: 12 }}>
               {[1,2,3].map(s => <span key={s} style={{ fontSize: 28, filter: s <= stars ? 'none' : 'grayscale(1) opacity(0.3)' }}>{'\u2B50'}</span>)}
@@ -567,7 +567,7 @@ export default function GraphExplorer() {
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 16, flexWrap: 'wrap' }}>
               <button type="button" onPointerUp={() => startGame(difficulty)} style={btnStyle('linear-gradient(135deg,#2563eb,#1d4ed8)')}>Play Again</button>
               <button type="button" onPointerUp={() => setDifficulty(null)} style={btnStyle('linear-gradient(135deg,#475569,#334155)')}>Change Level</button>
-              <button type="button" onPointerUp={() => setShowReview(true)} style={btnStyle('linear-gradient(135deg,#7c3aed,#6d28d9)')}>Review</button>
+              <button type="button" onPointerUp={() => setShowReview(true)} style={btnStyle('linear-gradient(135deg,#7c3aed,#6d28d9)')}>Review Solutions</button>
             </div>
           </div>
         </div>
@@ -700,7 +700,7 @@ export default function GraphExplorer() {
               padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
               background: 'rgba(245,158,11,0.2)', color: '#fbbf24',
               border: '1px solid rgba(245,158,11,0.4)', borderRadius: 10,
-            }}>Review</button>
+            }}>Review Solutions</button>
           )}
           <LoopContinueButton fixed={false} onClick={goBack} label="Continue \u2192" />
         </div>

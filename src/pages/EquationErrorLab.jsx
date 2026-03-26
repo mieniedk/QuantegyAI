@@ -152,7 +152,7 @@ export default function EquationErrorLab() {
     setHistory(nextHistory);
     if (correct) {
       setScore((s) => s + 1);
-      setFeedback(`Correct! ${current.explain}`);
+      setFeedback(`Correct error diagnosis. ${current.explain}`);
     } else {
       const misconception = current.misconceptions?.[selected];
       let missCount = 0;

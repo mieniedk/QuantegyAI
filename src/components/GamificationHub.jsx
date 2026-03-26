@@ -438,10 +438,10 @@ export default function GamificationHub({ studentId, classId, stats, gradeId }) 
             }}>
               <div style={{ fontSize: 32, marginBottom: 8 }}>{challengeResult.correct ? '\uD83C\uDF89' : '\uD83D\uDCAA'}</div>
               <div style={{ fontWeight: 800, fontSize: 18, color: challengeResult.correct ? '#166534' : '#991b1b', marginBottom: 4 }}>
-                {challengeResult.correct ? 'Correct!' : 'Not quite!'}
+                {challengeResult.correct ? 'Correct solution' : 'Not correct yet'}
               </div>
               <div style={{ fontSize: 13, color: challengeResult.correct ? '#065f46' : '#7f1d1d', marginBottom: 8 }}>
-                {challengeResult.correct ? `Great work! You earned ${challengeResult.xpEarned} XP.` : `The answer was: ${challenge.correct}. You still earned ${challengeResult.xpEarned} XP for trying!`}
+                {challengeResult.correct ? `Correct reasoning confirmed. You earned ${challengeResult.xpEarned} XP.` : `The correct answer is: ${challenge.correct}. You still earned ${challengeResult.xpEarned} XP for attempting.`}
               </div>
               <button type="button" onClick={fetchChallenge} style={{
                 padding: '10px 18px', borderRadius: 8, border: 'none', fontSize: 13, fontWeight: 700,

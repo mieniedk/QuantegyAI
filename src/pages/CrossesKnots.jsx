@@ -223,10 +223,10 @@ const QBOT_MSGS = {
   start: ["Complete a row of 3 matching values to win — even using your opponent's tiles! 🎯", "Match values across a row, column, or diagonal — any tiles count! 🧠", "Place the tile that makes 3 in a row equal the same answer and YOU win! ✨"],
   yourTurn: ["Your turn! Pick a tile and place it 📝", "Choose wisely — which tiles equal the same? 🤔", "Tap a tile, then tap a cell! 🎮"],
   botTurn: ["My turn! Let me think... 🤖", "Hmm, where should I go? 🧐", "Watch this move! 😏"],
-  playerWin: ["You got it! Three equal values in a row! 🎉", "Amazing math skills! You win! 🏆", "You're a genius! Well played! ⭐"],
-  botWin: ["I got three in a row! Better luck next time! 😊", "That was close! Try again? 💪", "I win this round! You almost had it! 🤖"],
-  drawGame: ["It's a draw! Great battle! 🤝", "Nobody wins — rematch? ⚡", "Tied game! You're a tough opponent! 🔥"],
-  goodMove: ["Nice placement! 👍", "Smart thinking! 🧠", "Good one! ✅"],
+  playerWin: ["You formed three equivalent values in a row with valid evaluation. 🎉", "Win confirmed - your row matches by equal numeric value. 🏆", "Strong equivalence reasoning - line completed. ⭐"],
+  botWin: ["I completed a row of equivalent values first. Review each tile's computed value. 🤖", "Close round - check each expression's value before placing next time. 💪", "This round goes to me. Recompute candidate tiles before your next move. 😊"],
+  drawGame: ["Draw game - no completed line of equivalent values. 🤝", "No winner this time. Re-evaluate value matches and run a rematch. ⚡", "Tie result - both sides blocked each other's value lines. 🔥"],
+  goodMove: ["Strong placement based on equal value. 👍", "Good move - value matching logic is working. 🧠", "Accurate tile placement by computation. ✅"],
 };
 
 /* ═══════════════════════ COMPONENT ═══════════════════════ */

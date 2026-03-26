@@ -213,7 +213,7 @@ const QBlocks = () => {
               border: '1px solid rgba(245,158,11,0.4)', borderRadius: 10,
               display: 'flex', alignItems: 'center', gap: 6,
             }}>
-              Review
+              Review Solutions
             </button>
           )}
           <Link to="/games" style={{
@@ -251,7 +251,7 @@ const QBlocks = () => {
               </button>
             </div>
             <p style={{ margin: '0 0 12px', color: '#64748b', fontSize: 13 }}>
-              Here are the questions you got wrong. Review the explanations to improve!
+              Here are missed items with worked guidance. Rebuild each expression using the shown math steps.
             </p>
             <GameReview
               questions={reviewData.questions}

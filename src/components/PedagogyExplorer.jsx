@@ -141,7 +141,7 @@ function LessonSequencer({ onComplete, continueLabel, badgeLabel, embedded }) {
       </div>
 
       <QBotBubble
-        message={checked && isCorrect ? 'Perfect sequence! This follows the gradual release model: "I do, We do, You do" with a warm-up to activate prior knowledge and closure to check understanding.' : checked ? 'Not quite. Think about the gradual release: start with a warm-up, then hook the students, model the concept, practice together, practice alone, and close with reflection.' : 'Effective lessons follow a structure: activate prior knowledge, engage interest, teach explicitly, practice with support, then independently, and reflect.'}
+        message={checked && isCorrect ? 'Correct lesson sequencing: gradual release moves from modeling to guided practice to independent application, with activation and closure.' : checked ? 'Sequence is not correct yet. Reorder by instructional flow: activate prior knowledge, explicit model, guided practice, independent practice, closure.' : 'Effective lessons follow a structure: activate prior knowledge, engage interest, teach explicitly, practice with support, then independently, and reflect.'}
         mood={checked && isCorrect ? 'celebrate' : checked ? 'think' : 'wave'}
       />
 
@@ -317,7 +317,7 @@ function MisconceptionDetector({ onComplete, continueLabel, badgeLabel, embedded
       </p>
       <p style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 700, color: COLOR.blue }}>{problem.title}</p>
       <p style={{ margin: '0 0 8px', fontSize: 13, color: COLOR.textSecondary }}>
-        {phase === 'identify' ? 'Click on the step where the student made an error.' : phase === 'classify' ? 'Good eye! Now classify the type of misconception.' : phase === 'wrong-step' ? 'That step is not the error. Try again!' : 'Review the explanation below.'}
+        {phase === 'identify' ? 'Click on the step where the student made an error.' : phase === 'classify' ? 'Error step identified. Now classify the misconception type.' : phase === 'wrong-step' ? 'That is not the first invalid step. Recheck the procedure and choose again.' : 'Review the explanation below.'}
       </p>
       <div style={{ margin: '0 0 10px', display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 12, fontWeight: 700, color: COLOR.textSecondary, background: '#f1f5f9', border: `1px solid ${COLOR.border}`, borderRadius: 999, padding: '4px 10px' }}>
@@ -332,7 +332,7 @@ function MisconceptionDetector({ onComplete, continueLabel, badgeLabel, embedded
       </div>
 
       <QBotBubble
-        message={phase === 'done' ? (isCategoryCorrect ? `Correct! "${problem.misconception}" is a ${problem.category}. Understanding student errors helps you plan targeted instruction.` : `The error is a "${problem.category}": ${problem.misconception}. Recognizing misconception types helps guide remediation strategies.`) : phase === 'classify' ? 'You found the error step! Now think about what type of mistake this represents.' : 'As a future math teacher, recognizing where and why students make errors is essential for effective instruction.'}
+        message={phase === 'done' ? (isCategoryCorrect ? `Correct classification: "${problem.misconception}" is a ${problem.category}. This supports targeted reteach planning.` : `The error is "${problem.category}": ${problem.misconception}. Use this category to select a focused remediation move.`) : phase === 'classify' ? 'Error step found. Now classify whether the issue is procedural, conceptual, sign-based, or operation-order related.' : 'As a future math teacher, recognizing where and why students make errors is essential for effective instruction.'}
         mood={phase === 'done' && isCategoryCorrect ? 'celebrate' : phase === 'done' ? 'think' : phase === 'classify' ? 'encourage' : 'wave'}
       />
 

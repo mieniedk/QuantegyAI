@@ -78,9 +78,9 @@ export default function IntegerIsland() {
     setHistory(nextHistory);
     if (correct) {
       setScore((s) => s + 1);
-      setFeedback(`Correct! ${current.start} ${current.op} ${current.amount} = ${current.answer}.`);
+      setFeedback(`Correct integer operation. ${current.start} ${current.op} ${current.amount} = ${current.answer}.`);
     } else {
-      setFeedback(`Not quite. ${current.start} ${current.op} ${current.amount} = ${current.answer}.`);
+      setFeedback(`Not correct yet. Recompute the integer operation: ${current.start} ${current.op} ${current.amount} = ${current.answer}.`);
     }
 
     if (index + 1 >= TOTAL_ROUNDS) {

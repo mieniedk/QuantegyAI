@@ -297,12 +297,12 @@ const SpeedBuilder = () => {
           <div style={{ textAlign: 'center', marginTop: 12, animation: 'fadeUp 0.3s ease' }}>
             {isCorrect ? (
               <div style={{ fontSize: 14, fontWeight: 700, color: '#22c55e' }}>
-                ✅ Perfect! {target.hundreds} hundreds + {target.tens} tens + {target.ones} ones = {target.value}
+                ✅ Correct place-value build: {target.hundreds} hundreds + {target.tens} tens + {target.ones} ones = {target.value}
                 {timeLeft > 0 && <span style={{ color: '#3b82f6', marginLeft: 6 }}>+{timeLeft * 5} time bonus!</span>}
               </div>
             ) : (
               <div style={{ fontSize: 14, fontWeight: 700, color: '#ef4444' }}>
-                ❌ Not quite — you built {currentValue} but the target is {target.value}
+                ❌ Not correct yet - you built {currentValue} but the target is {target.value}. Recheck hundreds, tens, and ones.
               </div>
             )}
           </div>

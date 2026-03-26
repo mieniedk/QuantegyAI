@@ -800,8 +800,8 @@ const MathJeopardy = () => {
                   marginBottom: 8,
                 }}>
                   {selectedAnswer === activeCell.q.answer
-                    ? `Correct! +$${activeCell.isDailyDouble ? wager : activeCell.points}`
-                    : `Incorrect! The answer is ${activeCell.q.answer}`
+                    ? `Correct reasoning. +$${activeCell.isDailyDouble ? wager : activeCell.points}`
+                    : `Not correct. The accepted solution is ${activeCell.q.answer}`
                   }
                 </div>
                 <button onClick={closeQuestion} style={{
@@ -881,13 +881,13 @@ const MathJeopardy = () => {
           }}>
             <div style={{ fontSize: 48, marginBottom: 8 }}>🏆</div>
             <h2 style={{ margin: '0 0 6px', fontSize: 26, fontWeight: 900, color: '#fbbf24' }}>
-              {score >= maxScore * 0.7 ? 'Champion!' : score >= maxScore * 0.4 ? 'Great Job!' : 'Good Effort!'}
+              {score >= maxScore * 0.7 ? 'Jeopardy Math Mastery!' : score >= maxScore * 0.4 ? 'Solid Math Reasoning' : 'Skills Building in Progress'}
             </h2>
             <p style={{ margin: '0 0 20px', color: '#94a3b8', fontSize: 14 }}>
               Final Score: <strong style={{ color: '#fbbf24' }}>${score}</strong> of ${maxScore}
             </p>
 
-            <QBotBubble msg="Great game! QBot loves your Jeopardy skills! 🤖⭐" />
+            <QBotBubble msg="Review missed clues by rebuilding each equation or property step-by-step. 🤖⭐" />
 
             <div style={{
               display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8,
@@ -915,7 +915,7 @@ const MathJeopardy = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <button onClick={resetGame} style={btnStyle('#22c55e')}>Play Again</button>
-              <button onClick={() => setShowReview(true)} style={btnStyle('#6366f1')}>Review Answers</button>
+              <button onClick={() => setShowReview(true)} style={btnStyle('#6366f1')}>Review Solutions</button>
               <Link to="/games" style={{ ...btnStyle('#475569'), textDecoration: 'none', display: 'block' }}>Back to Games</Link>
             </div>
           </div>

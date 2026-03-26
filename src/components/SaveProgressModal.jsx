@@ -11,7 +11,7 @@ const LEGACY_TO_NEW = {
   'allen-ace-learning-experience': EXPERIENCE_KEY,
   'allen-ace-loop-review': REVIEW_KEY,
 };
-const SIGNUP_TIMEOUT_MS = 15000;
+const SIGNUP_TIMEOUT_MS = 35000;
 
 function syncProgressToServer() {
   const keys = [MASTERY_KEY, EXPERIENCE_KEY, REVIEW_KEY];
@@ -77,17 +77,12 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
     }
     setBusy(true);
     try {
-      let timeoutId;
-      const timeoutPromise = new Promise((resolve) => {
-        timeoutId = setTimeout(() => resolve({ success: false, error: 'Signup is taking too long. Please check your connection and try again.' }), SIGNUP_TIMEOUT_MS);
-      });
-      const signupPromise = studentSignup({
+      const result = await studentSignup({
         email: trimmedEmail,
         password,
         displayName: displayName.trim() || trimmedEmail.split('@')[0],
+        timeoutMs: SIGNUP_TIMEOUT_MS,
       });
-      const result = await Promise.race([signupPromise, timeoutPromise]);
-      if (timeoutId) clearTimeout(timeoutId);
       if (!result.success) {
         setError(result.error || 'Something went wrong. Please try again.');
         return;
@@ -218,8 +213,13 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
                   cursor: busy ? 'wait' : 'pointer',
                 }}
               >
-                {busy ? 'Saving…' : 'Save my progress'}
+                {busy ? 'Saving progress… this can take up to a minute' : 'Save my progress'}
               </button>
+              {busy && (
+                <div style={{ marginTop: 8, fontSize: 12, color: COLOR.textMuted, lineHeight: 1.4 }}>
+                  Creating your account and syncing progress. Please keep this window open.
+                </div>
+              )}
             </form>
 
             <button

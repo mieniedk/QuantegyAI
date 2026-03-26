@@ -1058,7 +1058,7 @@ export default function TestPrepPage({ config }) {
                     <div style={{ fontSize: 12, color: '#166534', marginBottom: 4 }}><strong>Strengthened:</strong> {strengthened.join(', ')}</div>
                   )}
                   {needPractice.length > 0 && (
-                    <div style={{ fontSize: 12, color: '#b45309' }}><strong>Keep practicing:</strong> {needPractice.join(', ')}</div>
+                    <div style={{ fontSize: 12, color: '#b45309' }}><strong>Rebuild with targeted practice:</strong> {needPractice.join(', ')}</div>
                   )}
                   <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 8 }}>Progress is saved. Come back anytime to continue.</div>
                 </div>
@@ -1517,7 +1517,7 @@ export default function TestPrepPage({ config }) {
                   )}
                   {needPractice.length > 0 && (
                     <p style={{ fontSize: 12, color: '#b45309', margin: '0 0 10px', lineHeight: 1.4 }}>
-                      <strong>Keep practicing:</strong> {needPractice.join(', ')}
+                      <strong>Rebuild with targeted practice:</strong> {needPractice.join(', ')}
                     </p>
                   )}
                   <p style={{ fontSize: 12, color: '#4338ca', margin: '0 0 12px', lineHeight: 1.5 }}>

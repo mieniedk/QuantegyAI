@@ -223,7 +223,7 @@ export default function SlopeExplorer({ onComplete, continueLabel = 'Continue', 
   /* ── Feedback ── */
   let feedbackMsg = null;
   if (canContinue) {
-    feedbackMsg = <span style={{ color: '#15803d' }}>✓ Correct! Click Continue below.</span>;
+    feedbackMsg = <span style={{ color: '#15803d' }}>✓ Correct slope/intercept match. Continue when ready.</span>;
   } else if (hasDragged && !dragPoint) {
     feedbackMsg = mode === 'intercept'
       ? <span style={{ color: '#b91c1c' }}>Keep adjusting — move the green dot to y-intercept {yIntercept}.</span>

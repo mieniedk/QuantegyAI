@@ -1,10 +1,12 @@
 const TOKEN_KEY = 'quantegy-student-token';
 const DEFAULT_PROD_API_BASE = 'https://quantegyai-api.onrender.com';
+const LOCAL_DEV_API_BASE = 'http://127.0.0.1:3001';
 const envApiBase = (import.meta.env.VITE_API_URL || '').trim();
 const isLocalHost = typeof window !== 'undefined'
   && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 const API_BASE = envApiBase || (isLocalHost ? '' : DEFAULT_PROD_API_BASE);
-const REQUEST_TIMEOUT_MS = 12000;
+const REQUEST_TIMEOUT_MS = 20000;
+const SIGNUP_TIMEOUT_MS = 35000;
 
 async function fetchJsonWithTimeout(url, options = {}, timeoutMs = REQUEST_TIMEOUT_MS) {
   const controller = new AbortController();
@@ -47,16 +49,54 @@ function decodeJwt(token) {
   } catch { return null; }
 }
 
-export async function studentSignup({ email, password, displayName }) {
-  const data = await fetchJsonWithTimeout(`${API_BASE}/api/auth/student/signup`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: email, password, displayName: displayName || email.split('@')[0] }),
-  });
-  if (data.success && data.token) {
-    localStorage.setItem(TOKEN_KEY, data.token);
+export async function studentSignup({ email, password, displayName, timeoutMs = SIGNUP_TIMEOUT_MS }) {
+  const payload = { username: email, password, displayName: displayName || email.split('@')[0] };
+  const baseCandidates = [...new Set([
+    API_BASE,
+    DEFAULT_PROD_API_BASE,
+    LOCAL_DEV_API_BASE,
+  ].filter((v) => typeof v === 'string'))];
+
+  let lastResult = { success: false, error: 'Signup failed.' };
+  for (const base of baseCandidates) {
+    let data = await fetchJsonWithTimeout(
+      `${base}/api/auth/student/signup`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      },
+      timeoutMs,
+    );
+
+    // Render-hosted APIs can cold-start slowly. On timeout, warm and retry once.
+    if (!data?.success && /timed out/i.test(String(data?.error || ''))) {
+      await fetchJsonWithTimeout(`${base}/api/health`, {}, 20000);
+      data = await fetchJsonWithTimeout(
+        `${base}/api/auth/student/signup`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        },
+        Math.max(timeoutMs, 120000),
+      );
+    }
+
+    if (data?.success && data.token) {
+      localStorage.setItem(TOKEN_KEY, data.token);
+      return data;
+    }
+    lastResult = data || lastResult;
   }
-  return data;
+
+  if (!lastResult?.success && /timed out/i.test(String(lastResult?.error || ''))) {
+    return {
+      success: false,
+      error: 'Signup server is taking longer than expected. Please wait 30-60 seconds and try again.',
+    };
+  }
+  return lastResult;
 }
 
 export async function studentLogin({ email, password }) {

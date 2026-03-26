@@ -97,9 +97,9 @@ const DIFFICULTY = {
 
 const QBOT = {
   start: ["Fraction Frenzy time! 🍕🤖", "Let's master fractions together! 🔢", "QBot loves fractions — let's go! ⭐"],
-  correct: ["Perfect! You know your fractions! 🍕", "Correct! QBot is proud! ⭐", "Great fraction skills! 🎉", "QBot approves! 🤖✅"],
-  wrong: ["Not quite — look at the model carefully! 🔍", "Close! Think about the size of each piece! 🍕", "Compare the shaded parts! 💪"],
-  win: ["Fraction Master achieved! 🏆🍕", "You've conquered fractions! 🌟", "Incredible! 🤖🎉"],
+  correct: ["Correct fraction reasoning and comparison. 🍕", "Correct - numerator/denominator interpretation is accurate. ⭐", "Great solve - model and symbolic form match. 🎉", "QBot confirms your fraction logic. 🤖✅"],
+  wrong: ["Not correct yet - recount shaded parts and total equal parts. 🔍", "Close - compare piece size and denominator carefully. 🍕", "Re-check equivalent fraction scaling before answering. 💪"],
+  win: ["Fraction mastery achieved with accurate comparisons. 🏆🍕", "You completed fraction challenges with solid reasoning. 🌟", "Fraction set complete - strong mathematical progress. 🤖🎉"],
 };
 
 function generateQuestion(diff) {
@@ -550,7 +550,7 @@ export default function FractionFrenzy() {
           <div style={{ ...overlayBox, maxWidth: 380, textAlign: 'center' }}>
             <div style={{ fontSize: 42, marginBottom: 8 }}>🍕</div>
             <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', marginBottom: 4 }}>
-              {score === totalRounds ? 'Fraction Master!' : score >= totalRounds * 0.7 ? 'Great Fraction Work!' : 'Keep Practicing!'}
+              {score === totalRounds ? 'Fraction Mastery!' : score >= totalRounds * 0.7 ? 'Strong Fraction Reasoning' : 'Fraction Skills Building'}
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', gap: 4, marginBottom: 12 }}>
               {[1, 2, 3].map(s => <span key={s} style={{ fontSize: 28, filter: s <= stars ? 'none' : 'grayscale(1) opacity(0.3)' }}>⭐</span>)}
@@ -563,7 +563,7 @@ export default function FractionFrenzy() {
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 16, flexWrap: 'wrap' }}>
               <button type="button" onPointerUp={() => startGame(difficulty)} style={btnStyle('linear-gradient(135deg,#f59e0b,#d97706)')}>Play Again</button>
               <button type="button" onPointerUp={() => setDifficulty(null)} style={btnStyle('linear-gradient(135deg,#475569,#334155)')}>Change Level</button>
-              <button type="button" onPointerUp={() => setShowReview(true)} style={btnStyle('linear-gradient(135deg,#2563eb,#1d4ed8)')}>Review</button>
+              <button type="button" onPointerUp={() => setShowReview(true)} style={btnStyle('linear-gradient(135deg,#2563eb,#1d4ed8)')}>Review Solutions</button>
             </div>
           </div>
         </div>

@@ -103,6 +103,20 @@ function stripOuterParens(s) {
   return s.slice(1, -1);
 }
 
+function shouldRenderSimpleFraction(numText, denText) {
+  const n = (numText || '').trim();
+  const d = (denText || '').trim();
+  if (!n || !d) return false;
+  // Keep trig quotients like sinθ/cosθ and a/sinA in inline form to avoid
+  // breaking function grouping in prose.
+  if (/(sin|cos|tan|sec|csc|cot)/i.test(n) || /(sin|cos|tan|sec|csc|cot)/i.test(d)) {
+    return false;
+  }
+  // Only auto-stack if at least one side is explicitly numeric.
+  if (!/\d/.test(n) && !/\d/.test(d)) return false;
+  return true;
+}
+
 /**
  * Core recursive parser. Converts raw math text to HTML with proper fractions
  * and superscripts.
@@ -155,7 +169,7 @@ function parseMath(s) {
       }
     }
 
-    /* ── 3. Square root: √(expr), √[expr], ³√n, √n ── */
+    /* ── 3. Square root: √(expr), √[expr], ³√n, √n, √ n ── */
     if (s[i] === '\u221A' || s[i] === '√') {
       let indexHtml = '';
       if (tokens.length > 0 && tokens[tokens.length - 1].type === 'char'
@@ -163,28 +177,31 @@ function parseMath(s) {
         indexHtml = escapeHtml(tokens.pop().ch);
       }
 
-      if (i + 1 < s.length && s[i + 1] === '(') {
-        const close = matchParen(s, i + 1);
+      let next = i + 1;
+      while (next < s.length && s[next] === ' ') next++;
+
+      if (next < s.length && s[next] === '(') {
+        const close = matchParen(s, next);
         if (close > i + 1) {
-          tokens.push({ type: 'html', html: renderRadical(parseMath(s.slice(i + 2, close)), indexHtml) });
+          tokens.push({ type: 'html', html: renderRadical(parseMath(s.slice(next + 1, close)), indexHtml) });
           i = close + 1;
           continue;
         }
       }
 
-      if (i + 1 < s.length && s[i + 1] === '[') {
-        const close = matchBracket(s, i + 1);
+      if (next < s.length && s[next] === '[') {
+        const close = matchBracket(s, next);
         if (close > i + 1) {
-          tokens.push({ type: 'html', html: renderRadical(parseMath(s.slice(i + 2, close)), indexHtml) });
+          tokens.push({ type: 'html', html: renderRadical(parseMath(s.slice(next + 1, close)), indexHtml) });
           i = close + 1;
           continue;
         }
       }
 
-      let j = i + 1;
+      let j = next;
       while (j < s.length && RADICAL_CHAR.test(s[j])) j++;
-      if (j > i + 1) {
-        tokens.push({ type: 'html', html: renderRadical(parseMath(s.slice(i + 1, j)), indexHtml) });
+      if (j > next) {
+        tokens.push({ type: 'html', html: renderRadical(parseMath(s.slice(next, j)), indexHtml) });
         i = j;
         continue;
       }
@@ -222,12 +239,14 @@ function parseMath(s) {
         }
 
         if (numChars.length > 0) {
-          tokens.splice(t + 1);
           const numText = stripOuterParens(numChars.join(''));
           const denText = stripOuterParens(s.slice(i + 1, denEnd));
-          tokens.push({ type: 'html', html: renderFrac(parseMath(numText), parseMath(denText)) });
-          i = denEnd;
-          continue;
+          if (shouldRenderSimpleFraction(numText, denText)) {
+            tokens.splice(t + 1);
+            tokens.push({ type: 'html', html: renderFrac(parseMath(numText), parseMath(denText)) });
+            i = denEnd;
+            continue;
+          }
         }
       }
     }
@@ -247,7 +266,9 @@ function parseMath(s) {
  */
 export function formatMathHtml(str) {
   if (typeof str !== 'string') return '';
-  return parseMath(str);
+  // Normalize common authoring pattern "√ 2" -> "√2" so radicals parse correctly.
+  const normalized = str.replace(/([√\u221A])\s+(?=[(\[]|[A-Za-z0-9])/g, '$1');
+  return parseMath(normalized);
 }
 
 /**

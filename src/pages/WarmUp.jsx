@@ -23,12 +23,36 @@ function shuffle(arr) {
 }
 
 // ─── Encouraging messages ─────────────────────────────────────
-const CORRECT_MSGS = ['Great job!', 'Nailed it!', 'You got it!', 'Excellent!', 'Way to go!', 'Correct!', 'Awesome!'];
-const WRONG_MSGS = ['Not quite!', 'Almost!', 'Good try!', 'Keep going!', 'Let\'s learn from this!'];
-const PERFECT_MSGS = ['Perfect score! You\'re a star!', 'Flawless! Amazing work!', 'You nailed every question!'];
-const GOOD_MSGS = ['Great work! You really know this stuff.', 'Solid performance! Keep it up.', 'Nice job! Just a little more practice.'];
-const OK_MSGS = ['Good effort! Let\'s keep practicing.', 'You\'re getting there! Practice makes perfect.'];
-const NEEDS_WORK_MSGS = ['Don\'t worry! Every expert was once a beginner.', 'Let\'s practice more to build your skills!'];
+const CORRECT_MSGS = [
+  'Correct setup and computation.',
+  'Correct answer - your math steps are aligned.',
+  'Nice work: expression and value match.',
+  'Strong solve: your operation sequence is correct.',
+];
+const WRONG_MSGS = [
+  'Not correct yet - compare your operation choice to the prompt.',
+  'Check the setup first, then recompute.',
+  'Rebuild the equation carefully and verify each step.',
+  'Close - recheck signs, units, or place value.',
+];
+const PERFECT_MSGS = [
+  'Perfect score - consistent math reasoning across all items.',
+  'Flawless run - every setup and calculation checked out.',
+  'Full accuracy - your work stayed precise start to finish.',
+];
+const GOOD_MSGS = [
+  'Strong performance - most items were mathematically sound.',
+  'Good accuracy - tighten one or two setup steps.',
+  'Nice result - small arithmetic checks will raise it further.',
+];
+const OK_MSGS = [
+  'You are building skill - focus on equation setup and verification.',
+  'Progress made - rework missed items line by line for accuracy.',
+];
+const NEEDS_WORK_MSGS = [
+  'Use worked solutions to rebuild each problem structure, then retry.',
+  'Focus on one missed concept at a time and verify with substitution.',
+];
 
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
@@ -206,7 +230,7 @@ const WarmUp = () => {
     setFeedback({
       correct: false,
       skipped: true,
-      message: 'Skipped — no worries! Let\u2019s learn from this one.',
+      message: 'Skipped - use the explanation to model the correct setup before the next item.',
       explanation: q.explanation || null,
       misconception: q.misconception || null,
       correctAnswer: q.correct,
@@ -750,7 +774,7 @@ const WarmUp = () => {
                         {pct < 50
                           ? `You missed ${missedCount} question${missedCount !== 1 ? 's' : ''}${totalSkipped > 0 ? ` and skipped ${totalSkipped}` : ''}. Let me teach you this topic first, then try the practice game!`
                           : pct < 80
-                            ? `Good effort${totalSkipped > 0 ? ` (${totalSkipped} skipped)` : ''}! Let\u2019s review the concept, then practice with a game to build your skills.`
+                            ? `You are close${totalSkipped > 0 ? ` (${totalSkipped} skipped)` : ''} - review the missed math setup, then use game practice to reinforce it.`
                             : `Almost perfect${totalSkipped > 0 ? ` (${totalSkipped} skipped)` : ''}! A quick practice game will help you master this topic.`}
                       </p>
                       <div style={{ display: 'grid', gap: 8 }}>
@@ -805,7 +829,7 @@ const WarmUp = () => {
                 border: pct >= 80 ? 'none' : '2px solid #2563eb',
                 borderRadius: 12, cursor: 'pointer',
               }}>
-                🔄 Try Again
+                🔄 Retake Warm-Up
               </button>
               <button type="button" onClick={goBack} style={{
                 width: '100%', padding: '12px 24px', fontSize: 15, fontWeight: 600,

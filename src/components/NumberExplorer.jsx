@@ -130,9 +130,9 @@ function NumberLinePlot({ onComplete, continueLabel, badgeLabel, embedded }) {
         const err = placements[i] != null ? Math.abs(placements[i] - n.value) : 999;
         return err > (worst.err || 0) ? { idx: i, err } : worst;
       }, { idx: 0, err: 0 });
-      return { msg: `Not quite! Check ${numbers[worstIdx.idx].label} \u2014 it should be closer to ${roundTo(numbers[worstIdx.idx].value, 2)}. Try again!`, mood: 'think' };
+      return { msg: `Recheck ${numbers[worstIdx.idx].label}: its decimal value is about ${roundTo(numbers[worstIdx.idx].value, 2)}, so place it near that coordinate on the number line.`, mood: 'think' };
     }
-    return { msg: 'Good progress! Place all the tokens, then check your work.', mood: 'encourage' };
+    return { msg: 'Progress is building - finish placing every token, then verify each location against its decimal value.', mood: 'encourage' };
   };
   const qbot = getQBotMsg();
 
@@ -343,7 +343,7 @@ function PrimeNumberBlast({ onComplete, continueLabel, badgeLabel, embedded }) {
 
       const nextCount = selectedPrimes.size + 1;
       playPrimeSound(nextCount);
-      setLastMessage(`Great hit! ${n} is prime.`);
+      setLastMessage(`Correct prime selection: ${n} has exactly two factors (1 and ${n}).`);
     } else {
       setWrongPicks((prev) => {
         const next = new Set(prev);
@@ -358,7 +358,7 @@ function PrimeNumberBlast({ onComplete, continueLabel, badgeLabel, embedded }) {
   const solved = foundCount === totalPrimes;
 
   const qbot = solved
-    ? { msg: `Amazing! You found all ${totalPrimes} prime numbers between 1 and 50.`, mood: 'celebrate' }
+    ? { msg: `All ${totalPrimes} primes from 1 to 50 are identified. Strong factor-based classification.`, mood: 'celebrate' }
     : { msg: `${lastMessage} Prime numbers have exactly two factors: 1 and itself.`, mood: 'encourage' };
 
   return (
@@ -620,10 +620,10 @@ function FactorLab({ onComplete, continueLabel, badgeLabel, embedded }) {
 
   const getQBotMsg = () => {
     if (phase === 'factor-a') return { msg: `Click ${problem.a} to split it into two factors. Keep splitting until every number is prime!`, mood: 'wave' };
-    if (phase === 'factor-b') return { msg: `Great! Now factor ${problem.b} the same way. Find all its prime factors.`, mood: 'encourage' };
+    if (phase === 'factor-b') return { msg: `Now factor ${problem.b} the same way and record only prime leaves in the tree.`, mood: 'encourage' };
     if (!checked) return { msg: `Now use the prime factorizations to find the GCF (greatest common factor) and LCM (least common multiple) of ${problem.a} and ${problem.b}.`, mood: 'think' };
     if (allCorrect) return { msg: 'Excellent! GCF uses the lowest power of each shared prime, and LCM uses the highest power of every prime.', mood: 'celebrate' };
-    return { msg: `Not quite. GCF = product of shared primes (lowest powers). LCM = product of all primes (highest powers). Try again!`, mood: 'think' };
+    return { msg: 'Not correct yet. Rebuild from prime powers: GCF uses shared primes with minimum exponents; LCM uses all primes with maximum exponents.', mood: 'think' };
   };
 
   const qbot = getQBotMsg();
@@ -686,7 +686,7 @@ function FactorLab({ onComplete, continueLabel, badgeLabel, embedded }) {
           )}
           {allCorrect && (
             <p aria-live="polite" style={{ margin: 0, fontSize: 13, fontWeight: 700, color: COLOR.green }}>
-              {'\u2713'} Both correct! Great factoring and reasoning.
+              {'\u2713'} Both values are correct with valid prime-factor reasoning.
             </p>
           )}
         </div>

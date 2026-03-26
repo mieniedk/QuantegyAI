@@ -151,7 +151,7 @@ function ProofSorter({ onComplete, continueLabel, badgeLabel, embedded }) {
       </div>
 
       <QBotBubble
-        message={checked && isCorrect ? 'Perfect logical ordering! A valid proof must flow from hypothesis to conclusion with each step justified.' : checked && !isCorrect ? 'Not quite. Think about what must come first \u2014 you need definitions before you can manipulate expressions.' : 'Read each step carefully. A proof starts with assumptions and definitions, then builds logically to the conclusion.'}
+        message={checked && isCorrect ? 'Correct logical order: the proof flows from assumptions and definitions to justified transformations and conclusion.' : checked && !isCorrect ? 'Order is not correct yet. Put definitions and givens before algebraic manipulation and final statement.' : 'Read each step carefully. A proof starts with assumptions and definitions, then builds logically to the conclusion.'}
         mood={checked && isCorrect ? 'celebrate' : checked ? 'think' : 'wave'}
       />
 
@@ -458,7 +458,7 @@ function PatternFinder({ onComplete, continueLabel, badgeLabel, embedded }) {
       </div>
 
       <QBotBubble
-        message={allCorrect ? `Excellent! The rule: ${pattern.rule}. Recognizing patterns is the foundation of algebraic thinking.` : checked && !allCorrect ? 'Not quite. Look at the differences between consecutive terms \u2014 are they constant? Growing? Doubling?' : 'Look at how each term relates to the previous one. Is it adding a constant? Multiplying? Something else?'}
+        message={allCorrect ? `Correct pattern rule identified: ${pattern.rule}. This supports algebraic generalization.` : checked && !allCorrect ? 'Not correct yet. Compare consecutive differences first; if not constant, test multiplicative ratios or recursive structure.' : 'Look at how each term relates to the previous one. Is it adding a constant? Multiplying? Something else?'}
         mood={allCorrect ? 'celebrate' : checked ? 'think' : 'wave'}
       />
 

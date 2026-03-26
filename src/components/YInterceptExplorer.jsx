@@ -145,7 +145,7 @@ export default function YInterceptExplorer({ onComplete, continueLabel = 'Contin
 
   let feedbackMsg = null;
   if (canContinue) {
-    feedbackMsg = <span style={{ color: '#15803d' }}>✓ Correct! Click Continue below.</span>;
+    feedbackMsg = <span style={{ color: '#15803d' }}>✓ Correct y-intercept location. Continue when ready.</span>;
   } else if (hasDragged && !dragging && !isCorrect) {
     feedbackMsg = <span style={{ color: '#b91c1c' }}>Keep adjusting — drag the green dot to where the blue line crosses the y-axis.</span>;
   }
@@ -170,7 +170,7 @@ export default function YInterceptExplorer({ onComplete, continueLabel = 'Contin
       <div style={{ marginBottom: 8, padding: '8px 14px', borderRadius: 10, border: isCorrect ? `2px solid ${COLOR.successBorder}` : `1px solid ${COLOR.border}`, background: isCorrect ? COLOR.successBg : COLOR.bg, transition: 'all 0.3s' }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: isCorrect ? COLOR.successText : COLOR.textSecondary }}>
           Your guess: <strong>{Math.round(guessIntercept * 100) / 100}</strong>
-          {isCorrect && ' \u2713 Correct!'}
+          {isCorrect && ' \u2713 Correct y-intercept!'}
         </span>
       </div>
 

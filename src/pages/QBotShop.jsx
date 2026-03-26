@@ -223,7 +223,7 @@ const QBOT_DIALOGUE = {
   correctTotal: [
     "Excellent math, adventurer! The gold is counted perfectly!",
     "That's the exact amount! You have a merchant's eye!",
-    "Well done! The coins ring true!",
+    "Accurate coin total - your place-value counting is correct.",
     "Perfect! You'd make a fine shopkeeper yourself!",
   ],
   correctChange: [
@@ -252,7 +252,7 @@ const QBOT_DIALOGUE = {
   ],
   gameOverGood: [
     "A fine day of work! The shop prospers thanks to you, adventurer!",
-    "Well done! Come back anytime — you've earned your keep!",
+    "Solid arithmetic all day - come back to sharpen multi-step money calculations.",
   ],
   gameOverOk: [
     "The day is done. With practice, you'll master the art of coin!",
@@ -380,7 +380,7 @@ export default function QBotShop() {
         else setQbotMsg(pick(round.type === 'change' ? QBOT_DIALOGUE.correctChange : QBOT_DIALOGUE.correctTotal));
         return ns;
       });
-      setFeedback({ correct: true, msg: round.type === 'change' ? `Correct change: ${fmt(round.changeNeeded)}` : `Correct! Total: ${fmt(round.total)}` });
+      setFeedback({ correct: true, msg: round.type === 'change' ? `Correct change calculation: ${fmt(round.changeNeeded)}` : `Correct total calculation: ${fmt(round.total)}` });
     } else {
       SFX.wrong();
       setStreak(0);

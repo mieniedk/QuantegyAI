@@ -83,12 +83,17 @@ const QBOT_MSGS = {
     "Solve the math in your head to find the pairs! 🤖",
   ],
   match: [
-    "Great match! 🎉", "You found a pair! 🌟", "Nice memory! Keep going! ⭐",
-    "Boom! That's a match! 💥", "Your brain is on fire! 🔥",
+    "Match confirmed: both expressions evaluate to the same value. 🎉",
+    "Correct pair - equivalent results found. 🌟",
+    "Nice match: equality check is correct. ⭐",
+    "Pair solved - both sides simplify to one number. 💥",
+    "Accurate match through mental computation. 🔥",
   ],
   miss: [
-    "Not a match — try to remember those! 🤔", "Close! Remember where those are! 📝",
-    "Hmm, not quite. You'll get it! 💪", "Keep those positions in mind! 🧠",
+    "Not a match - compute both expressions before pairing. 🤔",
+    "Mismatch - re-evaluate each expression value and compare. 📝",
+    "Incorrect pair - simplify both cards step by step. 💪",
+    "No match - track card positions and numeric values together. 🧠",
   ],
   win: [
     "Amazing memory! You found all the pairs! 🏆",

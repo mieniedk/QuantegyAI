@@ -100,7 +100,7 @@ function KeyConceptMatch({ pairs, onComplete, continueLabel, badgeLabel, embedde
           })}
         </div>
       </div>
-      {allMatched && <p style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 700, color: COLOR.successText }}>{'\u2713'} All matched correctly!</p>}
+      {allMatched && <p style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 700, color: COLOR.successText }}>{'\u2713'} All pairs are matched with accurate concept-to-definition reasoning.</p>}
       <button type="button" onClick={onComplete}
         style={BTN_PRIMARY}>
         {continueLabel}
@@ -189,12 +189,12 @@ function QuickRecall({ question, onComplete, continueLabel, badgeLabel, embedded
       )}
       {submitted && !isCorrect && (
         <p style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 700, color: COLOR.red }}>
-          Not quite — the correct answer is {correctKey}. {question.explanation && <span style={{ fontWeight: 600, color: COLOR.textSecondary }}>{question.explanation}</span>}
+          Not correct yet - the keyed answer is {correctKey}. Re-check the mathematical condition in the prompt before your next attempt. {question.explanation && <span style={{ fontWeight: 600, color: COLOR.textSecondary }}>{question.explanation}</span>}
         </p>
       )}
       {submitted && isCorrect && (
         <p style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 700, color: COLOR.successText }}>
-          {'\u2713'} Correct! {question.explanation && <span style={{ fontWeight: 600, color: COLOR.textSecondary }}>{question.explanation}</span>}
+          {'\u2713'} Correct choice - your selected option matches the required mathematical reasoning. {question.explanation && <span style={{ fontWeight: 600, color: COLOR.textSecondary }}>{question.explanation}</span>}
         </p>
       )}
       <button type="button" onClick={onComplete}

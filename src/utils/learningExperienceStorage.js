@@ -183,12 +183,12 @@ export function markBreakOffered(sessionSeed) {
 export function getRecoveryHintForDifficulty(difficulty) {
   const d = difficulty === 3 || difficulty === 'hard' ? 'hard' : difficulty === 1 || difficulty === 'easy' ? 'easy' : 'medium';
   if (d === 'hard') {
-    return 'Next step: re-read the explanation, then redo this item on paper before moving on. If Extra help appears, use it once.';
+    return 'Rework the problem on paper: write the governing equation/rule first, show each algebra step, and verify by substitution before moving on.';
   }
   if (d === 'medium') {
-    return 'Next step: skim the concept recap or micro-lesson on the next tiles, then retry a similar idea in the following quiz.';
+    return 'Do one targeted redo: identify the operation that changed the expression (distribute, combine like terms, isolate variable), then check arithmetic signs.';
   }
-  return 'Next step: open the key-idea recap when it appears—small gaps often close with one worked example.';
+  return 'Use the key idea to set up the math structure (equation/table/diagram), solve cleanly, and check units or reasonableness.';
 }
 
 export function getTeachingMove(compId) {

@@ -333,7 +333,7 @@ export function getPacingSuggestion(stats) {
 
   return {
     pace: 'steady', label: 'Steady progress', color: '#3b82f6',
-    tip: 'Keep practicing at your own pace.',
+    tip: 'Keep practicing with one target skill at a time, then verify each answer step-by-step.',
     weeklyGoal: 4, suggestedMinutes: 15, accTrend,
   };
 }

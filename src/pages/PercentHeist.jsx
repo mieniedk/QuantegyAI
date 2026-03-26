@@ -122,9 +122,9 @@ export default function PercentHeist() {
     setHistory(nextHistory);
     if (correct) {
       setScore((s) => s + 1);
-      setFeedback(`Correct! ${current.explain}`);
+      setFeedback(`Correct percent reasoning and computation. ${current.explain}`);
     } else {
-      setFeedback(`Not quite. ${current.explain}`);
+      setFeedback(`Not correct yet. Rebuild the percent setup and recompute. ${current.explain}`);
     }
 
     if (index + 1 >= TOTAL_ROUNDS) {

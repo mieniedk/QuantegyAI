@@ -107,9 +107,9 @@ export default function ProbabilityLab() {
 
     if (correct) {
       setScore((s) => s + 1);
-      setFeedback(`Correct! ${current.explain}`);
+      setFeedback(`Correct probability reasoning and computation. ${current.explain}`);
     } else {
-      setFeedback(`Not quite. ${current.explain}`);
+      setFeedback(`Not correct yet. Rebuild the probability setup and recompute. ${current.explain}`);
     }
 
     if (index + 1 >= TOTAL_ROUNDS) {

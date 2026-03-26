@@ -278,7 +278,7 @@ const EXPLANATIONS = {
 const getExplanation = (q) => {
   const gen = EXPLANATIONS[q.teks];
   if (gen) return gen(q);
-  return `The correct answer is ${q.correct}. Review this TEKS standard (${q.teks}) for more practice.`;
+  return `The correct answer is ${q.correct}. Rework the problem by writing each algebra transformation and check by substitution.`;
 };
 
 /* ── Topic groups for mode selection ── */
@@ -369,7 +369,7 @@ const AlgebraSprint = () => {
     const q = questions[current];
     const isCorrect = choice === q.correct;
     setSelected(choice);
-    setFeedback(isCorrect ? 'Correct!' : `Wrong – answer: ${q.correct}`);
+    setFeedback(isCorrect ? 'Correct - your algebra steps are consistent.' : `Not correct - the correct value is ${q.correct}. Recheck setup and operations.`);
     if (isCorrect) setScore(s => s + 1);
     setHistory(h => [...h, { ...q, userAnswer: choice, isCorrect, explanation: getExplanation(q) }]);
 
@@ -556,7 +556,7 @@ const AlgebraSprint = () => {
       {/* ── Results Screen with Review ── */}
       {gameOver && (
         <>
-          <QBotBubble msg="Algebra champion! QBot is cheering for you! 🤖🔢" />
+          <QBotBubble msg="Use the review to verify each missed step (distribution, combining terms, or isolating variables). 🤖🔢" />
           <GameReview
           questions={history.map((h) => ({
             question: h.question,

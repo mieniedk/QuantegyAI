@@ -32,7 +32,11 @@ const DIFFICULTY = {
 const QBOT_MSGS = {
   start: ["Welcome, Time Traveler! Let's master the clock! ⏰", "Time waits for no one — let's practice! 🤖", "The gears are turning... ready to read some clocks? ⚙️"],
   correct: ["Perfect timing! ⏰", "You nailed it! ⭐", "Exactly right! The clock agrees! 🎉", "A true Time Traveler! 🕐"],
-  wrong: ["Not quite — check the hands again! 🤔", "Almost! Remember, the short hand is hours! ⏰", "Try again — you'll get it! 💪"],
+  wrong: [
+    "Not correct yet - verify hour hand first, then minute hand. 🤔",
+    "Check hand roles: short = hour, long = minutes. ⏰",
+    "Recompute elapsed time step by step before setting the clock. 💪",
+  ],
   win: ["You've mastered time itself! 🏆", "Incredible clock skills! Come back anytime! ⏰✨", "The Time Traveler has completed their journey! 🌟"],
 };
 
@@ -489,7 +493,7 @@ export default function TimeTraveler() {
       SFX.correct();
       setScore(s => s + 1);
       setStreak(s => s + 1);
-      setFeedback({ correct: true, msg: `Correct! The answer is ${question.display}` });
+      setFeedback({ correct: true, msg: `Correct clock reading - target time is ${question.display}` });
       setQbotMsg(pick(QBOT_MSGS.correct));
     } else {
       SFX.wrong();
@@ -506,7 +510,7 @@ export default function TimeTraveler() {
     }]);
 
     setTimeout(() => {
-      setQbotMsg("Watch the clock — let me show you the solution! 🤖⏰");
+      setQbotMsg("Watch the clock - I will model the exact hand movement to the correct time. 🤖⏰");
       setReviewPhase('pre');
       setTimeout(() => startReviewAnimation(question), 1500);
     }, 1200);
@@ -523,7 +527,7 @@ export default function TimeTraveler() {
       SFX.correct();
       setScore(s => s + 1);
       setStreak(s => s + 1);
-      setFeedback({ correct: true, msg: `Correct! ${question.correctAnswer}` });
+      setFeedback({ correct: true, msg: `Correct elapsed-time result: ${question.correctAnswer}` });
       setQbotMsg(pick(QBOT_MSGS.correct));
     } else {
       SFX.wrong();
@@ -540,7 +544,7 @@ export default function TimeTraveler() {
     }]);
 
     setTimeout(() => {
-      setQbotMsg("Watch the clock — let me show you the solution! 🤖⏰");
+      setQbotMsg("Watch the clock - I will model the elapsed-time solution on the dial. 🤖⏰");
       setReviewPhase('pre');
       setTimeout(() => startReviewAnimation(question), 1500);
     }, 1200);
@@ -927,7 +931,7 @@ export default function TimeTraveler() {
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 16, flexWrap: 'wrap' }}>
               <button type="button" onPointerUp={() => startGame(difficulty)} style={btnStyle('linear-gradient(135deg,#7c3aed,#6d28d9)')}>Play Again</button>
               <button type="button" onPointerUp={() => setDifficulty(null)} style={btnStyle('linear-gradient(135deg,#475569,#334155)')}>Change Level</button>
-              <button type="button" onPointerUp={() => setShowReview(true)} style={btnStyle('linear-gradient(135deg,#2563eb,#1d4ed8)')}>Review</button>
+              <button type="button" onPointerUp={() => setShowReview(true)} style={btnStyle('linear-gradient(135deg,#2563eb,#1d4ed8)')}>Review Solutions</button>
             </div>
           </div>
         </div>

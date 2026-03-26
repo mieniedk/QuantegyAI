@@ -194,7 +194,7 @@ function getQBotMessage(ratio, slope, intercept, bestSlope, bestIntercept, hasMo
   if (ratio > 5) return { msg: 'The line is way off \u2014 see those long red dashes? Try tilting the slope so the line passes through the middle of the points.', mood: 'think' };
   if (ratio > 3) return { msg: 'Getting closer! The red residual lines are still pretty long. Try adjusting the slope \u2014 does the data trend up or down?', mood: 'think' };
   if (ratio > 1.8) return { msg: 'Good progress! A few points are still far from the line. Fine-tune the intercept (green handle) to shift everything up or down.', mood: 'encourage' };
-  if (ratio > 1.3) return { msg: 'Almost there! You\'re within striking distance. Make tiny adjustments to both handles.', mood: 'encourage' };
+  if (ratio > 1.3) return { msg: 'You are close to minimum SSR. Make small slope/intercept adjustments to reduce the remaining residuals.', mood: 'encourage' };
   return { msg: 'Excellent fit! Your line is nearly optimal. The residuals are as small as they can get.', mood: 'celebrate' };
 }
 
@@ -594,8 +594,8 @@ function LineFit({ onComplete, continueLabel, badgeLabel, embedded }) {
             <p style={{ margin: '8px 0 0', fontSize: 12, color: '#6b7280', textAlign: 'center', lineHeight: 1.5 }}>
               This line minimizes the sum of squared residuals (SSR = {bestResidual}). Your line's SSR was {totalResidual}.
               {isGoodFit
-                ? ' Great job \u2014 your guess was very close!'
-                : ' Try dragging the handles to get closer to these values.'}
+                ? ' Your line is close because slope and intercept are near the least-squares values.'
+                : ' Adjust slope and intercept toward these values to reduce SSR further.'}
             </p>
           </div>
         </div>

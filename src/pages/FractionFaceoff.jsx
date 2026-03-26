@@ -401,7 +401,7 @@ export default function FractionFaceoff() {
     setHistory(nextHistory);
     if (correct) {
       setScore((s) => s + 1);
-      setFeedback(`Correct! ${explainText}`);
+      setFeedback(`Correct fraction comparison and value check. ${explainText}`);
     } else {
       const misconception = current.misconceptions?.[selected];
       let missCount = 0;

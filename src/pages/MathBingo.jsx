@@ -1055,7 +1055,7 @@ const MathBingo = () => {
               {deckExhausted ? 'No More Calls' : 'BINGO!'}
             </h2>
             <p style={{ margin: '0 0 20px', color: '#94a3b8', fontSize: 14 }}>
-              {deckExhausted ? 'The deck ran out before you got 5 in a row. Try again!' : 'You got 5 in a row!'}
+              {deckExhausted ? 'The call deck ended before a bingo line formed. Rework missed calls and retry.' : 'You formed a valid bingo line from correct answers!'}
             </p>
 
             <div style={{
@@ -1082,7 +1082,7 @@ const MathBingo = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <button onClick={resetGame} style={btnStyle('#22c55e')}>Play Again</button>
-              <button onClick={() => setShowReview(true)} style={btnStyle('#6366f1')}>Review Answers</button>
+              <button onClick={() => setShowReview(true)} style={btnStyle('#6366f1')}>Review Solutions</button>
               <Link to="/games" style={{ ...btnStyle('#475569'), textDecoration: 'none', display: 'block' }}>Back to Games</Link>
             </div>
           </div>

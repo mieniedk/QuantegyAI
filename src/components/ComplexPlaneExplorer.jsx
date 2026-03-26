@@ -186,7 +186,7 @@ export default function ComplexPlaneExplorer({ onComplete, continueLabel = 'Cont
           You got {score}/{TOTAL_ROUNDS} correct!
         </p>
         <p style={{ fontSize: 13, color: COLOR.textSecondary, margin: '0 0 16px' }}>
-          {score === TOTAL_ROUNDS ? 'Great work with complex numbers!' : 'Keep practicing \u2014 complex numbers get easier with repetition.'}
+          {score === TOTAL_ROUNDS ? 'Accurate complex-number reasoning across plotting, conjugates, modulus, and powers of i.' : 'Rework missed rounds by checking coordinate signs, conjugate rules, modulus setup, and the i-power cycle.'}
         </p>
         <button type="button" onClick={onComplete} style={BTN_PRIMARY}>{continueLabel}</button>
       </div>
@@ -267,7 +267,7 @@ export default function ComplexPlaneExplorer({ onComplete, continueLabel = 'Cont
 
       {submitted && (
         <p aria-live="polite" style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 700, color: isCorrect ? COLOR.successText : COLOR.red }}>
-          {isCorrect ? '\u2713 Nice work! You matched this challenge.' : `\u2717 The answer is ${task.type === 'plot' ? fmtComplex(task.re, task.im) : task.correct}.`}
+          {isCorrect ? '\u2713 Correct solution - your complex-number reasoning matches the task requirements.' : `\u2717 Not correct. The correct result is ${task.type === 'plot' ? fmtComplex(task.re, task.im) : task.correct}. Re-check signs, magnitude, or i-cycle steps.`}
         </p>
       )}
 
