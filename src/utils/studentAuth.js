@@ -1,12 +1,36 @@
 const TOKEN_KEY = 'quantegy-student-token';
+const STUDENT_API_BASE_KEY = 'quantegy-student-api-base';
 const DEFAULT_PROD_API_BASE = 'https://quantegyai-api.onrender.com';
 const LOCAL_DEV_API_BASE = 'http://127.0.0.1:3001';
 const envApiBase = (import.meta.env.VITE_API_URL || '').trim();
 const isLocalHost = typeof window !== 'undefined'
   && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 const API_BASE = envApiBase || (isLocalHost ? '' : DEFAULT_PROD_API_BASE);
+let ACTIVE_API_BASE = API_BASE;
 const REQUEST_TIMEOUT_MS = 20000;
 const SIGNUP_TIMEOUT_MS = 35000;
+
+try {
+  if (typeof localStorage !== 'undefined') {
+    const stored = (localStorage.getItem(STUDENT_API_BASE_KEY) || '').trim();
+    if (stored || stored === '') ACTIVE_API_BASE = stored;
+  }
+} catch { /* ignore storage access issues */ }
+
+function setActiveApiBase(base) {
+  ACTIVE_API_BASE = typeof base === 'string' ? base : '';
+  try { localStorage.setItem(STUDENT_API_BASE_KEY, ACTIVE_API_BASE); } catch {}
+}
+
+function getApiBaseCandidates(preferredBase) {
+  return [...new Set([
+    preferredBase,
+    '',
+    envApiBase,
+    DEFAULT_PROD_API_BASE,
+    LOCAL_DEV_API_BASE,
+  ].filter((v) => typeof v === 'string'))];
+}
 
 async function fetchJsonWithTimeout(url, options = {}, timeoutMs = REQUEST_TIMEOUT_MS) {
   const controller = new AbortController();
@@ -51,11 +75,7 @@ function decodeJwt(token) {
 
 export async function studentSignup({ email, password, displayName, timeoutMs = SIGNUP_TIMEOUT_MS }) {
   const payload = { username: email, password, displayName: displayName || email.split('@')[0] };
-  const baseCandidates = [...new Set([
-    API_BASE,
-    DEFAULT_PROD_API_BASE,
-    LOCAL_DEV_API_BASE,
-  ].filter((v) => typeof v === 'string'))];
+  const baseCandidates = getApiBaseCandidates(ACTIVE_API_BASE);
 
   let lastResult = { success: false, error: 'Signup failed.' };
   for (const base of baseCandidates) {
@@ -84,6 +104,7 @@ export async function studentSignup({ email, password, displayName, timeoutMs = 
     }
 
     if (data?.success && data.token) {
+      setActiveApiBase(base);
       localStorage.setItem(TOKEN_KEY, data.token);
       return data;
     }
@@ -101,11 +122,7 @@ export async function studentSignup({ email, password, displayName, timeoutMs = 
 
 export async function studentLogin({ email, password }) {
   const payload = { username: email, password };
-  const baseCandidates = [...new Set([
-    API_BASE,
-    DEFAULT_PROD_API_BASE,
-    LOCAL_DEV_API_BASE,
-  ].filter((v) => typeof v === 'string'))];
+  const baseCandidates = getApiBaseCandidates(ACTIVE_API_BASE);
   let lastResult = { success: false, error: 'Login failed.' };
   for (const base of baseCandidates) {
     let data = await fetchJsonWithTimeout(
@@ -132,6 +149,7 @@ export async function studentLogin({ email, password }) {
     }
 
     if (data.success && data.token) {
+      setActiveApiBase(base);
       localStorage.setItem(TOKEN_KEY, data.token);
       return data;
     }
@@ -163,7 +181,7 @@ export function getStudentInfo() {
 
 export async function getStudentSubscription() {
   if (!isStudentLoggedIn()) return null;
-  const data = await fetchJsonWithTimeout(`${API_BASE}/api/billing/student/subscription/me`, { headers: authHeaders() });
+  const data = await fetchJsonWithTimeout(`${ACTIVE_API_BASE}/api/billing/student/subscription/me`, { headers: authHeaders() });
   return data.success ? data : null;
 }
 
@@ -179,7 +197,7 @@ export async function hasExamAccess(examId) {
 export async function createStudentCheckout(examId, planType = 'student_exam_onetime') {
   const origin = window.location.origin;
   const data = await fetchJsonWithTimeout(
-    `${API_BASE}/api/billing/student/create-checkout-session`,
+    `${ACTIVE_API_BASE}/api/billing/student/create-checkout-session`,
     {
     method: 'POST',
     headers: authHeaders(),
@@ -196,7 +214,7 @@ export async function createStudentCheckout(examId, planType = 'student_exam_one
 export async function pushProgress(key, payload) {
   if (!isStudentLoggedIn()) return;
   try {
-    await fetchJsonWithTimeout(`${API_BASE}/api/auth/student/progress`, {
+    await fetchJsonWithTimeout(`${ACTIVE_API_BASE}/api/auth/student/progress`, {
       method: 'POST',
       headers: authHeaders(),
       body: JSON.stringify({ key, data: payload }),
@@ -206,6 +224,6 @@ export async function pushProgress(key, payload) {
 
 export async function pullProgress() {
   if (!isStudentLoggedIn()) return null;
-  const data = await fetchJsonWithTimeout(`${API_BASE}/api/auth/student/progress`, { headers: authHeaders() });
+  const data = await fetchJsonWithTimeout(`${ACTIVE_API_BASE}/api/auth/student/progress`, { headers: authHeaders() });
   return data.success ? data.progress : null;
 }

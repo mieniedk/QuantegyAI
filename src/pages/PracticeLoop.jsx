@@ -3170,12 +3170,6 @@ export default function PracticeLoop() {
                 .then((ok) => { if (ok) setIsPaid(true); })
                 .catch(() => {});
             }}
-            onSavedLocally={() => {
-              saveProgressPromptedRef.current = true;
-              try { window.sessionStorage.setItem(savePromptSessionKey, '1'); } catch {}
-              setShowSaveProgressModal(false);
-              showAppToast('Progress saved on this device. Retry later to sync across devices.');
-            }}
           />
         )}
 

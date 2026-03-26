@@ -38,14 +38,13 @@ function syncProgressToServer() {
   });
 }
 
-export default function SaveProgressModal({ onClose, onSignedUp, onSavedLocally }) {
+export default function SaveProgressModal({ onClose, onSignedUp }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [localOnlySaved, setLocalOnlySaved] = useState(false);
   const modalRef = useRef(null);
   const isMobile = typeof window !== 'undefined' ? window.innerWidth < MOBILE_BP : false;
 
@@ -70,11 +69,10 @@ export default function SaveProgressModal({ onClose, onSignedUp, onSavedLocally 
   useEffect(() => {
     if (!success) return;
     const t = setTimeout(() => {
-      if (localOnlySaved) onSavedLocally?.();
-      else onSignedUp?.();
+      onSignedUp?.();
     }, 2000);
     return () => clearTimeout(t);
-  }, [success, localOnlySaved, onSignedUp, onSavedLocally]);
+  }, [success, onSignedUp]);
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
@@ -101,13 +99,6 @@ export default function SaveProgressModal({ onClose, onSignedUp, onSavedLocally 
         result = await studentLogin({ email: trimmedEmail, password });
       }
       if (!result.success) {
-        if (/timed out/i.test(String(result.error || ''))) {
-          // Local storage is always written during play; on timeout we still
-          // confirm device-local save so students do not lose current work.
-          setLocalOnlySaved(true);
-          setSuccess(true);
-          return;
-        }
         setError(result.error || 'Something went wrong. Please try again.');
         return;
       }
@@ -149,12 +140,10 @@ export default function SaveProgressModal({ onClose, onSignedUp, onSavedLocally 
           <div style={{ textAlign: 'center', padding: '12px 0' }}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>✓</div>
             <h3 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 800, color: COLOR.green }}>
-              {localOnlySaved ? 'Progress saved on this device!' : 'Progress saved!'}
+              Progress saved!
             </h3>
             <p style={{ margin: 0, fontSize: 14, color: COLOR.textSecondary, lineHeight: 1.5 }}>
-              {localOnlySaved
-                ? 'Server sync is still waking up. Your current progress is safe locally; retry Save Progress later to sync across devices.'
-                : 'Your account is set up. You can log in from any device to continue where you left off.'}
+              Your account is set up. You can log in from any device to continue where you left off.
             </p>
           </div>
         ) : (

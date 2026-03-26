@@ -266,8 +266,19 @@ function parseMath(s) {
  */
 export function formatMathHtml(str) {
   if (typeof str !== 'string') return '';
-  // Normalize common authoring pattern "√ 2" -> "√2" so radicals parse correctly.
-  const normalized = str.replace(/([√\u221A])\s+(?=[(\[]|[A-Za-z0-9])/g, '$1');
+  // Normalize common authoring patterns into standard math notation.
+  const normalized = str
+    // "√ 2" -> "√2" so radicals parse correctly.
+    .replace(/([√\u221A])\s+(?=[(\[]|[A-Za-z0-9])/g, '$1')
+    // Use standard symbols for common authored operators.
+    .replace(/!=/g, '≠')
+    .replace(/<=/g, '≤')
+    .replace(/>=/g, '≥')
+    .replace(/->/g, '→')
+    // Prefer symbolic infinity over text.
+    .replace(/\binfinity\b/gi, '∞')
+    // Render the common set-union token.
+    .replace(/\sU\s/g, ' ∪ ');
   return parseMath(normalized);
 }
 

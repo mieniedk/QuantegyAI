@@ -46,6 +46,17 @@ const INPUT_STYLE = {
   transition: 'border-color 0.15s',
 };
 
+function isAccountExistsError(message) {
+  const text = String(message || '').toLowerCase();
+  return text.includes('already exists')
+    || text.includes('already registered')
+    || text.includes('already in use')
+    || text.includes('account exists')
+    || text.includes('username exists')
+    || text.includes('email exists')
+    || text.includes('duplicate');
+}
+
 export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
   const [viewportWidth, setViewportWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1200));
   const [mode, setMode] = useState(isStudentLoggedIn() ? 'pricing' : 'signup');
@@ -91,15 +102,15 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
     if (mode === 'signup' && password.length < 4) { setError('Password must be at least 4 characters.'); return; }
     setBusy(true);
     try {
-      const fn = mode === 'signup' ? studentSignup : studentLogin;
       const args = mode === 'signup'
-        ? { email: email.trim(), password, displayName: displayName.trim() || email.split('@')[0] }
+        ? { email: email.trim(), password, displayName: displayName.trim() || email.split('@')[0], timeoutMs: Math.max(AUTH_TIMEOUT_MS, 120000) }
         : { email: email.trim(), password };
-      const result = await withTimeout(
-        fn(args),
-        AUTH_TIMEOUT_MS,
-        'This request is taking too long. Please check your connection and try again.',
-      );
+      let result = mode === 'signup'
+        ? await studentSignup(args)
+        : await studentLogin(args);
+      if (!result?.success && mode === 'signup' && isAccountExistsError(result?.error)) {
+        result = await studentLogin({ email: email.trim(), password });
+      }
       if (!result.success) { setError(result.error || 'Something went wrong.'); setBusy(false); return; }
 
       const accessResult = await withTimeout(
