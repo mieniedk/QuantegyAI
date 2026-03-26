@@ -3377,7 +3377,9 @@ export default function PracticeLoop() {
 
         {showConceptBoost && (
           <div style={{ marginBottom: 16, padding: '14px 18px', borderRadius: 12, background: COLOR.amberBg, border: `1px solid ${COLOR.amberBorder}` }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: COLOR.amber, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Extra help</div>
+            <div style={{ fontSize: 12, fontWeight: 800, color: COLOR.amber, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Extra help{microConcept?.title ? ` — ${microConcept.title}` : ''}
+            </div>
             <div style={{ fontSize: 13, color: COLOR.text, lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(conceptToBulletHtml(microConcept?.conceptText || reminderText || '')) }} />
             {microConcept?.workedExample && <p style={{ margin: '8px 0 0', fontSize: 13, fontWeight: 600, color: COLOR.green }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(microConcept.workedExample)) }} />}
           </div>
@@ -3571,7 +3573,7 @@ export default function PracticeLoop() {
             <PhaseHeader
               badgeColor={COLOR.purple}
               badgeLabel={getTileLabel('concept-refresh', 'Concept recap')}
-              title={hasTopic ? 'Key idea' : null}
+              title={hasTopic ? (microConcept?.title || conceptTitle || 'Key idea') : null}
             />
             {hasTopic ? (
               <>

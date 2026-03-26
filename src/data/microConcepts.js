@@ -198,17 +198,20 @@ export const MICRO_CONCEPTS = {
 
   // Domain III — Geometry and Measurement
   'math712:c011': {
-    title: 'Measurement',
-    conceptText: 'Perimeter: sum of side lengths. Area: rectangle lw; triangle (1)/(2)bh; circle πr². Volume: prism Bh; cylinder πr²h; cone (1)/(3)πr²h; sphere (4)/(3)πr³. Surface area: sum of face areas. Pythagorean theorem: a²+b²=c². Scaling: if lengths scale by k, areas by k², volumes by k³. Dimensional analysis for unit conversions.',
-    workedExample: 'Cylinder r=3, h=10: V = π(9)(10) = 90π ≈ 282.7. Surface area = 2πr² + 2πrh = 18π + 60π = 78π.',
+    title: 'Measurement — Area & Volume Formulas',
+    conceptText: 'Area formulas — Rectangle: A = lw. Triangle: A = (1)/(2)bh. Circle: A = πr². Parallelogram: A = bh. Trapezoid: A = (1)/(2)(b₁+b₂)h. Volume formulas — Rectangular prism: V = lwh. Cylinder: V = πr²h. Cone: V = (1)/(3)πr²h. Sphere: V = (4)/(3)πr³. Surface area: add all face areas. Scaling: lengths × k → areas × k², volumes × k³.',
+    workedExample: 'Cylinder r=3, h=10: V = π(9)(10) = 90π ≈ 282.7. Surface area = 2πr² + 2πrh = 18π + 60π = 78π ≈ 245.0.',
     misconception: 'Doubling all dimensions doubles the volume. Wrong — volume scales by k³, so doubling gives 2³ = 8 times the volume.',
     variants: [
-      { conceptText: 'Composite figures: break into simpler shapes, find each area/volume, add (or subtract for holes). Cavalieri\'s Principle: solids with equal cross-sectional areas at every height have the same volume. Arc length: s = rθ (radians). Sector area: A = (1)/(2)r²θ. Heron\'s formula for triangle area: A = √(s(s−a)(s−b)(s−c)) where s = (a+b+c)/(2). Unit conversions: multiply by conversion fractions where unwanted units cancel.',
-        workedExample: 'Triangle sides 5,6,7. s = 9. A = √(9·4·3·2) = √216 = 6√6 ≈ 14.7.',
+      { conceptText: 'Composite figures — Break a complex shape into simpler pieces (rectangles, triangles, circles). Find each area or volume, then add them. For holes or cut-outs, subtract the removed part. Heron\'s formula finds triangle area from three sides: s = (a+b+c)/(2), then A = √(s(s−a)(s−b)(s−c)). Unit conversions: multiply by conversion fractions. For area units, square the linear factor (1 m² = 10,000 cm²). For volume units, cube it (1 m³ = 1,000,000 cm³).',
+        workedExample: 'Triangle sides 5, 6, 7. s = (5+6+7)/(2) = 9. A = √(9·4·3·2) = √216 = 6√6 ≈ 14.7 square units.',
         misconception: 'To convert square meters to square centimeters, multiply by 100. Wrong — 1 m = 100 cm, so 1 m² = (100)² = 10,000 cm². Areas use the square of the linear conversion factor.' },
-      { conceptText: 'Surface area of a sphere: 4πr². Volume of a sphere: (4)/(3)πr³. Lateral surface area of a cone: πrl (where l = slant height = √(r²+h²)). Cross-sections of 3D solids: slicing a cylinder parallel to base → circle; slicing a cone → circle, ellipse, parabola, or hyperbola. Approximating area under a curve: Riemann sums (left, right, midpoint, trapezoidal).',
+      { conceptText: 'Surface area & volume of round solids — Sphere: SA = 4πr², V = (4)/(3)πr³. Cone: lateral SA = πrl (l = slant height = √(r²+h²)), total SA = πrl + πr². Cylinder: SA = 2πr² + 2πrh, V = πr²h. Cavalieri\'s Principle: two solids with equal cross-sectional areas at every height have the same volume. Cross-sections: slicing a cylinder parallel to the base gives a circle; slicing a cone gives a circle, ellipse, parabola, or hyperbola depending on angle.',
         workedExample: 'Sphere r=6: V = (4)/(3)π(216) = 288π ≈ 904.8. SA = 4π(36) = 144π ≈ 452.4.',
-        misconception: 'Surface area and volume use the same formula for scaling. Partially right — both scale, but SA scales by k² and volume by k³. They grow at different rates.' },
+        misconception: 'Surface area and volume scale the same way. Wrong — SA scales by k² and volume by k³. Double all dimensions: SA × 4, volume × 8.' },
+      { conceptText: 'Circle measurement — Circumference: C = 2πr = πd. Area: A = πr². Arc length (part of circumference): s = rθ, where θ is in radians. Sector area (pizza slice): A = (1)/(2)r²θ. Converting degrees to radians: multiply by π/(180). A full circle has 2π radians = 360°. Segment area (region between a chord and its arc) = sector area − triangle area.',
+        workedExample: 'Circle r=10, central angle 60° = π/(3) rad. Arc length = 10·π/(3) ≈ 10.47. Sector area = (1)/(2)(100)(π)/(3) ≈ 52.4.',
+        misconception: 'Arc length = rθ works with degrees. Wrong — θ must be in radians. Convert first: 60° × π/(180) = π/(3).' },
     ],
   },
   'math712:c012': {
