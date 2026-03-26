@@ -43,6 +43,14 @@ function applyTransform(pts, type, param) {
   return pts;
 }
 
+const TRANSFORM_RULES = {
+  translate: { name: 'Translation', rule: (p) => `(x, y) → (x + ${p.dx}, y + ${p.dy})` },
+  'reflect-x': { name: 'Reflection about the x-axis', rule: () => '(x, y) → (x, −y)' },
+  'reflect-y': { name: 'Reflection about the y-axis', rule: () => '(x, y) → (−x, y)' },
+  'rotate-90': { name: 'Rotation 90° counterclockwise about the origin', rule: () => '(x, y) → (−y, x)' },
+  'rotate-180': { name: 'Rotation 180° about the origin', rule: () => '(x, y) → (−x, −y)' },
+};
+
 function TransformLab({ onComplete, continueLabel, badgeLabel, embedded }) {
   const [roundIdx, setRound] = useState(0);
 
@@ -69,20 +77,100 @@ function TransformLab({ onComplete, continueLabel, badgeLabel, embedded }) {
   const [selected, setSelected] = useState(null);
   const [applied, setApplied] = useState(null);
   const [checked, setChecked] = useState(false);
+  const [dx, setDx] = useState(0);
+  const [dy, setDy] = useState(0);
 
+  // Reset local UI when the random problem changes (roundIdx).
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional full reset on new problem
   useEffect(() => { setSelected(null); setApplied(null); setChecked(false); setDx(0); setDy(0); }, [roundIdx]);
 
   const options = ['translate', 'reflect-x', 'reflect-y', 'rotate-90', 'rotate-180'];
   const optionLabels = { translate: 'Translate', 'reflect-x': 'Reflect about the x-axis', 'reflect-y': 'Reflect about the y-axis', 'rotate-90': 'Rotate 90°', 'rotate-180': 'Rotate 180°' };
 
-  const [dx, setDx] = useState(0);
-  const [dy, setDy] = useState(0);
+  const W = 340;
+  const H_SVG = 260;
+  const PAD = 24;
+  const GRID = 9;
+  const cellW = (W - 2 * PAD) / (2 * GRID);
+  const svgRef = useRef(null);
+  const dragTranslateRef = useRef(null);
+
+  const clientToGrid = useCallback((clientX, clientY) => {
+    const svg = svgRef.current;
+    if (!svg) return [0, 0];
+    const rect = svg.getBoundingClientRect();
+    const xPx = (clientX - rect.left) * (W / rect.width);
+    const yPx = (clientY - rect.top) * (H_SVG / rect.height);
+    const gx = Math.round((xPx - PAD) / cellW - GRID);
+    const gy = Math.round((H_SVG - PAD - yPx) / cellW - GRID);
+    return [clamp(gx, -GRID, GRID), clamp(gy, -GRID, GRID)];
+  }, [W, H_SVG, PAD, cellW, GRID]);
 
   const currentTransformed = useMemo(() => {
     if (!selected) return problem.original;
     const param = selected === 'translate' ? { dx, dy } : {};
     return applyTransform(problem.original, selected, param);
   }, [selected, dx, dy, problem.original]);
+
+  const transformReadout = useMemo(() => {
+    if (!selected) {
+      return {
+        headline: 'No transformation yet',
+        sub: 'Pick a type below—or drag the purple outline on the grid to slide the shape (translation).',
+        rule: null,
+      };
+    }
+    const meta = TRANSFORM_RULES[selected];
+    const param = selected === 'translate' ? { dx, dy } : {};
+    return {
+      headline: meta.name,
+      sub: selected === 'translate' && dx === 0 && dy === 0
+        ? 'Slide the shape on the grid or use the sliders to set a nonzero shift.'
+        : selected === 'translate'
+          ? `Every vertex moves by the same amount: ${dx} horizontally, ${dy} vertically.`
+          : 'Each vertex maps by the rule below (about the origin).',
+      rule: meta.rule(param),
+    };
+  }, [selected, dx, dy]);
+
+  const beginTranslateDrag = useCallback((e) => {
+    if (checked) return;
+    if (selected && selected !== 'translate') return;
+    e.preventDefault();
+    const cx = e.clientX ?? e.nativeEvent?.clientX;
+    const cy = e.clientY ?? e.nativeEvent?.clientY;
+    if (cx == null || cy == null) return;
+    setSelected('translate');
+    const g = clientToGrid(cx, cy);
+    const startDx = selected === 'translate' ? dx : 0;
+    const startDy = selected === 'translate' ? dy : 0;
+    dragTranslateRef.current = {
+      pointerId: e.pointerId,
+      startGx: g[0],
+      startGy: g[1],
+      startDx,
+      startDy,
+      captureEl: e.currentTarget,
+    };
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+  }, [checked, selected, clientToGrid, dx, dy]);
+
+  const onTranslatePointerMove = useCallback((e) => {
+    const d = dragTranslateRef.current;
+    if (!d || e.pointerId !== d.pointerId) return;
+    const g = clientToGrid(e.clientX, e.clientY);
+    const ndx = clamp(d.startDx + (g[0] - d.startGx), -GRID, GRID);
+    const ndy = clamp(d.startDy + (g[1] - d.startGy), -GRID, GRID);
+    setDx(ndx);
+    setDy(ndy);
+  }, [clientToGrid, GRID]);
+
+  const endTranslateDrag = useCallback((e) => {
+    const d = dragTranslateRef.current;
+    if (!d || e.pointerId !== d.pointerId) return;
+    dragTranslateRef.current = null;
+    try { d.captureEl.releasePointerCapture(e.pointerId); } catch { /* ignore */ }
+  }, []);
 
   const handleCheck = () => {
     setChecked(true);
@@ -98,9 +186,6 @@ function TransformLab({ onComplete, continueLabel, badgeLabel, embedded }) {
 
   const isCorrect = checked && ptsMatch(currentTransformed, problem.target);
 
-  const W = 340, H_SVG = 260, PAD = 24;
-  const GRID = 9;
-  const cellW = (W - 2 * PAD) / (2 * GRID);
   const sx = (v) => PAD + (v + GRID) * cellW;
   const sy = (v) => H_SVG - PAD - (v + GRID) * cellW;
 
@@ -115,10 +200,11 @@ function TransformLab({ onComplete, continueLabel, badgeLabel, embedded }) {
       </p>
       <p style={{ margin: '0 0 8px', fontSize: 13, color: COLOR.textSecondary }}>
         Apply the right transformation to move the <span style={{ color: COLOR.blue, fontWeight: 700 }}>blue shape</span> to match the <span style={{ color: '#d97706', fontWeight: 700 }}>dashed target</span>.
+        {' '}Drag the <span style={{ color: COLOR.purple, fontWeight: 700 }}>purple outline</span> on the grid to translate, or use the buttons for flips and turns—the panel below names the transformation and shows the coordinate rule.
       </p>
       <div style={{ margin: '0 0 10px', display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 12, fontWeight: 700, color: COLOR.textSecondary, background: '#f1f5f9', border: `1px solid ${COLOR.border}`, borderRadius: 999, padding: '4px 10px' }}>
-          Stage: {!selected ? 'Pick transform' : checked ? 'Checked' : 'Previewing'}
+          Stage: {!selected ? 'Drag or pick' : checked ? 'Checked' : 'Previewing'}
         </span>
         <span style={{ fontSize: 12, fontWeight: 700, color: isCorrect ? '#047857' : checked ? '#b91c1c' : '#64748b', background: isCorrect ? '#ecfdf5' : checked ? '#fef2f2' : '#f8fafc', border: `1px solid ${isCorrect ? '#86efac' : checked ? '#fca5a5' : '#e5e7eb'}`, borderRadius: 999, padding: '4px 10px' }}>
           Progress: {isCorrect ? 'Matched' : checked ? 'Adjust and retry' : 'In progress'}
@@ -129,12 +215,31 @@ function TransformLab({ onComplete, continueLabel, badgeLabel, embedded }) {
         message={isCorrect ? 'Correct transformation sequence - the image matches the target exactly.' : checked && !isCorrect ? 'Transformation is not correct yet. Recheck orientation (reflection/rotation) and then translation distance.' : 'Hint: compare orientation first (flip/rotate) and then position (translate) to match the dashed shape.'}
         mood={isCorrect ? 'celebrate' : checked ? 'think' : 'wave'}
       />
+      <div
+        role="status"
+        aria-live="polite"
+        style={{ marginBottom: 10, padding: '10px 14px', borderRadius: 12, background: '#faf5ff', border: `1px solid #ddd6fe`, fontSize: 13, color: '#4c1d95', lineHeight: 1.5 }}
+      >
+        <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#7c3aed', marginBottom: 4 }}>Current transformation</div>
+        <div style={{ fontWeight: 800, marginBottom: 4 }}>{transformReadout.headline}</div>
+        <div style={{ fontSize: 12, fontWeight: 600, opacity: 0.92 }}>{transformReadout.sub}</div>
+        {transformReadout.rule && (
+          <div style={{ marginTop: 8, fontFamily: 'ui-monospace, monospace', fontSize: 12, fontWeight: 700, background: '#fff', padding: '6px 10px', borderRadius: 8, border: '1px solid #e9d5ff' }}>
+            Rule: {transformReadout.rule}
+          </div>
+        )}
+      </div>
       <div style={{ marginBottom: 10, padding: '8px 12px', borderRadius: 10, background: '#eff6ff', border: '1px solid #bfdbfe', fontSize: 12, color: '#1e3a8a', lineHeight: 1.45 }}>
-        <strong>How to use:</strong> choose a transformation, preview it, then apply and compare with the dashed target.
+        <strong>How to use:</strong> pick a transformation type, read the rule above, then drag the purple shape (translation) or tap a flip/turn. Use sliders if you prefer. Press Apply when you are ready to check.
       </div>
 
-      <div style={{ background: '#f8fafc', borderRadius: 14, border: `1px solid ${COLOR.border}`, padding: 8, marginBottom: 12 }}>
-        <svg viewBox={`0 0 ${W} ${H_SVG}`} width="100%" style={{ display: 'block' }}>
+      <div style={{ background: '#f8fafc', borderRadius: 14, border: `1px solid ${COLOR.border}`, padding: 8, marginBottom: 12, touchAction: 'none' }}>
+        <svg
+          ref={svgRef}
+          viewBox={`0 0 ${W} ${H_SVG}`}
+          width="100%"
+          style={{ display: 'block' }}
+        >
           {/* grid */}
           {Array.from({ length: 2 * GRID + 1 }, (_, i) => i - GRID).map((v) => (
             <g key={v}>
@@ -148,10 +253,42 @@ function TransformLab({ onComplete, continueLabel, badgeLabel, embedded }) {
           <path d={polyPath(problem.target)} fill="#d9770620" stroke="#d97706" strokeWidth={2} strokeDasharray="5 3" />
           {/* original (blue, solid) */}
           <path d={polyPath(problem.original)} fill={`${COLOR.blue}20`} stroke={COLOR.blue} strokeWidth={2} />
-          {/* student's transform preview */}
-          {selected && !checked && (
+          {/* student's transform preview — non-translate (view only) */}
+          {selected && selected !== 'translate' && !checked && (
             <path d={polyPath(currentTransformed)} fill="#7c3aed15" stroke={COLOR.purple} strokeWidth={2} strokeDasharray="3 2" />
           )}
+          {/* draggable translation layer (starts before any selection) */}
+          {!checked && (selected === 'translate' || !selected) && (
+            <path
+              d={polyPath(selected === 'translate' ? currentTransformed : problem.original)}
+              fill={selected === 'translate' ? '#7c3aed18' : '#7c3aed10'}
+              stroke={COLOR.purple}
+              strokeWidth={selected === 'translate' ? 2.5 : 2}
+              strokeDasharray={selected === 'translate' ? '3 2' : '6 4'}
+              style={{ cursor: 'grab', touchAction: 'none' }}
+              onPointerDown={beginTranslateDrag}
+              onPointerMove={onTranslatePointerMove}
+              onPointerUp={endTranslateDrag}
+              onPointerCancel={endTranslateDrag}
+            />
+          )}
+          {selected === 'translate' && !checked && currentTransformed.map(([x, y], vi) => (
+            <circle
+              key={`drag-${vi}`}
+              cx={sx(x)}
+              cy={sy(y)}
+              r={11}
+              fill={COLOR.purple}
+              fillOpacity={0.85}
+              stroke="#fff"
+              strokeWidth={2}
+              style={{ cursor: 'grab', touchAction: 'none' }}
+              onPointerDown={beginTranslateDrag}
+              onPointerMove={onTranslatePointerMove}
+              onPointerUp={endTranslateDrag}
+              onPointerCancel={endTranslateDrag}
+            />
+          ))}
           {/* applied result */}
           {checked && (
             <path d={polyPath(applied || currentTransformed)} fill={isCorrect ? `${COLOR.green}25` : '#ef444425'} stroke={isCorrect ? COLOR.green : '#ef4444'} strokeWidth={2.5} />
@@ -194,12 +331,12 @@ function TransformLab({ onComplete, continueLabel, badgeLabel, embedded }) {
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginBottom: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: COLOR.text }}>dx:</span>
-            <input type="range" min={-7} max={7} step={1} value={dx} onChange={(e) => setDx(parseInt(e.target.value, 10))} aria-label="Translate x amount" style={{ width: 90, accentColor: COLOR.blue }} />
+            <input type="range" min={-GRID} max={GRID} step={1} value={dx} onChange={(e) => setDx(parseInt(e.target.value, 10))} aria-label="Translate x amount" style={{ width: 90, accentColor: COLOR.blue }} />
             <span style={{ fontSize: 13, fontWeight: 700, color: COLOR.blue }}>{dx}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: COLOR.text }}>dy:</span>
-            <input type="range" min={-7} max={7} step={1} value={dy} onChange={(e) => setDy(parseInt(e.target.value, 10))} aria-label="Translate y amount" style={{ width: 90, accentColor: COLOR.green }} />
+            <input type="range" min={-GRID} max={GRID} step={1} value={dy} onChange={(e) => setDy(parseInt(e.target.value, 10))} aria-label="Translate y amount" style={{ width: 90, accentColor: COLOR.green }} />
             <span style={{ fontSize: 13, fontWeight: 700, color: COLOR.green }}>{dy}</span>
           </div>
         </div>
