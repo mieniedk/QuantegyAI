@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { studentSignup, pushProgress } from '../utils/studentAuth';
+import { studentSignup, studentLogin, pushProgress } from '../utils/studentAuth';
 import { COLOR, BTN_PRIMARY, MOBILE_BP } from '../utils/loopStyles';
 
 const MASTERY_KEY = 'quantegyai-mastery';
@@ -12,6 +12,17 @@ const LEGACY_TO_NEW = {
   'allen-ace-loop-review': REVIEW_KEY,
 };
 const SIGNUP_TIMEOUT_MS = 35000;
+
+function isAccountExistsError(message) {
+  const text = String(message || '').toLowerCase();
+  return text.includes('already exists')
+    || text.includes('already registered')
+    || text.includes('already in use')
+    || text.includes('account exists')
+    || text.includes('username exists')
+    || text.includes('email exists')
+    || text.includes('duplicate');
+}
 
 function syncProgressToServer() {
   const keys = [MASTERY_KEY, EXPERIENCE_KEY, REVIEW_KEY];
@@ -27,13 +38,14 @@ function syncProgressToServer() {
   });
 }
 
-export default function SaveProgressModal({ onClose, onSignedUp }) {
+export default function SaveProgressModal({ onClose, onSignedUp, onSavedLocally }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [localOnlySaved, setLocalOnlySaved] = useState(false);
   const modalRef = useRef(null);
   const isMobile = typeof window !== 'undefined' ? window.innerWidth < MOBILE_BP : false;
 
@@ -58,10 +70,11 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
   useEffect(() => {
     if (!success) return;
     const t = setTimeout(() => {
-      onSignedUp?.();
+      if (localOnlySaved) onSavedLocally?.();
+      else onSignedUp?.();
     }, 2000);
     return () => clearTimeout(t);
-  }, [success, onSignedUp]);
+  }, [success, localOnlySaved, onSignedUp, onSavedLocally]);
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
@@ -77,13 +90,24 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
     }
     setBusy(true);
     try {
-      const result = await studentSignup({
+      let result = await studentSignup({
         email: trimmedEmail,
         password,
         displayName: displayName.trim() || trimmedEmail.split('@')[0],
         timeoutMs: SIGNUP_TIMEOUT_MS,
       });
+      if (!result.success && isAccountExistsError(result.error)) {
+        // If account already exists, log in and sync instead of failing save flow.
+        result = await studentLogin({ email: trimmedEmail, password });
+      }
       if (!result.success) {
+        if (/timed out/i.test(String(result.error || ''))) {
+          // Local storage is always written during play; on timeout we still
+          // confirm device-local save so students do not lose current work.
+          setLocalOnlySaved(true);
+          setSuccess(true);
+          return;
+        }
         setError(result.error || 'Something went wrong. Please try again.');
         return;
       }
@@ -125,10 +149,12 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
           <div style={{ textAlign: 'center', padding: '12px 0' }}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>✓</div>
             <h3 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 800, color: COLOR.green }}>
-              Progress saved!
+              {localOnlySaved ? 'Progress saved on this device!' : 'Progress saved!'}
             </h3>
             <p style={{ margin: 0, fontSize: 14, color: COLOR.textSecondary, lineHeight: 1.5 }}>
-              Your account is set up. You can log in from any device to continue where you left off.
+              {localOnlySaved
+                ? 'Server sync is still waking up. Your current progress is safe locally; retry Save Progress later to sync across devices.'
+                : 'Your account is set up. You can log in from any device to continue where you left off.'}
             </p>
           </div>
         ) : (

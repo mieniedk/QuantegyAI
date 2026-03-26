@@ -100,15 +100,45 @@ export async function studentSignup({ email, password, displayName, timeoutMs = 
 }
 
 export async function studentLogin({ email, password }) {
-  const data = await fetchJsonWithTimeout(`${API_BASE}/api/auth/student/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: email, password }),
-  });
-  if (data.success && data.token) {
-    localStorage.setItem(TOKEN_KEY, data.token);
+  const payload = { username: email, password };
+  const baseCandidates = [...new Set([
+    API_BASE,
+    DEFAULT_PROD_API_BASE,
+    LOCAL_DEV_API_BASE,
+  ].filter((v) => typeof v === 'string'))];
+  let lastResult = { success: false, error: 'Login failed.' };
+  for (const base of baseCandidates) {
+    let data = await fetchJsonWithTimeout(
+      `${base}/api/auth/student/login`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      },
+      REQUEST_TIMEOUT_MS,
+    );
+
+    if (!data?.success && /timed out/i.test(String(data?.error || ''))) {
+      await fetchJsonWithTimeout(`${base}/api/health`, {}, 20000);
+      data = await fetchJsonWithTimeout(
+        `${base}/api/auth/student/login`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        },
+        Math.max(REQUEST_TIMEOUT_MS, 60000),
+      );
+    }
+
+    if (data.success && data.token) {
+      localStorage.setItem(TOKEN_KEY, data.token);
+      return data;
+    }
+    lastResult = data || lastResult;
   }
-  return data;
+
+  return lastResult;
 }
 
 export function studentLogout() {

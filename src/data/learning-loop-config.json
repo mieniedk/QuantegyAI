@@ -269,7 +269,7 @@
   },
   "adaptiveRules": {
     "diagnosticSkipAhead": {
-      "enabled": true,
+      "enabled": false,
       "perfectScore": {
         "threshold": 1.0,
         "skipToTileId": "readiness-quiz",

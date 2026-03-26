@@ -1665,28 +1665,12 @@ export default function PracticeLoop() {
   }, [phase]);
 
   const goToPhaseAfterDiagnostic = useCallback((diagnosticCorrect, diagnosticTotal) => {
-    if (!ADAPTIVE.diagnosticSkipAhead?.enabled) {
-      setCoachAdaptiveNote('');
-      goToPhase('video');
-      return;
-    }
-    const pct = diagnosticTotal > 0 ? diagnosticCorrect / diagnosticTotal : 0;
-    const perfect = ADAPTIVE.diagnosticSkipAhead.perfectScore?.threshold ?? 1.0;
-    const high = ADAPTIVE.diagnosticSkipAhead.highScore?.threshold ?? 0.75;
-    if (pct >= perfect) {
-      if (isAdaptiveDebug) setAdaptiveDebugMessage(`diagnostic:${diagnosticCorrect}/${diagnosticTotal} -> skip:perfect`);
-      setCoachAdaptiveNote('You showed strong prior knowledge on the diagnostic — we are shortening the path so you spend time where it matters most.');
-      goToPhase(TILE_ID_TO_PHASE[ADAPTIVE.diagnosticSkipAhead.perfectScore.skipToTileId] || 'readiness-quiz');
-    } else if (pct >= high) {
-      if (isAdaptiveDebug) setAdaptiveDebugMessage(`diagnostic:${diagnosticCorrect}/${diagnosticTotal} -> skip:high`);
-      setCoachAdaptiveNote('Solid diagnostic — we are skipping some early tiles and jumping toward deeper checks and recap.');
-      goToPhase(TILE_ID_TO_PHASE[ADAPTIVE.diagnosticSkipAhead.highScore.skipToTileId] || 'concept-refresh');
-    } else {
-      if (isAdaptiveDebug) setAdaptiveDebugMessage(`diagnostic:${diagnosticCorrect}/${diagnosticTotal} -> normal`);
-      setCoachAdaptiveNote('');
-      goToPhase('video');
-    }
-  }, [ADAPTIVE, goToPhase, isAdaptiveDebug]);
+    // Always progress in sequence after tile 1 so every competency completes
+    // the same full-tile learning loop without diagnostic skip-ahead jumps.
+    if (isAdaptiveDebug) setAdaptiveDebugMessage(`diagnostic:${diagnosticCorrect}/${diagnosticTotal} -> next:video`);
+    setCoachAdaptiveNote('');
+    goToPhase('video');
+  }, [goToPhase, isAdaptiveDebug]);
 
   const goToPhaseAfterCheckQuiz = useCallback((correctCount, total, normalNext, phaseKey) => {
     setCoachAdaptiveNote('');
@@ -3185,6 +3169,12 @@ export default function PracticeLoop() {
               hasExamAccess(examId)
                 .then((ok) => { if (ok) setIsPaid(true); })
                 .catch(() => {});
+            }}
+            onSavedLocally={() => {
+              saveProgressPromptedRef.current = true;
+              try { window.sessionStorage.setItem(savePromptSessionKey, '1'); } catch {}
+              setShowSaveProgressModal(false);
+              showAppToast('Progress saved on this device. Retry later to sync across devices.');
             }}
           />
         )}
