@@ -2487,6 +2487,7 @@ export default function PracticeLoop() {
   }, []);
 
   const deepLinkGuardRan = useRef(false);
+  const pendingPhaseUrlSyncRef = useRef(null);
   useEffect(() => {
     if (deepLinkGuardRan.current || !hasTopic) return;
     deepLinkGuardRan.current = true;
@@ -2553,6 +2554,7 @@ export default function PracticeLoop() {
     if (typeof window === 'undefined') return;
     const search = window.location.search;
     if (!phaseNeedsUrlUpdate(search, phase)) return;
+    pendingPhaseUrlSyncRef.current = phase;
     // Push phase transitions so browser back can move through loop steps.
     setSearchParams(withPhaseInSearch(search, phase), { replace: false });
   }, [phase, setSearchParams]);
@@ -2560,7 +2562,13 @@ export default function PracticeLoop() {
   useEffect(() => {
     // Keep local phase state synced when the URL changes (browser/device back).
     if (!requestedPhase || !PHASES.includes(requestedPhase)) return;
-    if (requestedPhase !== phase) setPhase(requestedPhase);
+    if (requestedPhase === phase) {
+      if (pendingPhaseUrlSyncRef.current === requestedPhase) pendingPhaseUrlSyncRef.current = null;
+      return;
+    }
+    // Ignore stale URL values while a phase URL update is still in flight.
+    if (pendingPhaseUrlSyncRef.current && requestedPhase !== pendingPhaseUrlSyncRef.current) return;
+    setPhase(requestedPhase);
   }, [requestedPhase, phase]);
 
   useEffect(() => {
