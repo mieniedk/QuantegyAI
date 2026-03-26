@@ -47,6 +47,53 @@ function buildOptionsWithMisconceptions(answer, candidates) {
   return { options, misconceptions };
 }
 
+function rectDiagram(l, w) {
+  const scale = 3;
+  const maxW = Math.min(l * scale, 140);
+  const maxH = Math.min(w * scale, 90);
+  const rw = Math.max(60, maxW);
+  const rh = Math.max(36, maxH);
+  const pad = 30;
+  const svgW = rw + pad * 2;
+  const svgH = rh + pad * 2;
+  return (
+    <svg width={svgW} height={svgH} viewBox={`0 0 ${svgW} ${svgH}`} style={{ display: 'block', margin: '0 auto' }}>
+      <rect x={pad} y={pad} width={rw} height={rh} fill="rgba(59,130,246,0.15)" stroke="#2563eb" strokeWidth={2} rx={3} />
+      <line x1={pad} y1={pad + rh + 4} x2={pad + rw} y2={pad + rh + 4} stroke="#1e40af" strokeWidth={1.5} markerEnd="url(#arrowAB)" markerStart="url(#arrowAB)" />
+      <text x={pad + rw / 2} y={pad + rh + 18} textAnchor="middle" fill="#1e40af" fontSize="12" fontWeight="700">{l}</text>
+      <line x1={pad + rw + 4} y1={pad} x2={pad + rw + 4} y2={pad + rh} stroke="#1e40af" strokeWidth={1.5} />
+      <text x={pad + rw + 16} y={pad + rh / 2 + 4} textAnchor="middle" fill="#1e40af" fontSize="12" fontWeight="700">{w}</text>
+      <defs>
+        <marker id="arrowAB" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#1e40af" /></marker>
+      </defs>
+    </svg>
+  );
+}
+
+function triDiagram(base, height) {
+  const bx = 140;
+  const h = Math.min(height * 4, 100);
+  const bw = Math.min(base * 5, bx);
+  const cx = 50;
+  const cy = 14;
+  const lx = cx;
+  const ly = cy + h;
+  const rx = cx + bw;
+  const ry = cy + h;
+  const apex = cx + bw * 0.35;
+  const svgW = rx + 40;
+  const svgH = ry + 24;
+  return (
+    <svg width={svgW} height={svgH} viewBox={`0 0 ${svgW} ${svgH}`} style={{ display: 'block', margin: '0 auto' }}>
+      <polygon points={`${apex},${cy} ${lx},${ly} ${rx},${ry}`} fill="rgba(16,185,129,0.15)" stroke="#059669" strokeWidth={2} strokeLinejoin="round" />
+      <line x1={apex} y1={cy} x2={apex} y2={ly} stroke="#0f766e" strokeWidth={1.5} strokeDasharray="5,3" />
+      <text x={apex - 14} y={cy + h / 2 + 4} textAnchor="middle" fill="#0f766e" fontSize="11" fontWeight="700">h={height}</text>
+      <line x1={lx} y1={ly + 4} x2={rx} y2={ry + 4} stroke="#065f46" strokeWidth={1.5} />
+      <text x={(lx + rx) / 2} y={ly + 18} textAnchor="middle" fill="#065f46" fontSize="12" fontWeight="700">b={base}</text>
+    </svg>
+  );
+}
+
 function buildQuestion(level, band) {
   const hard = level === 'challenge' || band === 'hs';
   const mode = randInt(0, hard ? 3 : 2);
@@ -65,6 +112,7 @@ function buildQuestion(level, band) {
     ]);
     return {
       prompt: `Rectangle has length ${length} and width ${width}. What is the area?`,
+      visual: rectDiagram(length, width),
       answer: String(answer),
       options,
       misconceptions,
@@ -86,6 +134,7 @@ function buildQuestion(level, band) {
     ]);
     return {
       prompt: `Rectangle has length ${length} and width ${width}. What is the perimeter?`,
+      visual: rectDiagram(length, width),
       answer: String(answer),
       options,
       misconceptions,
@@ -108,6 +157,7 @@ function buildQuestion(level, band) {
     ]);
     return {
       prompt: `A rectangle has area ${area} and width ${width}. What is the length?`,
+      visual: rectDiagram('?', width),
       answer: String(answer),
       options,
       misconceptions,
@@ -128,6 +178,7 @@ function buildQuestion(level, band) {
   ]);
   return {
     prompt: `A triangle has base ${base} and height ${height}. What is the area?`,
+    visual: triDiagram(base, height),
     answer: String(answer),
     options,
     misconceptions,
@@ -238,6 +289,7 @@ export default function AreaBuilder() {
       subtitle={`Round ${Math.min(index + 1, TOTAL_ROUNDS)} / ${TOTAL_ROUNDS} | Score: ${score} | ${gameGradeBandLabel(band)}`}
     >
       <MultipleChoiceRound
+        topSlot={current?.visual ? <div style={styles.topSlot}>{current.visual}</div> : null}
         done={done}
         prompt={current?.prompt || ''}
         options={current?.options || []}
@@ -271,6 +323,16 @@ export default function AreaBuilder() {
 
 const styles = {
   row: { display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginTop: 14 },
+  topSlot: {
+    maxWidth: 920,
+    margin: '0 auto 12px',
+    padding: '10px',
+    border: '1px solid #bfdbfe',
+    background: '#eff6ff',
+    borderRadius: 10,
+    display: 'flex',
+    justifyContent: 'center',
+  },
   prompt: {
     background: '#fffbeb',
     border: '1px solid #fcd34d',

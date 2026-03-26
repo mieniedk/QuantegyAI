@@ -52,6 +52,57 @@ function buildOptionsWithMisconceptions(answer, candidates) {
   return { options, misconceptions };
 }
 
+function rectPrismDiagram(l, w, h) {
+  const sx = 40;
+  const sy = 10;
+  const fw = Math.min(l * 6, 110);
+  const fh = Math.min(h * 6, 80);
+  const depth = Math.min(w * 3, 40);
+  const x0 = sx;
+  const y0 = sy + depth;
+  const x1 = x0 + fw;
+  const y1 = y0 + fh;
+  const dx = depth * 0.7;
+  const dy = -depth * 0.6;
+  const svgW = x1 + dx + 36;
+  const svgH = y1 + 24;
+  const front = `${x0},${y0} ${x1},${y0} ${x1},${y1} ${x0},${y1}`;
+  const top = `${x0},${y0} ${x0 + dx},${y0 + dy} ${x1 + dx},${y0 + dy} ${x1},${y0}`;
+  const side = `${x1},${y0} ${x1 + dx},${y0 + dy} ${x1 + dx},${y1 + dy} ${x1},${y1}`;
+  return (
+    <svg width={svgW} height={svgH} viewBox={`0 0 ${svgW} ${svgH}`} style={{ display: 'block', margin: '0 auto' }}>
+      <polygon points={front} fill="rgba(59,130,246,0.18)" stroke="#2563eb" strokeWidth={2} strokeLinejoin="round" />
+      <polygon points={top} fill="rgba(59,130,246,0.10)" stroke="#2563eb" strokeWidth={1.5} strokeLinejoin="round" />
+      <polygon points={side} fill="rgba(59,130,246,0.06)" stroke="#2563eb" strokeWidth={1.5} strokeLinejoin="round" />
+      <text x={(x0 + x1) / 2} y={y1 + 16} textAnchor="middle" fill="#1e40af" fontSize="12" fontWeight="700">l = {l}</text>
+      <text x={x1 + dx / 2 + 14} y={(y0 + y1) / 2 + dy / 2} textAnchor="start" fill="#1e40af" fontSize="11" fontWeight="700">w = {w}</text>
+      <text x={x0 - 6} y={(y0 + y1) / 2 + 4} textAnchor="end" fill="#1e40af" fontSize="11" fontWeight="700">h = {h}</text>
+    </svg>
+  );
+}
+
+function cylinderDiagram(r, h) {
+  const cx = 110;
+  const cy = 28;
+  const rx = Math.min(r * 10, 60);
+  const ry = Math.min(rx * 0.32, 20);
+  const ch = Math.min(h * 6, 100);
+  const svgW = cx + rx + 36;
+  const svgH = cy + ch + ry + 24;
+  return (
+    <svg width={svgW} height={svgH} viewBox={`0 0 ${svgW} ${svgH}`} style={{ display: 'block', margin: '0 auto' }}>
+      <ellipse cx={cx} cy={cy + ch} rx={rx} ry={ry} fill="rgba(168,85,247,0.10)" stroke="#7e22ce" strokeWidth={1.5} />
+      <rect x={cx - rx} y={cy} width={rx * 2} height={ch} fill="rgba(168,85,247,0.14)" stroke="none" />
+      <line x1={cx - rx} y1={cy} x2={cx - rx} y2={cy + ch} stroke="#7e22ce" strokeWidth={1.5} />
+      <line x1={cx + rx} y1={cy} x2={cx + rx} y2={cy + ch} stroke="#7e22ce" strokeWidth={1.5} />
+      <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="rgba(168,85,247,0.22)" stroke="#7e22ce" strokeWidth={2} />
+      <line x1={cx} y1={cy} x2={cx + rx} y2={cy} stroke="#6b21a8" strokeWidth={1.5} strokeDasharray="4,3" />
+      <text x={cx + rx / 2} y={cy - 6} textAnchor="middle" fill="#6b21a8" fontSize="11" fontWeight="700">r = {r}</text>
+      <text x={cx + rx + 14} y={cy + ch / 2 + 4} textAnchor="start" fill="#6b21a8" fontSize="11" fontWeight="700">h = {h}</text>
+    </svg>
+  );
+}
+
 function buildQuestion(level, band) {
   const hard = level === 'challenge' || band === 'hs';
   const mode = randInt(0, hard ? 3 : 2);
@@ -72,6 +123,7 @@ function buildQuestion(level, band) {
     ]);
     return {
       prompt: `Rectangular prism dimensions are ${l} by ${w} by ${h}. What is the volume?`,
+      visual: rectPrismDiagram(l, w, h),
       answer: String(answer),
       options,
       misconceptions,
@@ -96,6 +148,7 @@ function buildQuestion(level, band) {
     ]);
     return {
       prompt: `A rectangular prism has volume ${v}. Its base is ${l} by ${w}. What is the height?`,
+      visual: rectPrismDiagram(l, w, '?'),
       answer: String(answer),
       options,
       misconceptions,
@@ -118,6 +171,7 @@ function buildQuestion(level, band) {
     ]);
     return {
       prompt: `Cylinder with radius ${r} and height ${h}. Using π≈3.14, what is the volume?`,
+      visual: cylinderDiagram(r, h),
       answer: String(answer),
       options,
       misconceptions,
@@ -248,6 +302,7 @@ export default function VolumeVault() {
       subtitle={`Round ${Math.min(index + 1, TOTAL_ROUNDS)} / ${TOTAL_ROUNDS} | Score: ${score} | ${gameGradeBandLabel(band)}`}
     >
       <MultipleChoiceRound
+        topSlot={current?.visual ? <div style={styles.topSlot}>{current.visual}</div> : null}
         done={done}
         prompt={current?.prompt || ''}
         options={current?.options || []}
@@ -281,6 +336,16 @@ export default function VolumeVault() {
 
 const styles = {
   row: { display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginTop: 14 },
+  topSlot: {
+    maxWidth: 920,
+    margin: '0 auto 12px',
+    padding: '10px',
+    border: '1px solid #bfdbfe',
+    background: '#eff6ff',
+    borderRadius: 10,
+    display: 'flex',
+    justifyContent: 'center',
+  },
   prompt: {
     background: '#f0f9ff',
     border: '1px solid #7dd3fc',
