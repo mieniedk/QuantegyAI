@@ -1597,7 +1597,20 @@ export default function PracticeLoop() {
     };
   }, [quizHistory, loopReviewKey]);
 
-  const highestPhaseIdxRef = React.useRef(-1);
+  const [highWatermark, setHighWatermark] = useState(() => {
+    try {
+      const stored = window.sessionStorage.getItem(`practice-loop-watermark:${comp}:${teks}:${currentStd || ''}`);
+      return stored != null ? Math.max(-1, Number(stored)) : -1;
+    } catch { return -1; }
+  });
+  const highWatermarkKeyRef = useRef(`practice-loop-watermark:${comp}:${teks}:${currentStd || ''}`);
+  useEffect(() => {
+    try { window.sessionStorage.setItem(highWatermarkKeyRef.current, String(highWatermark)); } catch {}
+  }, [highWatermark]);
+  useEffect(() => {
+    const idx = PHASES.indexOf(phase);
+    if (idx > highWatermark) setHighWatermark(idx);
+  }, [phase, highWatermark]);
   const pendingPaywallPhaseRef = React.useRef(null);
   const [detourFromStep, setDetourFromStep] = useState(null);
   const [revisitReturnPhase, setRevisitReturnPhase] = useState(null);
@@ -1619,10 +1632,10 @@ export default function PracticeLoop() {
 
     const normalizedPhase = PHASES.includes(p) ? p : (TILE_ID_TO_PHASE[p] || 'diagnostic');
     const targetIdx = PHASES.indexOf(normalizedPhase);
-    const willAdvance = !skipProgress && targetIdx > highestPhaseIdxRef.current;
+    const willAdvance = !skipProgress && targetIdx > highWatermark;
     const projectedTilesCompleted = willAdvance ? tilesCompleted + 1 : tilesCompleted;
     if (willAdvance) {
-      highestPhaseIdxRef.current = targetIdx;
+      setHighWatermark(targetIdx);
       setTilesCompleted((n) => n + 1);
     }
     if (!keepConceptBoost) setShowConceptBoost(false);
@@ -1646,7 +1659,7 @@ export default function PracticeLoop() {
     trackEvent('practice_loop_phase_change', { from: phase, to: normalizedPhase, examId, comp, currentStd: currentStd || '' });
     setPhase(normalizedPhase);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [examId, comp, singleTeks, currentStd, tilesCompleted, isPaid, ADAPTIVE, isAdaptiveDebug, phase]);
+  }, [examId, comp, singleTeks, currentStd, tilesCompleted, highWatermark, isPaid, ADAPTIVE, isAdaptiveDebug, phase]);
 
   const revisitCooldownRef = React.useRef(false);
   const revisitTile = useCallback((phaseKey) => {
@@ -2098,7 +2111,9 @@ export default function PracticeLoop() {
     setMasteryAnswers({});
     setMasterySubmitted(false);
     setQuizPhaseScores({});
+    setHighWatermark(-1);
     try { window.sessionStorage.removeItem(sessionQuizKey); } catch {}
+    try { window.sessionStorage.removeItem(highWatermarkKeyRef.current); } catch {}
   }, [sessionQuizKey]);
 
   useEffect(() => {
@@ -2185,21 +2200,8 @@ export default function PracticeLoop() {
   ]);
 
   const tileProgress = useMemo(() => {
-    const quizState = {
-      diagnostic:     { pool: diagnosticPool,  answers: diagnosticAnswers,  submitted: diagnosticSubmitted },
-      'check-quiz':   { pool: checkQuizPool,   answers: checkQuizAnswers,   submitted: checkQuizSubmitted },
-      'check-quiz-2': { pool: checkQuiz2Pool,  answers: checkQuiz2Answers,  submitted: checkQuiz2Submitted },
-      'check-quiz-3': { pool: checkQuiz3Pool,  answers: checkQuiz3Answers,  submitted: checkQuiz3Submitted },
-      'check-quiz-4': { pool: checkQuiz4Pool,  answers: checkQuiz4Answers,  submitted: checkQuiz4Submitted },
-      'check-quiz-5': { pool: checkQuiz5Pool,  answers: checkQuiz5Answers,  submitted: checkQuiz5Submitted },
-      'check-quiz-6': { pool: checkQuiz6Pool,  answers: checkQuiz6Answers,  submitted: checkQuiz6Submitted },
-      'check-quiz-7': { pool: checkQuiz7Pool,  answers: checkQuiz7Answers,  submitted: checkQuiz7Submitted },
-      'check-quiz-8': { pool: checkQuiz8Pool,  answers: checkQuiz8Answers,  submitted: checkQuiz8Submitted },
-      'readiness-quiz': { pool: readinessPool,  answers: readinessAnswers,  submitted: readinessSubmitted },
-      'mastery-check':  { pool: masteryPool,    answers: masteryAnswers,    submitted: masterySubmitted },
-    };
     const currentIdx = PHASES.indexOf(phase);
-    const progressIdx = currentIdx >= 0 ? currentIdx : 0;
+    const watermark = Math.max(highWatermark, currentIdx);
     return PHASES.map((p, i) => {
       const meta = getTileMeta(p);
       const label = meta?.icon || '';
@@ -2209,31 +2211,11 @@ export default function PracticeLoop() {
         const color = pct >= 75 ? COLOR.green : pct >= 45 ? COLOR.amber : COLOR.red;
         return { key: p, label, name, pct, color, status: 'done' };
       }
-      const qs = quizState[p];
-      if (qs && qs.submitted && qs.pool.length > 0) {
-        const correct = qs.pool.filter((q) => qs.answers[q.id] === q.correct).length;
-        const pct = Math.round((correct / qs.pool.length) * 100);
-        const color = pct >= 75 ? COLOR.green : pct >= 45 ? COLOR.amber : COLOR.red;
-        return { key: p, label, name, pct, color, status: 'done' };
-      }
-      if (i < progressIdx) return { key: p, label, name, pct: null, color: COLOR.green, status: 'passed' };
-      if (i === progressIdx) return { key: p, label, name, pct: null, color: COLOR.blue, status: 'current' };
+      if (i < watermark) return { key: p, label, name, pct: null, color: COLOR.green, status: 'passed' };
+      if (i === watermark) return { key: p, label, name, pct: null, color: COLOR.blue, status: 'current' };
       return { key: p, label, name, pct: null, color: null, status: 'future' };
     });
-  }, [
-    phase, phaseTileMeta, quizPhaseScores,
-    diagnosticPool, diagnosticAnswers, diagnosticSubmitted,
-    checkQuizPool, checkQuizAnswers, checkQuizSubmitted,
-    checkQuiz2Pool, checkQuiz2Answers, checkQuiz2Submitted,
-    checkQuiz3Pool, checkQuiz3Answers, checkQuiz3Submitted,
-    checkQuiz4Pool, checkQuiz4Answers, checkQuiz4Submitted,
-    checkQuiz5Pool, checkQuiz5Answers, checkQuiz5Submitted,
-    checkQuiz6Pool, checkQuiz6Answers, checkQuiz6Submitted,
-    checkQuiz7Pool, checkQuiz7Answers, checkQuiz7Submitted,
-    checkQuiz8Pool, checkQuiz8Answers, checkQuiz8Submitted,
-    readinessPool, readinessAnswers, readinessSubmitted,
-    masteryPool, masteryAnswers, masterySubmitted,
-  ]);
+  }, [phase, highWatermark, phaseTileMeta, quizPhaseScores]);
 
   const quizResetMap = useMemo(() => ({
     'check-quiz': [setCheckQuizAnswers, setCheckQuizSubmitted],
