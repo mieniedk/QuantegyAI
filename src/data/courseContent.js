@@ -3390,20 +3390,20 @@ COURSE_CONTENT['grade7-12'] = {
           {
             title: 'Surface Area, Unit Conversion & Transformations',
             duration: '40 min',
-            objective: 'Surface area of cube; convert units; identify reflection over y-axis.',
+            objective: 'Surface area of cube; convert units; identify reflection about the y-axis.',
             teks: 'comp003',
             warmUp: { activity: 'SA & Convert', duration: '5 min', description: 'Surface area of cube edge 4. Convert 2.5 hours to seconds. Which transformation gives (−x, y)?' },
             directInstruction: {
               duration: '15 min',
               steps: [
                 'SA of cube = 6s². Unit conversion: multiply by conversion factors (e.g. 2.5 hr × 60 × 60).',
-                'Reflection over y-axis: (x,y)→(−x,y). Over x-axis: (x,y)→(x,−y).',
+                'Reflection about the y-axis: (x,y)→(−x,y). About the x-axis: (x,y)→(x,−y).',
               ],
               keyVocabulary: ['surface area', 'reflection', 'transformation', 'conversion'],
             },
             guidedPractice: { duration: '12 min', activity: 'SA, Units, Transform', description: 'Practice problems from TExES question bank comp003.' },
             independentPractice: { duration: '6 min', activity: 'MC Practice', description: 'TExES-style geometry and measurement.', suggestedGame: 'math-sprint' },
-            closure: { duration: '2 min', exitTicket: 'SA of cube; 2.5 hr in seconds; reflection (x,y)→(−x,y).', reflection: 'Why is reflection over y-axis (x,y)→(−x,y)?' },
+            closure: { duration: '2 min', exitTicket: 'SA of cube; 2.5 hr in seconds; reflection (x,y)→(−x,y).', reflection: 'Why is reflection about the y-axis (x,y)→(−x,y)?' },
             differentiation: { approaching: 'Single conversions and one transformation type.', onLevel: 'Standard.', advanced: 'Composite transformations.' },
             materials: ['TExES Prep'],
             teacherNotes: 'Time conversions and transformations are frequent on 235.',

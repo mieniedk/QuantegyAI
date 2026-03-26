@@ -113,12 +113,12 @@ export const MICRO_CONCEPTS = {
   },
   'math712:c005': {
     title: 'Functions, Relations & Graphs',
-    conceptText: 'Function: each input has exactly one output. Vertical line test checks if a graph is a function. Domain: set of valid inputs; Range: set of outputs. Composition: (f∘g)(x) = f(g(x)). Inverse: f^(−1) reverses f; exists only if f is one-to-one (horizontal line test). Transformations: y = a·f(x−h)+k shifts h right, k up, stretches by |a|, reflects if a < 0.',
+    conceptText: 'Function: each input has exactly one output. Vertical line test checks if a graph is a function. Domain: set of valid inputs; Range: set of outputs. Composition: (f∘g)(x) = f(g(x)). Inverse: f^(−1) reverses f; exists only if f is one-to-one (horizontal line test). Transformations: y = a·f(x−h)+k shifts h right, k up, stretches by |a|, reflects about the x-axis if a < 0.',
     workedExample: 'f(x) = 2x+1, g(x) = x². (f∘g)(3) = f(9) = 19. f^(−1)(x) = (x−1)/(2).',
     misconception: 'f^(−1)(x) means (1)/(f(x)). Wrong — f^(−1) is the inverse function, not the reciprocal. (1)/(f(x)) is [f(x)]^(−1).',
     variants: [
-      { conceptText: 'Parent functions: linear y=x, quadratic y=x², cubic y=x³, absolute y=|x|, square root y=√x, reciprocal y=1/x. Transformations from parent: y = a·f(b(x−h))+k. |a| vertical stretch, 1/|b| horizontal stretch, h right shift, k up shift. If a<0 reflect over x-axis; if b<0 reflect over y-axis. Even functions: f(−x)=f(x) (symmetric about y-axis). Odd: f(−x)=−f(x) (rotational symmetry about origin).',
-        workedExample: 'y = −2(x+3)² + 5: parent y=x², shift left 3, up 5, vertical stretch ×2, reflected over x-axis. Vertex (−3,5), opens down.',
+      { conceptText: 'Parent functions: linear y=x, quadratic y=x², cubic y=x³, absolute y=|x|, square root y=√x, reciprocal y=1/x. Transformations from parent: y = a·f(b(x−h))+k. |a| vertical stretch, 1/|b| horizontal stretch, h right shift, k up shift. If a<0 reflect about the x-axis; if b<0 reflect about the y-axis. Even functions: f(−x)=f(x) (symmetric about y-axis). Odd: f(−x)=−f(x) (rotational symmetry about origin).',
+        workedExample: 'y = −2(x+3)² + 5: parent y=x², shift left 3, up 5, vertical stretch ×2, reflected about the x-axis. Vertex (−3,5), opens down.',
         misconception: 'All transformations are commutative — order doesn\'t matter. Wrong — applying a horizontal shift then a stretch gives a different result than stretch then shift (inside vs. outside the function).' },
       { conceptText: 'Piecewise functions: different rules on different intervals of the domain. Graph by plotting each piece on its interval. Continuity: no breaks in the graph. Step functions (greatest integer) are piecewise. Composition is not commutative: f∘g ≠ g∘f in general. To find domain of f∘g: start with domain of g, then restrict to where g(x) is in the domain of f.',
         workedExample: 'f(x) = √x, g(x) = 4−x². Domain of f∘g: need 4−x² ≥ 0 → −2 ≤ x ≤ 2. (f∘g)(1) = √(4−1) = √3.',
@@ -159,7 +159,7 @@ export const MICRO_CONCEPTS = {
     workedExample: 'Solve 3^x = 81: 81 = 3^4, so x = 4. Or: x = log₃(81) = (ln 81)/(ln 3) = 4.',
     misconception: 'log(a+b) = log a + log b. Wrong — the log of a sum has no simple rule. The product rule is log(a·b) = log a + log b.',
     variants: [
-      { conceptText: 'Exponential growth/decay: N(t) = N₀·e^(kt). k > 0 growth, k < 0 decay. Doubling time: t_d = (ln 2)/(k). Half-life: t_(1/2) = (ln 2)/(|k|). Logarithmic scales: Richter (earthquakes), decibels (sound), pH (acidity). The graph of y = log_b(x) is the reflection of y = b^x over y = x. Domain of log: x > 0; range: all reals.',
+      { conceptText: 'Exponential growth/decay: N(t) = N₀·e^(kt). k > 0 growth, k < 0 decay. Doubling time: t_d = (ln 2)/(k). Half-life: t_(1/2) = (ln 2)/(|k|). Logarithmic scales: Richter (earthquakes), decibels (sound), pH (acidity). The graph of y = log_b(x) is the reflection of y = b^x about the line y = x. Domain of log: x > 0; range: all reals.',
         workedExample: 'A population doubles every 5 years. k = (ln 2)/(5) ≈ 0.1386. After 15 years: N = N₀·e^(0.1386·15) = N₀·e^(2.079) ≈ 8N₀ (tripled the doublings: 2³ = 8).',
         misconception: 'Exponential growth means the rate is constant. Wrong — the rate of change itself increases. What\'s constant is the growth factor (percentage increase per unit time).' },
       { conceptText: 'Solving exponential equations: same base → set exponents equal; different bases → take ln of both sides. Solving log equations: convert to exponential form, solve, check domain. Natural log: ln x = log_e(x). Properties: ln(e^x) = x and e^(ln x) = x. Inverse relationship: exponential and log undo each other. Applications: carbon dating, bacterial growth, Newton\'s cooling law.',
@@ -245,7 +245,7 @@ export const MICRO_CONCEPTS = {
   'math712:c014': {
     title: 'Coordinate, Transformational & Vector Geometry',
     conceptText: 'Distance: d = √((x₂−x₁)²+(y₂−y₁)²). Midpoint: ((x₁+x₂)/(2),(y₁+y₂)/(2)). Conic sections: circle (x−h)²+(y−k)²=r²; ellipse, parabola, hyperbola. Transformations: translation (slide), reflection (flip), rotation (turn), dilation (scale). Compositions of transformations. Vectors: magnitude, direction, addition, scalar multiplication, dot product.',
-    workedExample: 'Reflect (3,4) over y-axis → (−3,4). Rotate 90° CCW about origin: (x,y) → (−y,x), so (3,4) → (−4,3).',
+    workedExample: 'Reflect (3,4) about the y-axis → (−3,4). Rotate 90° CCW about origin: (x,y) → (−y,x), so (3,4) → (−4,3).',
     misconception: 'Dilation preserves distances. Wrong — dilation preserves angles and shape (similarity), but scales all distances by the factor k.',
     variants: [
       { conceptText: 'Conic sections from general form Ax²+Bxy+Cy²+Dx+Ey+F=0. Circle: A=C, B=0. Ellipse: AC>0, A≠C. Parabola: AC=0 (one squared term). Hyperbola: AC<0. Standard forms: ellipse ((x−h)²)/(a²) + ((y−k)²)/(b²) = 1; hyperbola ((x−h)²)/(a²) − ((y−k)²)/(b²) = 1. Foci, vertices, asymptotes characterize each conic.',

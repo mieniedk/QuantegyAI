@@ -317,13 +317,13 @@ const Q_POOLS = {
   'c014': [
     { expr: 'Distance: (0,0)→(3,4)', ans: 5 }, { expr: 'Distance: (0,0)→(5,12)', ans: 13 },
     { expr: 'Midpoint x: (2,8)', ans: 5 }, { expr: 'Midpoint y: (3,7)', ans: 5 },
-    { expr: 'Reflect (3,4) over x-axis → y', ans: -4 },
+    { expr: 'Reflect (3,4) about the x-axis → y', ans: -4 },
     { expr: 'Rotate 90° CCW: (1,0) → y', ans: 1 },
     { expr: 'Dilation k=3: length 4 → ?', ans: 12 },
     { expr: 'Dilation k=2: area 5 → ?', ans: 20 },
     { expr: 'Circle (x−1)²+(y−2)²=9 → r', ans: 3 },
     { expr: '|⟨3,4⟩| = ?', ans: 5 }, { expr: '⟨2,3⟩·⟨4,−1⟩', ans: 5 },
-    { expr: 'Reflect (5,2) over y-axis → x', ans: -5 },
+    { expr: 'Reflect (5,2) about the y-axis → x', ans: -5 },
     { expr: 'Distance: (1,1)→(4,5)', ans: 5 }, { expr: 'Midpoint x: (0,10)', ans: 5 },
   ],
 

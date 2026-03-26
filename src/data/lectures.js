@@ -860,10 +860,10 @@ const LECTURES = {
     steps: [
       { title: 'Function notation', content: 'f(x) names the output when x is input. f(3) means substitute 3 for x.' },
       { title: 'Domain & range', content: 'Domain = valid inputs. Range = resulting outputs. Watch for division by zero and even roots of negatives.' },
-      { title: 'Transformations', content: 'f(x) + k shifts up, f(x − h) shifts right, −f(x) reflects over x-axis, f(−x) reflects over y-axis, af(x) stretches vertically.' },
+      { title: 'Transformations', content: 'f(x) + k shifts up, f(x − h) shifts right, −f(x) reflects about the x-axis, f(−x) reflects about the y-axis, af(x) stretches vertically.' },
     ],
     example: { problem: 'If f(x) = x² − 1, find f(−3).', solution: ['f(−3) = (−3)² − 1 = 9 − 1 = 8.'], answer: '8' },
-    tip: 'Inverse functions "undo" each other: f(f⁻¹(x)) = x. Reflect the graph over y = x to find the inverse graphically.',
+    tip: 'Inverse functions "undo" each other: f(f⁻¹(x)) = x. Reflect the graph about the line y = x to find the inverse graphically.',
     visual: 'chalkboard',
   },
   'c006': {

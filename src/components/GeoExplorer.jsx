@@ -55,8 +55,8 @@ function TransformLab({ onComplete, continueLabel, badgeLabel, embedded }) {
     ];
     const transforms = [
       { type: 'translate', param: { dx: rand(-4, 4) || 2, dy: rand(-4, 4) || 1 }, label: 'Translate' },
-      { type: 'reflect-x', param: {}, label: 'Reflect over x-axis' },
-      { type: 'reflect-y', param: {}, label: 'Reflect over y-axis' },
+      { type: 'reflect-x', param: {}, label: 'Reflect about the x-axis' },
+      { type: 'reflect-y', param: {}, label: 'Reflect about the y-axis' },
       { type: 'rotate-90', param: {}, label: 'Rotate 90° CCW' },
       { type: 'rotate-180', param: {}, label: 'Rotate 180°' },
     ];
@@ -73,7 +73,7 @@ function TransformLab({ onComplete, continueLabel, badgeLabel, embedded }) {
   useEffect(() => { setSelected(null); setApplied(null); setChecked(false); setDx(0); setDy(0); }, [roundIdx]);
 
   const options = ['translate', 'reflect-x', 'reflect-y', 'rotate-90', 'rotate-180'];
-  const optionLabels = { translate: 'Translate', 'reflect-x': 'Reflect x-axis', 'reflect-y': 'Reflect y-axis', 'rotate-90': 'Rotate 90°', 'rotate-180': 'Rotate 180°' };
+  const optionLabels = { translate: 'Translate', 'reflect-x': 'Reflect about the x-axis', 'reflect-y': 'Reflect about the y-axis', 'rotate-90': 'Rotate 90°', 'rotate-180': 'Rotate 180°' };
 
   const [dx, setDx] = useState(0);
   const [dy, setDy] = useState(0);

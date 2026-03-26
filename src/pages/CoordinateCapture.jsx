@@ -128,15 +128,15 @@ function buildReflectionQuestion() {
   const wrongB = pointText(y, x);
   const wrongC = pointText(x, y);
   return {
-    prompt: `Reflect point ${pointText(x, y)} over the ${reflectOverX ? 'x-axis' : 'y-axis'}. What is the image?`,
+    prompt: `Reflect point ${pointText(x, y)} about the ${reflectOverX ? 'x-axis' : 'y-axis'}. What is the image?`,
     answer,
     options: buildOptions(answer, [wrongA, wrongB, wrongC]),
     misconceptions: {
-      [wrongA]: { hint: 'A single-axis reflection changes one sign, not both.', message: 'You reflected over both axes.' },
+      [wrongA]: { hint: 'A single-axis reflection changes one sign, not both.', message: 'You reflected about both axes.' },
       [wrongB]: { hint: 'Reflection does not swap x and y.', message: 'You swapped coordinates instead of reflecting.' },
       [wrongC]: { hint: 'A reflection must change at least one coordinate sign.', message: 'You kept the original point unchanged.' },
     },
-    explain: `Reflection over the ${reflectOverX ? 'x-axis changes y only' : 'y-axis changes x only'}, so the image is ${answer}.`,
+    explain: `Reflection about the ${reflectOverX ? 'x-axis changes y only' : 'y-axis changes x only'}, so the image is ${answer}.`,
   };
 }
 

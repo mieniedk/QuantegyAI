@@ -153,7 +153,7 @@ const COMP_POOLS = {
       { q: 'A right triangle has legs 5 and 12. What is the hypotenuse?', choices: ['17', '13', '7', '60'], correct: 1 },
       { q: 'What is the surface area of a cube with side 4?', choices: ['64', '96', '24', '16'], correct: 1 },
       { q: 'The diagonals of which quadrilateral are always perpendicular?', choices: ['Rectangle', 'Parallelogram', 'Rhombus', 'Trapezoid'], correct: 2 },
-      { q: 'What transformation maps (x, y) → (−x, y)?', choices: ['Reflect over x-axis', 'Reflect over y-axis', 'Rotate 90°', 'Translate left'], correct: 1 },
+      { q: 'What transformation maps (x, y) → (−x, y)?', choices: ['Reflect about the x-axis', 'Reflect about the y-axis', 'Rotate 90°', 'Translate left'], correct: 1 },
     ],
   },
   comp004: {

@@ -84,17 +84,17 @@ function buildQuestion(level, band) {
     const wrongSwap = point(safeY, safeX);
     const { options, misconceptions } = buildOptionsWithMisconceptions(answer, [
       { value: wrongKeep, message: 'You did not apply reflection.', hint: 'One coordinate sign must change.' },
-      { value: wrongBoth, message: 'You changed both signs instead of reflecting across one axis.', hint: 'Only one coordinate changes sign.' },
+      { value: wrongBoth, message: 'You changed both signs instead of reflecting about one axis.', hint: 'Only one coordinate changes sign.' },
       { value: wrongSwap, message: 'You swapped coordinates instead of reflecting.', hint: 'Reflection does not swap x and y.' },
     ]);
     return {
-      prompt: `Point A is ${point(safeX, safeY)}. Reflect across the ${reflectXaxis ? 'x-axis' : 'y-axis'}. What is A'?`,
+      prompt: `Point A is ${point(safeX, safeY)}. Reflect about the ${reflectXaxis ? 'x-axis' : 'y-axis'}. What is A'?`,
       answer,
       options,
       misconceptions,
       explain: reflectXaxis
-        ? `Reflection across x-axis keeps x and flips y: ${answer}.`
-        : `Reflection across y-axis keeps y and flips x: ${answer}.`,
+        ? `Reflection about the x-axis keeps x and flips y: ${answer}.`
+        : `Reflection about the y-axis keeps y and flips x: ${answer}.`,
     };
   }
 

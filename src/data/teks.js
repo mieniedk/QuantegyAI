@@ -422,7 +422,7 @@ export const TEKS_STANDARDS = {
     // ── Strand 10: Two-dimensional Shapes ──────────────────────
     { id: '8.10A', description: 'Generalize the properties of orientation and congruence of rotations, reflections, translations, and dilations of two-dimensional shapes on a coordinate plane' },
     { id: '8.10B', description: 'Differentiate between transformations that preserve congruence and those that do not' },
-    { id: '8.10C', description: 'Explain the effect of translations, reflections over the x- or y-axis, and rotations limited to 90°, 180°, 270°, and 360° as applied to two-dimensional shapes on a coordinate plane using an algebraic representation' },
+    { id: '8.10C', description: 'Explain the effect of translations, reflections about the x- or y-axis, and rotations limited to 90°, 180°, 270°, and 360° as applied to two-dimensional shapes on a coordinate plane using an algebraic representation' },
     { id: '8.10D', description: 'Model the effect on linear and area measurements of dilated two-dimensional shapes' },
     // ── Strand 11: Measurement and Data ───────────────────────
     { id: '8.11A', description: 'Construct a scatterplot and describe the observed data to address questions of association such as linear, non-linear, and no association between bivariate data' },
