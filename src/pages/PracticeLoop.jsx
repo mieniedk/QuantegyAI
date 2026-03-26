@@ -2074,6 +2074,33 @@ export default function PracticeLoop() {
   const [masterySubmitted, setMasterySubmitted] = useState(false);
   const quizResumeHydratedRef = useRef(false);
 
+  const clearQuizProgressState = useCallback(() => {
+    setDiagnosticAnswers({});
+    setDiagnosticSubmitted(false);
+    setCheckQuizAnswers({});
+    setCheckQuizSubmitted(false);
+    setCheckQuiz2Answers({});
+    setCheckQuiz2Submitted(false);
+    setCheckQuiz3Answers({});
+    setCheckQuiz3Submitted(false);
+    setCheckQuiz4Answers({});
+    setCheckQuiz4Submitted(false);
+    setCheckQuiz5Answers({});
+    setCheckQuiz5Submitted(false);
+    setCheckQuiz6Answers({});
+    setCheckQuiz6Submitted(false);
+    setCheckQuiz7Answers({});
+    setCheckQuiz7Submitted(false);
+    setCheckQuiz8Answers({});
+    setCheckQuiz8Submitted(false);
+    setReadinessAnswers({});
+    setReadinessSubmitted(false);
+    setMasteryAnswers({});
+    setMasterySubmitted(false);
+    setQuizPhaseScores({});
+    try { window.sessionStorage.removeItem(sessionQuizKey); } catch {}
+  }, [sessionQuizKey]);
+
   useEffect(() => {
     if (quizResumeHydratedRef.current) return;
     quizResumeHydratedRef.current = true;
@@ -2081,29 +2108,35 @@ export default function PracticeLoop() {
       const raw = window.sessionStorage.getItem(sessionQuizKey);
       if (!raw) return;
       const saved = JSON.parse(raw);
-      if (saved.phase && PHASES.includes(saved.phase)) setPhase(saved.phase);
+      const savedPhase = saved.phase && PHASES.includes(saved.phase) ? saved.phase : null;
+      if (savedPhase) setPhase(savedPhase);
+      const savedIdx = savedPhase ? PHASES.indexOf(savedPhase) : -1;
+      const reached = (phaseKey) => {
+        const idx = PHASES.indexOf(phaseKey);
+        return idx >= 0 && savedIdx >= idx;
+      };
       setDiagnosticAnswers(saved.diagnosticAnswers || {});
       setDiagnosticSubmitted(!!saved.diagnosticSubmitted);
-      setCheckQuizAnswers(saved.checkQuizAnswers || {});
-      setCheckQuizSubmitted(!!saved.checkQuizSubmitted);
-      setCheckQuiz2Answers(saved.checkQuiz2Answers || {});
-      setCheckQuiz2Submitted(!!saved.checkQuiz2Submitted);
-      setCheckQuiz3Answers(saved.checkQuiz3Answers || {});
-      setCheckQuiz3Submitted(!!saved.checkQuiz3Submitted);
-      setCheckQuiz4Answers(saved.checkQuiz4Answers || {});
-      setCheckQuiz4Submitted(!!saved.checkQuiz4Submitted);
-      setCheckQuiz5Answers(saved.checkQuiz5Answers || {});
-      setCheckQuiz5Submitted(!!saved.checkQuiz5Submitted);
-      setCheckQuiz6Answers(saved.checkQuiz6Answers || {});
-      setCheckQuiz6Submitted(!!saved.checkQuiz6Submitted);
-      setCheckQuiz7Answers(saved.checkQuiz7Answers || {});
-      setCheckQuiz7Submitted(!!saved.checkQuiz7Submitted);
-      setCheckQuiz8Answers(saved.checkQuiz8Answers || {});
-      setCheckQuiz8Submitted(!!saved.checkQuiz8Submitted);
-      setReadinessAnswers(saved.readinessAnswers || {});
-      setReadinessSubmitted(!!saved.readinessSubmitted);
-      setMasteryAnswers(saved.masteryAnswers || {});
-      setMasterySubmitted(!!saved.masterySubmitted);
+      setCheckQuizAnswers(reached('check-quiz') ? (saved.checkQuizAnswers || {}) : {});
+      setCheckQuizSubmitted(reached('check-quiz') && !!saved.checkQuizSubmitted);
+      setCheckQuiz2Answers(reached('check-quiz-2') ? (saved.checkQuiz2Answers || {}) : {});
+      setCheckQuiz2Submitted(reached('check-quiz-2') && !!saved.checkQuiz2Submitted);
+      setCheckQuiz3Answers(reached('check-quiz-3') ? (saved.checkQuiz3Answers || {}) : {});
+      setCheckQuiz3Submitted(reached('check-quiz-3') && !!saved.checkQuiz3Submitted);
+      setCheckQuiz4Answers(reached('check-quiz-4') ? (saved.checkQuiz4Answers || {}) : {});
+      setCheckQuiz4Submitted(reached('check-quiz-4') && !!saved.checkQuiz4Submitted);
+      setCheckQuiz5Answers(reached('check-quiz-5') ? (saved.checkQuiz5Answers || {}) : {});
+      setCheckQuiz5Submitted(reached('check-quiz-5') && !!saved.checkQuiz5Submitted);
+      setCheckQuiz6Answers(reached('check-quiz-6') ? (saved.checkQuiz6Answers || {}) : {});
+      setCheckQuiz6Submitted(reached('check-quiz-6') && !!saved.checkQuiz6Submitted);
+      setCheckQuiz7Answers(reached('check-quiz-7') ? (saved.checkQuiz7Answers || {}) : {});
+      setCheckQuiz7Submitted(reached('check-quiz-7') && !!saved.checkQuiz7Submitted);
+      setCheckQuiz8Answers(reached('check-quiz-8') ? (saved.checkQuiz8Answers || {}) : {});
+      setCheckQuiz8Submitted(reached('check-quiz-8') && !!saved.checkQuiz8Submitted);
+      setReadinessAnswers(reached('readiness-quiz') ? (saved.readinessAnswers || {}) : {});
+      setReadinessSubmitted(reached('readiness-quiz') && !!saved.readinessSubmitted);
+      setMasteryAnswers(reached('mastery-check') ? (saved.masteryAnswers || {}) : {});
+      setMasterySubmitted(reached('mastery-check') && !!saved.masterySubmitted);
       if (saved.quizStartAt) {
         quizStartTimeRef.current = saved.quizStartAt;
         skipNextQuizTimerResetRef.current = true;
@@ -3783,7 +3816,16 @@ export default function PracticeLoop() {
         {phaseRawIdx < 0 && phase !== 'mastery-check' && (
           <PhaseCard>
             <PhaseHeader badgeColor={COLOR.red} badgeLabel="Unknown step" description="This step is not recognised. Returning to the beginning of the loop." />
-            <button type="button" onClick={() => setPhase(PHASES[0] || 'diagnostic')} style={BTN_PRIMARY}>Restart loop</button>
+            <button
+              type="button"
+              onClick={() => {
+                clearQuizProgressState();
+                setPhase(PHASES[0] || 'diagnostic');
+              }}
+              style={BTN_PRIMARY}
+            >
+              Restart loop
+            </button>
           </PhaseCard>
         )}
 
