@@ -54,7 +54,7 @@ function TransformLab({ onComplete, continueLabel, badgeLabel, embedded }) {
       [[0, 0], [2, 0], [2, 2], [0, 2]],
     ];
     const transforms = [
-      { type: 'translate', param: { dx: rand(-3, 3) || 2, dy: rand(-3, 3) || 1 }, label: 'Translate' },
+      { type: 'translate', param: { dx: rand(-4, 4) || 2, dy: rand(-4, 4) || 1 }, label: 'Translate' },
       { type: 'reflect-x', param: {}, label: 'Reflect over x-axis' },
       { type: 'reflect-y', param: {}, label: 'Reflect over y-axis' },
       { type: 'rotate-90', param: {}, label: 'Rotate 90° CCW' },
@@ -98,8 +98,8 @@ function TransformLab({ onComplete, continueLabel, badgeLabel, embedded }) {
 
   const isCorrect = checked && ptsMatch(currentTransformed, problem.target);
 
-  const W = 340, H_SVG = 280, PAD = 30;
-  const GRID = 6;
+  const W = 340, H_SVG = 260, PAD = 24;
+  const GRID = 9;
   const cellW = (W - 2 * PAD) / (2 * GRID);
   const sx = (v) => PAD + (v + GRID) * cellW;
   const sy = (v) => H_SVG - PAD - (v + GRID) * cellW;
@@ -140,8 +140,8 @@ function TransformLab({ onComplete, continueLabel, badgeLabel, embedded }) {
             <g key={v}>
               <line x1={sx(v)} y1={PAD} x2={sx(v)} y2={H_SVG - PAD} stroke={v === 0 ? '#9ca3af' : '#f3f4f6'} strokeWidth={v === 0 ? 1.5 : 0.5} />
               <line x1={PAD} y1={sy(v)} x2={W - PAD} y2={sy(v)} stroke={v === 0 ? '#9ca3af' : '#f3f4f6'} strokeWidth={v === 0 ? 1.5 : 0.5} />
-              {v !== 0 && v % 2 === 0 && <text x={sx(v)} y={sy(0) + 12} fontSize={8} fill="#9ca3af" textAnchor="middle">{v}</text>}
-              {v !== 0 && v % 2 === 0 && <text x={sx(0) - 6} y={sy(v) + 3} fontSize={8} fill="#9ca3af" textAnchor="end">{v}</text>}
+              {v !== 0 && v % 3 === 0 && <text x={sx(v)} y={sy(0) + 11} fontSize={7} fill="#9ca3af" textAnchor="middle">{v}</text>}
+              {v !== 0 && v % 3 === 0 && <text x={sx(0) - 5} y={sy(v) + 3} fontSize={7} fill="#9ca3af" textAnchor="end">{v}</text>}
             </g>
           ))}
           {/* target (dashed) */}
@@ -194,12 +194,12 @@ function TransformLab({ onComplete, continueLabel, badgeLabel, embedded }) {
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginBottom: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: COLOR.text }}>dx:</span>
-            <input type="range" min={-5} max={5} step={1} value={dx} onChange={(e) => setDx(parseInt(e.target.value, 10))} aria-label="Translate x amount" style={{ width: 80, accentColor: COLOR.blue }} />
+            <input type="range" min={-7} max={7} step={1} value={dx} onChange={(e) => setDx(parseInt(e.target.value, 10))} aria-label="Translate x amount" style={{ width: 90, accentColor: COLOR.blue }} />
             <span style={{ fontSize: 13, fontWeight: 700, color: COLOR.blue }}>{dx}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: COLOR.text }}>dy:</span>
-            <input type="range" min={-5} max={5} step={1} value={dy} onChange={(e) => setDy(parseInt(e.target.value, 10))} aria-label="Translate y amount" style={{ width: 80, accentColor: COLOR.green }} />
+            <input type="range" min={-7} max={7} step={1} value={dy} onChange={(e) => setDy(parseInt(e.target.value, 10))} aria-label="Translate y amount" style={{ width: 90, accentColor: COLOR.green }} />
             <span style={{ fontSize: 13, fontWeight: 700, color: COLOR.green }}>{dy}</span>
           </div>
         </div>
