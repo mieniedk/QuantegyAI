@@ -2109,12 +2109,18 @@ export default function PracticeLoop() {
       if (!raw) return;
       const saved = JSON.parse(raw);
       const savedPhase = saved.phase && PHASES.includes(saved.phase) ? saved.phase : null;
-      if (savedPhase) setPhase(savedPhase);
+      if (savedPhase) {
+        suppressQuizResetRef.current = true;
+        setPhase(savedPhase);
+      }
       const savedIdx = savedPhase ? PHASES.indexOf(savedPhase) : -1;
       const reached = (phaseKey) => {
         const idx = PHASES.indexOf(phaseKey);
         return idx >= 0 && savedIdx >= idx;
       };
+      if (saved.quizPhaseScores && typeof saved.quizPhaseScores === 'object') {
+        setQuizPhaseScores(saved.quizPhaseScores);
+      }
       setDiagnosticAnswers(saved.diagnosticAnswers || {});
       setDiagnosticSubmitted(!!saved.diagnosticSubmitted);
       setCheckQuizAnswers(reached('check-quiz') ? (saved.checkQuizAnswers || {}) : {});
@@ -2149,6 +2155,7 @@ export default function PracticeLoop() {
       window.sessionStorage.setItem(sessionQuizKey, JSON.stringify({
         phase,
         quizStartAt: quizStartTimeRef.current,
+        quizPhaseScores,
         diagnosticAnswers, diagnosticSubmitted,
         checkQuizAnswers, checkQuizSubmitted,
         checkQuiz2Answers, checkQuiz2Submitted,
@@ -2163,7 +2170,7 @@ export default function PracticeLoop() {
       }));
     } catch {}
   }, [
-    sessionQuizKey, phase,
+    sessionQuizKey, phase, quizPhaseScores,
     diagnosticAnswers, diagnosticSubmitted,
     checkQuizAnswers, checkQuizSubmitted,
     checkQuiz2Answers, checkQuiz2Submitted,
@@ -2238,7 +2245,12 @@ export default function PracticeLoop() {
     'check-quiz-7': [setCheckQuiz7Answers, setCheckQuiz7Submitted],
     'check-quiz-8': [setCheckQuiz8Answers, setCheckQuiz8Submitted],
   }), []);
+  const suppressQuizResetRef = useRef(true);
   useEffect(() => {
+    if (suppressQuizResetRef.current) {
+      suppressQuizResetRef.current = false;
+      return;
+    }
     const resetters = quizResetMap[phase];
     if (resetters) {
       resetters[0]({});

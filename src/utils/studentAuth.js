@@ -7,29 +7,34 @@ const isLocalHost = typeof window !== 'undefined'
   && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 const API_BASE = envApiBase || (isLocalHost ? '' : DEFAULT_PROD_API_BASE);
 let ACTIVE_API_BASE = API_BASE;
-const REQUEST_TIMEOUT_MS = 20000;
-const SIGNUP_TIMEOUT_MS = 35000;
+const REQUEST_TIMEOUT_MS = 15000;
+const SIGNUP_TIMEOUT_MS = 25000;
 
 try {
   if (typeof localStorage !== 'undefined') {
-    const stored = (localStorage.getItem(STUDENT_API_BASE_KEY) || '').trim();
-    if (stored || stored === '') ACTIVE_API_BASE = stored;
+    const raw = localStorage.getItem(STUDENT_API_BASE_KEY);
+    if (raw !== null) {
+      const cleaned = raw.trim();
+      if (cleaned) {
+        ACTIVE_API_BASE = cleaned;
+      } else {
+        localStorage.removeItem(STUDENT_API_BASE_KEY);
+      }
+    }
   }
 } catch { /* ignore storage access issues */ }
 
 function setActiveApiBase(base) {
-  ACTIVE_API_BASE = typeof base === 'string' ? base : '';
+  ACTIVE_API_BASE = typeof base === 'string' ? base : API_BASE;
   try { localStorage.setItem(STUDENT_API_BASE_KEY, ACTIVE_API_BASE); } catch {}
 }
 
 function getApiBaseCandidates(preferredBase) {
-  return [...new Set([
-    preferredBase,
-    '',
-    envApiBase,
-    DEFAULT_PROD_API_BASE,
-    LOCAL_DEV_API_BASE,
-  ].filter((v) => typeof v === 'string'))];
+  const candidates = [preferredBase];
+  if (isLocalHost) candidates.push('', LOCAL_DEV_API_BASE);
+  else candidates.push(DEFAULT_PROD_API_BASE);
+  if (envApiBase) candidates.push(envApiBase);
+  return [...new Set(candidates.filter((v) => typeof v === 'string'))];
 }
 
 async function fetchJsonWithTimeout(url, options = {}, timeoutMs = REQUEST_TIMEOUT_MS) {
@@ -37,11 +42,15 @@ async function fetchJsonWithTimeout(url, options = {}, timeoutMs = REQUEST_TIMEO
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch(url, { ...options, signal: controller.signal });
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      return { success: false, error: `Unexpected response (${res.status}). Server may be unavailable.` };
+    }
     let data = null;
     try {
       data = await res.json();
     } catch {
-      data = null;
+      return { success: false, error: 'Invalid response from server.' };
     }
     if (!res.ok) {
       return {
@@ -89,9 +98,15 @@ export async function studentSignup({ email, password, displayName, timeoutMs = 
       timeoutMs,
     );
 
-    // Render-hosted APIs can cold-start slowly. On timeout, warm and retry once.
+    if (data?.success && data.token) {
+      setActiveApiBase(base);
+      localStorage.setItem(TOKEN_KEY, data.token);
+      return data;
+    }
+
+    // On timeout only, try a health-check warm-up and retry once.
     if (!data?.success && /timed out/i.test(String(data?.error || ''))) {
-      await fetchJsonWithTimeout(`${base}/api/health`, {}, 20000);
+      await fetchJsonWithTimeout(`${base}/api/health`, {}, 10000).catch(() => {});
       data = await fetchJsonWithTimeout(
         `${base}/api/auth/student/signup`,
         {
@@ -99,24 +114,18 @@ export async function studentSignup({ email, password, displayName, timeoutMs = 
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         },
-        Math.max(timeoutMs, 120000),
+        timeoutMs,
       );
+      if (data?.success && data.token) {
+        setActiveApiBase(base);
+        localStorage.setItem(TOKEN_KEY, data.token);
+        return data;
+      }
     }
 
-    if (data?.success && data.token) {
-      setActiveApiBase(base);
-      localStorage.setItem(TOKEN_KEY, data.token);
-      return data;
-    }
-    lastResult = data || lastResult;
+    if (data && !data.success) lastResult = data;
   }
 
-  if (!lastResult?.success && /timed out/i.test(String(lastResult?.error || ''))) {
-    return {
-      success: false,
-      error: 'Signup server is taking longer than expected. Please wait 30-60 seconds and try again.',
-    };
-  }
   return lastResult;
 }
 
@@ -135,8 +144,14 @@ export async function studentLogin({ email, password }) {
       REQUEST_TIMEOUT_MS,
     );
 
+    if (data?.success && data.token) {
+      setActiveApiBase(base);
+      localStorage.setItem(TOKEN_KEY, data.token);
+      return data;
+    }
+
     if (!data?.success && /timed out/i.test(String(data?.error || ''))) {
-      await fetchJsonWithTimeout(`${base}/api/health`, {}, 20000);
+      await fetchJsonWithTimeout(`${base}/api/health`, {}, 10000).catch(() => {});
       data = await fetchJsonWithTimeout(
         `${base}/api/auth/student/login`,
         {
@@ -144,16 +159,16 @@ export async function studentLogin({ email, password }) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         },
-        Math.max(REQUEST_TIMEOUT_MS, 60000),
+        REQUEST_TIMEOUT_MS,
       );
+      if (data?.success && data.token) {
+        setActiveApiBase(base);
+        localStorage.setItem(TOKEN_KEY, data.token);
+        return data;
+      }
     }
 
-    if (data.success && data.token) {
-      setActiveApiBase(base);
-      localStorage.setItem(TOKEN_KEY, data.token);
-      return data;
-    }
-    lastResult = data || lastResult;
+    if (data && !data.success) lastResult = data;
   }
 
   return lastResult;

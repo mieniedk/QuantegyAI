@@ -103,7 +103,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
     setBusy(true);
     try {
       const args = mode === 'signup'
-        ? { email: email.trim(), password, displayName: displayName.trim() || email.split('@')[0], timeoutMs: Math.max(AUTH_TIMEOUT_MS, 120000) }
+        ? { email: email.trim(), password, displayName: displayName.trim() || email.split('@')[0], timeoutMs: AUTH_TIMEOUT_MS }
         : { email: email.trim(), password };
       let result = mode === 'signup'
         ? await studentSignup(args)

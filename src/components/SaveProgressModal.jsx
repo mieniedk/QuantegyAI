@@ -11,7 +11,8 @@ const LEGACY_TO_NEW = {
   'allen-ace-learning-experience': EXPERIENCE_KEY,
   'allen-ace-loop-review': REVIEW_KEY,
 };
-const SIGNUP_TIMEOUT_MS = 35000;
+const SIGNUP_TIMEOUT_MS = 25000;
+const PENDING_SIGNUP_KEY = 'quantegy-pending-signup';
 
 function isAccountExistsError(message) {
   const text = String(message || '').toLowerCase();
@@ -38,19 +39,40 @@ function syncProgressToServer() {
   });
 }
 
+function warmUpApi() {
+  try {
+    const base = (import.meta.env.VITE_API_URL || '').trim() || 'https://quantegyai-api.onrender.com';
+    fetch(`${base}/api/health`, { method: 'GET' }).catch(() => {});
+  } catch { /* best effort */ }
+}
+
 export default function SaveProgressModal({ onClose, onSignedUp }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [busyLong, setBusyLong] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [savedLocally, setSavedLocally] = useState(false);
+  const busyTimerRef = useRef(null);
   const modalRef = useRef(null);
   const isMobile = typeof window !== 'undefined' ? window.innerWidth < MOBILE_BP : false;
 
   useEffect(() => {
     modalRef.current?.focus();
+    warmUpApi();
   }, []);
+
+  useEffect(() => {
+    if (busy) {
+      busyTimerRef.current = setTimeout(() => setBusyLong(true), 8000);
+    } else {
+      clearTimeout(busyTimerRef.current);
+      setBusyLong(false);
+    }
+    return () => clearTimeout(busyTimerRef.current);
+  }, [busy]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -74,6 +96,21 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
     return () => clearTimeout(t);
   }, [success, onSignedUp]);
 
+  const cancelledRef = useRef(false);
+  const saveLocally = useCallback(() => {
+    cancelledRef.current = true;
+    try {
+      localStorage.setItem(PENDING_SIGNUP_KEY, JSON.stringify({
+        email: email.trim(),
+        displayName: displayName.trim() || email.trim().split('@')[0],
+        ts: Date.now(),
+      }));
+    } catch { /* best effort */ }
+    setBusy(false);
+    setSavedLocally(true);
+    setSuccess(true);
+  }, [email, displayName]);
+
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     setError('');
@@ -94,20 +131,25 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
         displayName: displayName.trim() || trimmedEmail.split('@')[0],
         timeoutMs: SIGNUP_TIMEOUT_MS,
       });
+      if (cancelledRef.current) return;
       if (!result.success && isAccountExistsError(result.error)) {
-        // If account already exists, log in and sync instead of failing save flow.
         result = await studentLogin({ email: trimmedEmail, password });
       }
+      if (cancelledRef.current) return;
       if (!result.success) {
-        setError(result.error || 'Something went wrong. Please try again.');
+        setError(
+          (result.error || 'Something went wrong.') +
+          ' Your progress is safe on this device. You can try creating an account later.'
+        );
         return;
       }
       syncProgressToServer();
       setSuccess(true);
     } catch (err) {
-      setError(err.message || 'Network error. Please try again.');
+      if (cancelledRef.current) return;
+      setError((err.message || 'Network error.') + ' Your progress is safe on this device.');
     } finally {
-      setBusy(false);
+      if (!cancelledRef.current) setBusy(false);
     }
   }, [email, password, displayName]);
 
@@ -140,10 +182,12 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
           <div style={{ textAlign: 'center', padding: '12px 0' }}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>✓</div>
             <h3 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 800, color: COLOR.green }}>
-              Progress saved!
+              {savedLocally ? 'Progress saved on this device!' : 'Progress saved!'}
             </h3>
             <p style={{ margin: 0, fontSize: 14, color: COLOR.textSecondary, lineHeight: 1.5 }}>
-              Your account is set up. You can log in from any device to continue where you left off.
+              {savedLocally
+                ? 'Your progress is saved locally. You can create an account later to sync across devices.'
+                : 'Your account is set up. You can log in from any device to continue where you left off.'}
             </p>
           </div>
         ) : (
@@ -211,8 +255,23 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
               />
 
               {error && (
-                <div style={{ marginBottom: 12, padding: '10px 12px', borderRadius: 8, background: COLOR.redBg, fontSize: 13, color: COLOR.red, lineHeight: 1.4 }}>
-                  {error}
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{ padding: '10px 12px', borderRadius: 8, background: COLOR.redBg, fontSize: 13, color: COLOR.red, lineHeight: 1.4, marginBottom: 8 }}>
+                    {error}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={saveLocally}
+                    style={{
+                      width: '100%', padding: '10px 16px', minHeight: 40,
+                      fontSize: 13, fontWeight: 700, borderRadius: 8,
+                      background: COLOR.greenBg || '#e6f9ed', color: COLOR.green || '#16a34a',
+                      border: `1px solid ${COLOR.green || '#16a34a'}`,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Save progress on this device for now
+                  </button>
                 </div>
               )}
 
@@ -228,11 +287,31 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
                   cursor: busy ? 'wait' : 'pointer',
                 }}
               >
-                {busy ? 'Saving progress… this can take up to a minute' : 'Save my progress'}
+                {busy ? 'Creating account…' : 'Save my progress'}
               </button>
               {busy && (
                 <div style={{ marginTop: 8, fontSize: 12, color: COLOR.textMuted, lineHeight: 1.4 }}>
-                  Creating your account and syncing progress. Please keep this window open.
+                  Connecting to server. This may take a moment.
+                </div>
+              )}
+              {busyLong && (
+                <div style={{ marginTop: 10 }}>
+                  <div style={{ fontSize: 12, color: COLOR.textMuted, marginBottom: 6 }}>
+                    The server is taking longer than expected.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={saveLocally}
+                    style={{
+                      width: '100%', padding: '10px 16px', minHeight: 40,
+                      fontSize: 13, fontWeight: 700, borderRadius: 8,
+                      background: COLOR.greenBg || '#e6f9ed', color: COLOR.green || '#16a34a',
+                      border: `1px solid ${COLOR.green || '#16a34a'}`,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Save on this device for now
+                  </button>
                 </div>
               )}
             </form>
