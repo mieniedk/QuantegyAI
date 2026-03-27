@@ -18,6 +18,8 @@ dist-ssr
 backups/
 server/uploads/
 server/data/
+playwright-report/
+test-results/
 
 # Editor directories and files
 .vscode/*
