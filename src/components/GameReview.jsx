@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import QBotExplainer from './QBotExplainer';
+import { formatMathHtml } from '../utils/mathFormat';
+import { sanitizeHtml } from '../utils/sanitize';
+
+function reviewMathHtml(text) {
+  if (text == null || text === '') return '';
+  return sanitizeHtml(formatMathHtml(String(text)));
+}
 
 /**
  * Shared post-game review component.
@@ -155,9 +162,9 @@ const GameReview = ({ questions = [], score, total, time, gameTitle, onPlayAgain
               <p style={{
                 margin: '0 0 10px', fontSize: 15, fontWeight: 600, color: '#0f172a',
                 lineHeight: 1.5, whiteSpace: 'pre-line',
-              }}>
-                {q.question}
-              </p>
+              }}
+                dangerouslySetInnerHTML={{ __html: reviewMathHtml(q.question) }}
+              />
 
               {/* Answer comparison */}
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: q.explanation ? 10 : 0 }}>
@@ -173,9 +180,9 @@ const GameReview = ({ questions = [], score, total, time, gameTitle, onPlayAgain
                     <div style={{
                       fontSize: 16, fontWeight: 800, color: '#dc2626',
                       textDecoration: 'line-through', textDecorationThickness: 2,
-                    }}>
-                      {q.userAnswer}
-                    </div>
+                    }}
+                      dangerouslySetInnerHTML={{ __html: reviewMathHtml(q.userAnswer) }}
+                    />
                   </div>
                 )}
                 <div style={{
@@ -186,9 +193,9 @@ const GameReview = ({ questions = [], score, total, time, gameTitle, onPlayAgain
                   <div style={{ fontSize: 10, fontWeight: 700, color: '#166534', textTransform: 'uppercase', marginBottom: 2 }}>
                     Correct Answer
                   </div>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: '#16a34a' }}>
-                    {q.correctAnswer}
-                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: '#16a34a' }}
+                    dangerouslySetInnerHTML={{ __html: reviewMathHtml(q.correctAnswer) }}
+                  />
                 </div>
               </div>
 

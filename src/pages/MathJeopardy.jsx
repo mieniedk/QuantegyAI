@@ -5,6 +5,13 @@ import useGameReturn from '../hooks/useGameReturn';
 import { saveGameResult } from '../utils/storage';
 import GameReview from '../components/GameReview';
 import qbotImg from '../assets/qbot.svg';
+import { formatMathHtml } from '../utils/mathFormat';
+import { sanitizeHtml } from '../utils/sanitize';
+
+function jeopardyMathHtml(text) {
+  if (text == null || text === '') return '';
+  return sanitizeHtml(formatMathHtml(String(text)));
+}
 
 /* ═══════════════════════════════════════════════════════════
    MATH JEOPARDY — 5×5 trivia board
@@ -191,7 +198,7 @@ const CATEGORY_BANKS = {
       { q: 'If f(x) = 2x + 1, what is f(3)?', choices: ['7', '5', '6', '9'], answer: '7' },
       { q: 'Which is a function: {(1,2),(1,3)} or {(1,2),(2,3)}?', choices: ['{(1,2),(2,3)}', '{(1,2),(1,3)}', 'Both', 'Neither'], answer: '{(1,2),(2,3)}' },
       { q: 'What is the domain of f(x) = x + 5?', choices: ['All real numbers', 'x > 0', 'x ≠ 5', 'Only integers'], answer: 'All real numbers' },
-      { q: 'If f(x) = x² − 1, what is f(4)?', choices: ['15', '16', '17', '7'], answer: '15' },
+      { q: 'If f(x) = x^(2) − 1, what is f(4)?', choices: ['15', '16', '17', '7'], answer: '15' },
       { q: 'The vertical line test checks if a graph is a ___?', choices: ['Function', 'Linear', 'Quadratic', 'Polynomial'], answer: 'Function' },
     ],
   },
@@ -211,21 +218,21 @@ const CATEGORY_BANKS = {
     icon: '√',
     questions: [
       { q: 'What is √(144)?', choices: ['12', '14', '11', '13'], answer: '12' },
-      { q: 'Simplify: 2³ × 2²', choices: ['2⁵ = 32', '2⁶ = 64', '2¹ = 2', '4⁵'], answer: '2⁵ = 32' },
-      { q: 'What is 5⁰?', choices: ['1', '0', '5', 'Undefined'], answer: '1' },
+      { q: 'Simplify: 2^(3) × 2^(2)', choices: ['2^(5) = 32', '2^(6) = 64', '2^(1) = 2', '4^(5)'], answer: '2^(5) = 32' },
+      { q: 'What is 5^(0)?', choices: ['1', '0', '5', 'Undefined'], answer: '1' },
       { q: 'Simplify: √(49 × 4)', choices: ['14', '28', '7', '196'], answer: '14' },
-      { q: 'What is 3⁻²?', choices: ['1/9', '−9', '−6', '9'], answer: '1/9' },
+      { q: 'What is 3^(−2)?', choices: ['(1)/(9)', '−9', '−6', '9'], answer: '(1)/(9)' },
     ],
   },
   'A.11B': {
     label: 'Quadratics',
     icon: '📈',
     questions: [
-      { q: 'What shape does y = x² make?', choices: ['Parabola', 'Line', 'Circle', 'Hyperbola'], answer: 'Parabola' },
-      { q: 'What is the vertex of y = (x − 3)² + 2?', choices: ['(3, 2)', '(−3, 2)', '(3, −2)', '(2, 3)'], answer: '(3, 2)' },
-      { q: 'Factor: x² − 9', choices: ['(x+3)(x−3)', '(x+9)(x−1)', '(x−3)²', '(x+3)²'], answer: '(x+3)(x−3)' },
-      { q: 'Solve: x² = 25', choices: ['x = ±5', 'x = 5', 'x = −5', 'x = 25'], answer: 'x = ±5' },
-      { q: 'In y = ax² + bx + c, what determines if the parabola opens up or down?', choices: ['Sign of a', 'Value of b', 'Value of c', 'Sign of b'], answer: 'Sign of a' },
+      { q: 'What shape does y = x^(2) make?', choices: ['Parabola', 'Line', 'Circle', 'Hyperbola'], answer: 'Parabola' },
+      { q: 'What is the vertex of y = (x − 3)^(2) + 2?', choices: ['(3, 2)', '(−3, 2)', '(3, −2)', '(2, 3)'], answer: '(3, 2)' },
+      { q: 'Factor: x^(2) − 9', choices: ['(x+3)(x−3)', '(x+9)(x−1)', '(x−3)^(2)', '(x+3)^(2)'], answer: '(x+3)(x−3)' },
+      { q: 'Solve: x^(2) = 25', choices: ['x = ±5', 'x = 5', 'x = −5', 'x = 25'], answer: 'x = ±5' },
+      { q: 'In y = ax^(2) + bx + c, what determines if the parabola opens up or down?', choices: ['Sign of a', 'Value of b', 'Value of c', 'Sign of b'], answer: 'Sign of a' },
     ],
   },
   'A.12B': {
@@ -234,7 +241,7 @@ const CATEGORY_BANKS = {
     questions: [
       { q: 'What is the GCF of 12 and 18?', choices: ['6', '3', '9', '12'], answer: '6' },
       { q: 'What is the LCM of 4 and 6?', choices: ['12', '24', '6', '2'], answer: '12' },
-      { q: 'Factor 24 into primes.', choices: ['2³ × 3', '4 × 6', '2 × 12', '8 × 3'], answer: '2³ × 3' },
+      { q: 'Factor 24 into primes.', choices: ['2^(3) × 3', '4 × 6', '2 × 12', '8 × 3'], answer: '2^(3) × 3' },
       { q: 'GCF(20, 30) = ?', choices: ['10', '20', '5', '30'], answer: '10' },
       { q: 'LCM(3, 5) = ?', choices: ['15', '8', '1', '30'], answer: '15' },
     ],
@@ -290,7 +297,7 @@ const CATEGORY_BANKS = {
     questions: [
       { q: 'Constant first differences indicate a(n):', choices: ['Quadratic', 'Linear pattern', 'Exponential decay', 'Random set'], answer: 'Linear pattern' },
       { q: 'Slope represents:', choices: ['Y-intercept only', 'Rate of change', 'Domain limit', 'Axis of symmetry'], answer: 'Rate of change' },
-      { q: 'Vertex form y=a(x−h)^2+k makes it easiest to read:', choices: ['Roots only', 'Asymptote', 'Vertex', 'Average rate'], answer: 'Vertex' },
+      { q: 'Vertex form y = a(x − h)^(2) + k makes it easiest to read:', choices: ['Roots only', 'Asymptote', 'Vertex', 'Average rate'], answer: 'Vertex' },
       { q: 'Solving a system graphically means finding:', choices: ['Any x-value', 'The intersection point', 'The y-intercept only', 'The slope sign'], answer: 'The intersection point' },
       { q: 'For exponential growth, the base is typically:', choices: ['0', '1', 'Greater than 1', 'Negative'], answer: 'Greater than 1' },
     ],
@@ -312,18 +319,18 @@ const CATEGORY_BANKS = {
     label: 'Limits',
     icon: '🎯',
     questions: [
-      { q: 'What is lim(x→3) of (x² − 9)/(x − 3)?', choices: ['6', '0', '3', 'Undefined'], answer: '6' },
-      { q: 'If lim(x→a) f(x) = f(a), the function is ___ at a.', choices: ['Continuous', 'Differentiable', 'Increasing', 'Bounded'], answer: 'Continuous' },
-      { q: 'lim(x→0) sin(x)/x = ?', choices: ['1', '0', '∞', 'Undefined'], answer: '1' },
+      { q: 'What is lim_(x→3) (x^(2) − 9)/(x − 3)?', choices: ['6', '0', '3', 'Undefined'], answer: '6' },
+      { q: 'If lim_(x→a) f(x) = f(a), the function is ___ at a.', choices: ['Continuous', 'Differentiable', 'Increasing', 'Bounded'], answer: 'Continuous' },
+      { q: 'lim_(x→0) sin(x)/x = ?', choices: ['1', '0', '∞', 'Undefined'], answer: '1' },
       { q: 'A limit that approaches different values from left and right is called:', choices: ['Does not exist', 'Continuous', 'Finite', 'Removable'], answer: 'Does not exist' },
-      { q: 'lim(x→∞) 1/x = ?', choices: ['0', '1', '∞', 'Undefined'], answer: '0' },
+      { q: 'lim_(x→∞) (1)/(x) = ?', choices: ['0', '1', '∞', 'Undefined'], answer: '0' },
     ],
   },
   'c010-der': {
     label: 'Derivatives',
     icon: '📈',
     questions: [
-      { q: 'The derivative of x³ is:', choices: ['3x²', 'x²', '3x³', 'x⁴/4'], answer: '3x²' },
+      { q: 'The derivative of x^(3) is:', choices: ['3x^(2)', 'x^(2)', '3x^(3)', '(x^(4))/(4)'], answer: '3x^(2)' },
       { q: 'f\'(x) = 0 at a point means the tangent line is:', choices: ['Horizontal', 'Vertical', 'Undefined', 'Steep'], answer: 'Horizontal' },
       { q: 'The derivative of sin(x) is:', choices: ['cos(x)', '−cos(x)', 'sin(x)', '−sin(x)'], answer: 'cos(x)' },
       { q: 'The chain rule is used when you have:', choices: ['A composition of functions', 'Two added functions', 'A constant', 'A polynomial only'], answer: 'A composition of functions' },
@@ -334,7 +341,7 @@ const CATEGORY_BANKS = {
     label: 'Integrals',
     icon: '∫',
     questions: [
-      { q: '∫x² dx = ?', choices: ['x³/3 + C', 'x³ + C', '2x + C', 'x²/2 + C'], answer: 'x³/3 + C' },
+      { q: '∫ x^(2) dx = ?', choices: ['(x^(3))/(3) + C', 'x^(3) + C', '2x + C', '(x^(2))/(2) + C'], answer: '(x^(3))/(3) + C' },
       { q: 'A definite integral computes:', choices: ['Net area under the curve', 'The slope', 'A derivative', 'The y-intercept'], answer: 'Net area under the curve' },
       { q: 'The Fundamental Theorem of Calculus links:', choices: ['Derivatives and integrals', 'Limits and slopes', 'Area and perimeter', 'Sine and cosine'], answer: 'Derivatives and integrals' },
       { q: '∫cos(x) dx = ?', choices: ['sin(x) + C', '−sin(x) + C', 'cos(x) + C', 'tan(x) + C'], answer: 'sin(x) + C' },
@@ -348,7 +355,7 @@ const CATEGORY_BANKS = {
       { q: 'The domain of f(x) = 1/x excludes:', choices: ['x = 0', 'x = 1', 'All negatives', 'Nothing'], answer: 'x = 0' },
       { q: 'An even function satisfies:', choices: ['f(−x) = f(x)', 'f(−x) = −f(x)', 'f(0) = 0', 'f(x) > 0'], answer: 'f(−x) = f(x)' },
       { q: 'A vertical asymptote occurs where:', choices: ['The denominator is zero', 'The function is constant', 'The derivative is zero', 'The numerator is zero'], answer: 'The denominator is zero' },
-      { q: 'Which is a transcendental function?', choices: ['eˣ', 'x² + 1', '3x − 7', 'x⁵'], answer: 'eˣ' },
+      { q: 'Which is a transcendental function?', choices: ['e^(x)', 'x^(2) + 1', '3x − 7', 'x^(5)'], answer: 'e^(x)' },
       { q: 'If f(g(x)) = x and g(f(x)) = x, then f and g are:', choices: ['Inverses', 'Equal', 'Perpendicular', 'Parallel'], answer: 'Inverses' },
     ],
   },
@@ -812,9 +819,9 @@ const MathJeopardy = () => {
               fontSize: 20, fontWeight: 700, textAlign: 'center',
               lineHeight: 1.5, marginBottom: 24, color: '#f1f5f9',
               padding: '0 8px',
-            }}>
-              {activeCell.q.q}
-            </div>
+            }}
+              dangerouslySetInnerHTML={{ __html: jeopardyMathHtml(activeCell.q.q) }}
+            />
 
             {/* Answer choices */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -857,7 +864,7 @@ const MathJeopardy = () => {
                       lineHeight: 1.3,
                     }}
                   >
-                    {choice}
+                    <span dangerouslySetInnerHTML={{ __html: jeopardyMathHtml(choice) }} />
                   </button>
                 );
               })}
@@ -873,8 +880,12 @@ const MathJeopardy = () => {
                 }}>
                   {selectedAnswer === activeCell.q.answer
                     ? `Correct reasoning. +$${activeCell.isDailyDouble ? wager : activeCell.points}`
-                    : `Not correct. The accepted solution is ${activeCell.q.answer}`
-                  }
+                    : (
+                      <span>
+                        Not correct. The accepted solution is{' '}
+                        <span dangerouslySetInnerHTML={{ __html: jeopardyMathHtml(activeCell.q.answer) }} />
+                      </span>
+                    )}
                 </div>
                 <button onClick={closeQuestion} style={{
                   padding: '10px 28px', background: '#fbbf24', color: '#0f172a',

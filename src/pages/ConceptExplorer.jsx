@@ -117,10 +117,18 @@ export default function ConceptExplorer() {
                 {!revealed[key] && <span style={{ marginLeft: 'auto', fontSize: 12, color: '#64748b' }}>Click to reveal</span>}
               </div>
               {revealed[key] && (
-                <div
-                  style={{ fontSize: 15, color: '#e2e8f0', lineHeight: 1.6 }}
-                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(key === 'keyIdea' ? conceptToBulletHtml(content) : formatMathHtml(content)) }}
-                />
+                <>
+                  <div
+                    style={{ fontSize: 15, color: '#e2e8f0', lineHeight: 1.6 }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(key === 'keyIdea' ? conceptToBulletHtml(content) : formatMathHtml(content)) }}
+                  />
+                  {key === 'keyIdea' && microConcept?.illustrationHtml && (
+                    <div
+                      style={{ marginTop: 12 }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(microConcept.illustrationHtml) }}
+                    />
+                  )}
+                </>
               )}
             </div>
           ))}

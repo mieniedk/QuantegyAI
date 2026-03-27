@@ -3,7 +3,10 @@
  * Structure: 60–120 words, one worked example, one "watch out" misconception
  * All math notation uses ^ for exponents (formatMathHtml renders as superscript)
  * Key: examId:compId or examId:teks for EC-6
+ * Optional illustrationHtml: safe HTML (img grid) rendered below conceptText where supported.
  */
+
+import { euclideanCircleTheoremsFiguresHtml } from './euclideanCircleFigures';
 
 export const MICRO_CONCEPTS = {
   // ═══════════════════════════════════════════════════════════════
@@ -235,6 +238,7 @@ export const MICRO_CONCEPTS = {
     misconception: 'An inscribed angle equals its arc. Wrong — an inscribed angle is half the intercepted arc. A central angle equals the arc.',
     variants: [
       { conceptText: 'Circle theorems: tangent ⊥ radius at point of tangency. Two tangents from external point are equal length. Inscribed angle in semicircle = 90°. Chord–chord angle = (1)/(2)(sum of intercepted arcs). Secant–secant angle from outside = (1)/(2)(difference of intercepted arcs). Power of a point: for two chords, (segment₁)(segment₂) = (segment₃)(segment₄).',
+        illustrationHtml: euclideanCircleTheoremsFiguresHtml,
         workedExample: 'Two chords intersect inside a circle. Segments: 3 and 8 on one chord, x and 4 on the other. 3·8 = x·4 → x = 6.',
         misconception: 'A chord always passes through the center. Wrong — only a diameter passes through the center. A chord is any segment with both endpoints on the circle.' },
       { conceptText: 'Properties of quadrilaterals: parallelogram (opposite sides ‖ and ≅, opposite angles ≅, diagonals bisect each other); rectangle (parallelogram + right angles, diagonals ≅); rhombus (parallelogram + all sides ≅, diagonals ⊥); square (rectangle + rhombus). Trapezoid: exactly one pair of parallel sides. Midsegment = (1)/(2)(base₁ + base₂). Kite: two pairs of consecutive sides ≅.',

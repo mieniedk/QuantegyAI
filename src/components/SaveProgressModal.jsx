@@ -11,8 +11,9 @@ const LEGACY_TO_NEW = {
   'allen-ace-learning-experience': EXPERIENCE_KEY,
   'allen-ace-loop-review': REVIEW_KEY,
 };
-const SIGNUP_TIMEOUT_MS = 25000;
 const PENDING_SIGNUP_KEY = 'quantegy-pending-signup';
+/** After cold-start wake, signup can still take a while — don’t alarm before this (ms). */
+const BUSY_LONG_HINT_MS = 52000;
 
 function isAccountExistsError(message) {
   const text = String(message || '').toLowerCase();
@@ -66,7 +67,7 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
 
   useEffect(() => {
     if (busy) {
-      busyTimerRef.current = setTimeout(() => setBusyLong(true), 8000);
+      busyTimerRef.current = setTimeout(() => setBusyLong(true), BUSY_LONG_HINT_MS);
     } else {
       clearTimeout(busyTimerRef.current);
       setBusyLong(false);
@@ -129,7 +130,6 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
         email: trimmedEmail,
         password,
         displayName: displayName.trim() || trimmedEmail.split('@')[0],
-        timeoutMs: SIGNUP_TIMEOUT_MS,
       });
       if (cancelledRef.current) return;
       if (!result.success && isAccountExistsError(result.error)) {
@@ -201,6 +201,26 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
             <p style={{ margin: '0 0 20px', fontSize: 14, color: COLOR.textSecondary, lineHeight: 1.55 }}>
               Create a free account so you can pick up where you left off — on any device, any time.
             </p>
+            <div style={{ margin: '0 0 16px', padding: '10px 12px', borderRadius: 10, background: '#eef6ff', border: `1px solid ${COLOR.blue}40` }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: COLOR.blue, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+                Optional upgrade
+              </div>
+              <div style={{ fontSize: 13, color: COLOR.textSecondary, lineHeight: 1.45, marginBottom: 8 }}>
+                Unlock premium prep now: <strong style={{ color: COLOR.text }}>$9.99/month</strong> (all exams) or <strong style={{ color: COLOR.text }}>$29 one-time</strong> (single exam).
+              </div>
+              <a
+                href="/pricing"
+                style={{
+                  display: 'inline-block',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: COLOR.blue,
+                  textDecoration: 'none',
+                }}
+              >
+                View upgrade options →
+              </a>
+            </div>
 
             <form onSubmit={handleSubmit}>
               <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: COLOR.text, marginBottom: 4 }}>
@@ -290,14 +310,14 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
                 {busy ? 'Creating account…' : 'Save my progress'}
               </button>
               {busy && (
-                <div style={{ marginTop: 8, fontSize: 12, color: COLOR.textMuted, lineHeight: 1.4 }}>
-                  Connecting to server. This may take a moment.
+                <div style={{ marginTop: 8, fontSize: 12, color: COLOR.textMuted, lineHeight: 1.45 }}>
+                  Connecting to our servers. If nobody has used the app for a while, the first sign-up can take up to about a minute while the service starts — please keep this tab open.
                 </div>
               )}
               {busyLong && (
                 <div style={{ marginTop: 10 }}>
                   <div style={{ fontSize: 12, color: COLOR.textMuted, marginBottom: 6 }}>
-                    The server is taking longer than expected.
+                    Still working — you can wait a bit longer, or save on this device below if you prefer not to wait.
                   </div>
                   <button
                     type="button"
@@ -328,6 +348,9 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
             >
               Maybe later
             </button>
+            <p style={{ margin: '8px 0 0', textAlign: 'center', fontSize: 11, color: COLOR.textMuted, lineHeight: 1.4 }}>
+              If you choose “save on this device for now,” progress is stored locally on this device only until you sign in.
+            </p>
           </>
         )}
       </div>

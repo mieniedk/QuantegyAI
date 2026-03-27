@@ -418,9 +418,14 @@ const PATTERNS = [
   { shown: [1, 3, 6, 10, 15], next: [21, 28], rule: 'Triangular numbers: add 2, 3, 4, 5, 6, 7...', type: 'triangular' },
 ];
 
-function PatternFinder({ onComplete, continueLabel, badgeLabel, embedded }) {
+function PatternFinder({ onComplete, continueLabel, badgeLabel, embedded, forcePatternType }) {
   const [roundIdx, setRound] = useState(0);
-  const pattern = useMemo(() => PATTERNS[roundIdx % PATTERNS.length], [roundIdx]);
+  const availablePatterns = useMemo(() => {
+    if (!forcePatternType) return PATTERNS;
+    const filtered = PATTERNS.filter((p) => p.type === forcePatternType);
+    return filtered.length > 0 ? filtered : PATTERNS;
+  }, [forcePatternType]);
+  const pattern = useMemo(() => availablePatterns[roundIdx % availablePatterns.length], [roundIdx, availablePatterns]);
 
   const [guess1, setGuess1] = useState('');
   const [guess2, setGuess2] = useState('');
@@ -432,6 +437,15 @@ function PatternFinder({ onComplete, continueLabel, badgeLabel, embedded }) {
   const g1Correct = parseInt(guess1, 10) === pattern.next[0];
   const g2Correct = parseInt(guess2, 10) === pattern.next[1];
   const allCorrect = checked && g1Correct && g2Correct;
+  const diffs = useMemo(
+    () => pattern.shown.slice(1).map((v, i) => v - pattern.shown[i]),
+    [pattern],
+  );
+  const isArithmetic = diffs.length > 0 && diffs.every((d) => d === diffs[0]);
+  const commonDiff = isArithmetic ? diffs[0] : null;
+  const target1Idx = pattern.shown.length + 1;
+  const target2Idx = pattern.shown.length + 2;
+  const solvedSeq = [...pattern.shown, pattern.next[0], pattern.next[1]];
 
   return (
     <div style={embedded ? {} : CARD}>
@@ -445,6 +459,11 @@ function PatternFinder({ onComplete, continueLabel, badgeLabel, embedded }) {
       <p style={{ margin: '0 0 8px', fontSize: 13, color: COLOR.textSecondary }}>
         Study the sequence and predict the next two terms.
       </p>
+      {pattern.type === 'geometric' && (
+        <p style={{ margin: '0 0 8px', fontSize: 12, color: '#075985', fontWeight: 700 }}>
+          Geometric sequence focus: each term is multiplied by a constant ratio r.
+        </p>
+      )}
       <div style={{ margin: '0 0 10px', display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 12, fontWeight: 700, color: COLOR.textSecondary, background: '#f1f5f9', border: `1px solid ${COLOR.border}`, borderRadius: 999, padding: '4px 10px' }}>
           Entries: {(guess1 ? 1 : 0) + (guess2 ? 1 : 0)}/2
@@ -489,6 +508,30 @@ function PatternFinder({ onComplete, continueLabel, badgeLabel, embedded }) {
         })}
       </div>
 
+      {/* Geometric visualization */}
+      {pattern.type === 'geometric' && (
+        <div style={{ marginBottom: 14, padding: '10px 12px', borderRadius: 10, background: '#f0f9ff', border: '1px solid #bae6fd' }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: '#0369a1', marginBottom: 8 }}>
+            Visual growth (term size scales by value)
+          </div>
+          <div style={{ display: 'grid', gap: 6 }}>
+            {pattern.shown.map((v, i) => {
+              const max = Math.max(...pattern.shown);
+              const pct = Math.max(12, Math.round((v / max) * 100));
+              return (
+                <div key={`geo-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ width: 28, fontSize: 10, fontWeight: 700, color: '#64748b' }}>{`a_${i + 1}`}</span>
+                  <div style={{ flex: 1, height: 14, borderRadius: 7, background: '#e0f2fe', overflow: 'hidden' }}>
+                    <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #0ea5e9, #2563eb)' }} />
+                  </div>
+                  <span style={{ width: 50, textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#0c4a6e' }}>{v}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Input fields */}
       <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginBottom: 14, alignItems: 'center' }}>
         <div style={{ textAlign: 'center' }}>
@@ -507,6 +550,30 @@ function PatternFinder({ onComplete, continueLabel, badgeLabel, embedded }) {
         <p style={{ margin: '0 0 8px', fontSize: 12, color: '#ef4444', fontWeight: 600, textAlign: 'center' }}>
           Expected: {pattern.next[0]}, {pattern.next[1]}
         </p>
+      )}
+
+      {checked && (
+        <div style={{ marginBottom: 12, padding: '10px 12px', borderRadius: 12, background: '#f8fafc', border: `1px solid ${COLOR.border}` }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: COLOR.text, marginBottom: 6 }}>
+            Sequence map (term notation)
+          </div>
+          <div style={{ fontSize: 12, color: COLOR.textSecondary, lineHeight: 1.55, marginBottom: 6 }}>
+            {solvedSeq.map((v, i) => `a_${i + 1}=${v}`).join(' -> ')}
+          </div>
+          <div style={{ fontSize: 12, color: COLOR.textSecondary, lineHeight: 1.55 }}>
+            Targets: a_{target1Idx} and a_{target2Idx} (you solved: {pattern.next[0]}, {pattern.next[1]}).
+          </div>
+          {isArithmetic ? (
+            <div style={{ marginTop: 8, fontSize: 12, color: '#1e3a8a', lineHeight: 1.55, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, padding: '8px 10px' }}>
+              Arithmetic sequence: common difference d = {commonDiff > 0 ? '+' : ''}{commonDiff}. Rule: a_n = a_1 + (n-1)d.
+              With a_1 = {pattern.shown[0]}, a_{target1Idx} = {pattern.next[0]} and a_{target2Idx} = {pattern.next[1]}.
+            </div>
+          ) : (
+            <div style={{ marginTop: 8, fontSize: 12, color: '#92400e', lineHeight: 1.55, background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 8, padding: '8px 10px' }}>
+              Differences are not constant, so this one is not arithmetic. Use the displayed rule pattern to compute a_{target1Idx} and a_{target2Idx}.
+            </div>
+          )}
+        </div>
       )}
 
       {/* Rule reveal */}
@@ -550,9 +617,17 @@ function PatternFinder({ onComplete, continueLabel, badgeLabel, embedded }) {
    ═══════════════════════════════════════════════════════════════════════════ */
 const MODES = ['proof-sorter', 'representation-match', 'pattern-finder'];
 
-export default function ReasoningExplorer({ activityIndex = 0, onComplete, continueLabel = 'Continue', badgeLabel = 'Interactive activity', embedded = false }) {
-  const mode = MODES[activityIndex % MODES.length];
+export default function ReasoningExplorer({
+  activityIndex = 0,
+  onComplete,
+  continueLabel = 'Continue',
+  badgeLabel = 'Interactive activity',
+  embedded = false,
+  modeOverride,
+  forcePatternType,
+}) {
+  const mode = modeOverride || MODES[activityIndex % MODES.length];
   if (mode === 'proof-sorter') return <ProofSorter onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'representation-match') return <RepresentationMatch onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
-  return <PatternFinder onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+  return <PatternFinder onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} forcePatternType={forcePatternType} />;
 }

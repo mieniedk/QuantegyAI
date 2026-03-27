@@ -7,8 +7,11 @@ const isLocalHost = typeof window !== 'undefined'
   && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 const API_BASE = envApiBase || (isLocalHost ? '' : DEFAULT_PROD_API_BASE);
 let ACTIVE_API_BASE = API_BASE;
-const REQUEST_TIMEOUT_MS = 15000;
-const SIGNUP_TIMEOUT_MS = 25000;
+const REQUEST_TIMEOUT_MS = 20000;
+/** Per-request timeout for signup/login after the API is awake (hosted APIs can be slow right after wake). */
+const SIGNUP_TIMEOUT_MS = 90000;
+/** Cold start (e.g. Render free tier): wake the host before signup/login. */
+const WAKE_REMOTE_API_MS = 90000;
 
 try {
   if (typeof localStorage !== 'undefined') {
@@ -35,6 +38,26 @@ function getApiBaseCandidates(preferredBase) {
   else candidates.push(DEFAULT_PROD_API_BASE);
   if (envApiBase) candidates.push(envApiBase);
   return [...new Set(candidates.filter((v) => typeof v === 'string'))];
+}
+
+/** GET /api/health on a remote base so serverless hosts can spin up before auth. */
+async function wakeRemoteApiBase(base, timeoutMs = WAKE_REMOTE_API_MS) {
+  if (!base || !/^https?:\/\//i.test(base)) return;
+  const root = base.replace(/\/$/, '');
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${root}/api/health`, { method: 'GET', signal: controller.signal });
+    await res.text();
+  } catch {
+    /* still attempt signup — wake is best-effort */
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function remoteBasesFromCandidates(candidates) {
+  return [...new Set(candidates.filter((b) => typeof b === 'string' && /^https?:\/\//i.test(b)))];
 }
 
 async function fetchJsonWithTimeout(url, options = {}, timeoutMs = REQUEST_TIMEOUT_MS) {
@@ -85,6 +108,10 @@ function decodeJwt(token) {
 export async function studentSignup({ email, password, displayName, timeoutMs = SIGNUP_TIMEOUT_MS }) {
   const payload = { username: email, password, displayName: displayName || email.split('@')[0] };
   const baseCandidates = getApiBaseCandidates(ACTIVE_API_BASE);
+  const remotes = remoteBasesFromCandidates(baseCandidates);
+  if (remotes.length > 0) {
+    await wakeRemoteApiBase(remotes[0], WAKE_REMOTE_API_MS);
+  }
 
   let lastResult = { success: false, error: 'Signup failed.' };
   for (const base of baseCandidates) {
@@ -106,7 +133,7 @@ export async function studentSignup({ email, password, displayName, timeoutMs = 
 
     // On timeout only, try a health-check warm-up and retry once.
     if (!data?.success && /timed out/i.test(String(data?.error || ''))) {
-      await fetchJsonWithTimeout(`${base}/api/health`, {}, 10000).catch(() => {});
+      await wakeRemoteApiBase(base, 45000);
       data = await fetchJsonWithTimeout(
         `${base}/api/auth/student/signup`,
         {
@@ -132,6 +159,10 @@ export async function studentSignup({ email, password, displayName, timeoutMs = 
 export async function studentLogin({ email, password }) {
   const payload = { username: email, password };
   const baseCandidates = getApiBaseCandidates(ACTIVE_API_BASE);
+  const remotes = remoteBasesFromCandidates(baseCandidates);
+  if (remotes.length > 0) {
+    await wakeRemoteApiBase(remotes[0], WAKE_REMOTE_API_MS);
+  }
   let lastResult = { success: false, error: 'Login failed.' };
   for (const base of baseCandidates) {
     let data = await fetchJsonWithTimeout(
@@ -141,7 +172,7 @@ export async function studentLogin({ email, password }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       },
-      REQUEST_TIMEOUT_MS,
+      SIGNUP_TIMEOUT_MS,
     );
 
     if (data?.success && data.token) {
@@ -151,7 +182,7 @@ export async function studentLogin({ email, password }) {
     }
 
     if (!data?.success && /timed out/i.test(String(data?.error || ''))) {
-      await fetchJsonWithTimeout(`${base}/api/health`, {}, 10000).catch(() => {});
+      await wakeRemoteApiBase(base, 45000);
       data = await fetchJsonWithTimeout(
         `${base}/api/auth/student/login`,
         {
@@ -159,7 +190,7 @@ export async function studentLogin({ email, password }) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         },
-        REQUEST_TIMEOUT_MS,
+        SIGNUP_TIMEOUT_MS,
       );
       if (data?.success && data.token) {
         setActiveApiBase(base);

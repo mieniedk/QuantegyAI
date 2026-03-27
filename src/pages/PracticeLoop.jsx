@@ -8,6 +8,7 @@ import {
 import { GAMES_CATALOG } from '../data/games';
 import { getMicroConcept } from '../data/microConcepts';
 import CompetencyActivity from '../components/CompetencyActivity';
+import ReasoningExplorer from '../components/ReasoningExplorer';
 import Calculator, { CALC_TYPE_BY_EXAM } from '../components/Calculator';
 import ScratchPad from '../components/ScratchPad';
 import AnimatedLecture from '../components/AnimatedLecture';
@@ -407,7 +408,7 @@ const QUIZ_SUFFIX_TO_PHASE = {
 
 const MICRO_GOALS_BY_PHASE = {
   diagnostic: 'A short quiz to find your starting point so the loop focuses on what you need most.',
-  video: 'An animated micro-lesson walks you through the concept step by step.',
+  video: 'A short animated tip highlights one key idea for this standard.',
   'micro-teach': 'A quick lesson with key vocabulary and examples you can apply right away.',
   'check-quiz': 'Show you can use the concept you just learned on a few practice questions.',
   game: 'Practice the same skill in a game format to build speed and confidence.',
@@ -909,6 +910,24 @@ function ActivityPhase({ subject, examId, comp, currentStd, mode, activityIndex,
 }
 
 const REFLECTION_CHIPS = ['Procedures', 'Vocabulary', 'Word problems', 'Graphs', 'Proofs', 'Feels solid'];
+const END_LOOP_CONFIDENCE_OPTIONS = [
+  { v: 1, label: 'Not at all confident' },
+  { v: 2, label: 'A little confident' },
+  { v: 3, label: 'Somewhat confident' },
+  { v: 4, label: 'Pretty confident' },
+  { v: 5, label: 'Very confident' },
+];
+const LOOP_START_OPTIONS = [
+  { id: 'diagnostic', label: 'Full loop (diagnostic start)', phase: 'diagnostic' },
+  { id: 'video', label: 'Video micro-lesson', phase: 'video' },
+  { id: 'lesson', label: 'Quick lesson', phase: 'micro-teach' },
+  { id: 'interactive', label: 'Interactive activity', phase: 'activity-1' },
+  { id: 'game', label: 'Game practice', phase: 'game' },
+  { id: 'game-alt', label: 'Different game variation', phase: 'game2' },
+  { id: 'quiz', label: 'Short quiz', phase: 'check-quiz' },
+  { id: 'readiness', label: 'Readiness quiz', phase: 'readiness-quiz' },
+  { id: 'mastery', label: 'Mastery quiz', phase: 'mastery-check' },
+];
 
 function MasteryScreen({
   conceptTitle, teks, grade, comp, examId, label, currentStd,
@@ -921,12 +940,16 @@ function MasteryScreen({
   shareTitle,
   loopKeyForReflection,
   loopCompleteBanner,
+  onFinalConfidenceCheckIn,
 }) {
   const [reflChips, setReflChips] = useState([]);
   const [reflText, setReflText] = useState('');
   const [reflSaved, setReflSaved] = useState(false);
   const [reflError, setReflError] = useState('');
   const [shareHint, setShareHint] = useState('');
+  const [endLoopConfidence, setEndLoopConfidence] = useState(null);
+  const [chosenCompKey, setChosenCompKey] = useState('');
+  const [chosenStartId, setChosenStartId] = useState('diagnostic');
   const mountedRef = useRef(true);
   useEffect(() => () => { mountedRef.current = false; }, []);
   useEffect(() => { fireConfetti({ intensity: 'high' }); }, []);
@@ -947,12 +970,70 @@ function MasteryScreen({
   const nextDomain = currentIdx >= 0 ? domains[currentIdx + 1] : undefined;
   const nextDomainFirstComp = nextDomain?.standards?.[0];
 
-  const buildLoopUrl = (dom, stdId) => {
+  const buildLoopUrl = (dom, stdId, startPhase) => {
     const g = grade || 'grade7-12';
     const eid = examId || 'math712';
     const domId = typeof dom === 'string' ? dom : dom?.id;
-    return `/practice-loop?comp=${encodeURIComponent(domId)}&grade=${encodeURIComponent(g)}&examId=${encodeURIComponent(eid)}&label=${encodeURIComponent(dom?.name || domId)}${stdId ? `&currentStd=${encodeURIComponent(stdId)}` : ''}`;
+    return `/practice-loop?comp=${encodeURIComponent(domId)}&grade=${encodeURIComponent(g)}&examId=${encodeURIComponent(eid)}&label=${encodeURIComponent(dom?.name || domId)}${stdId ? `&currentStd=${encodeURIComponent(stdId)}` : ''}${startPhase ? `&phase=${encodeURIComponent(startPhase)}` : ''}`;
   };
+
+  const competencyChoices = useMemo(() => {
+    const out = [];
+    domains.forEach((dom, di) => {
+      const domLabel = `Domain ${ROMAN[di] || di + 1}: ${dom.name || dom.id}`;
+      const standards = dom.standards || [];
+      if (!standards.length) {
+        out.push({
+          key: `${dom.id}::`,
+          domainId: dom.id,
+          domainName: dom.name || dom.id,
+          standardId: '',
+          label: domLabel,
+        });
+        return;
+      }
+      standards.forEach((s) => {
+        out.push({
+          key: `${dom.id}::${s.id}`,
+          domainId: dom.id,
+          domainName: dom.name || dom.id,
+          standardId: s.id,
+          label: `${domLabel} · ${s.name || s.id}`,
+        });
+      });
+    });
+    return out;
+  }, [domains]);
+
+  useEffect(() => {
+    if (!competencyChoices.length) return;
+    const currentKey = `${currentDomain?.id || ''}::${currentStd || ''}`;
+    const fallbackKey = competencyChoices[0]?.key || '';
+    if (!chosenCompKey) {
+      const preferred = competencyChoices.find((c) => c.key === currentKey)?.key || fallbackKey;
+      setChosenCompKey(preferred);
+      return;
+    }
+    if (!competencyChoices.some((c) => c.key === chosenCompKey)) {
+      setChosenCompKey(fallbackKey);
+    }
+  }, [competencyChoices, currentDomain, currentStd, chosenCompKey]);
+
+  const selectedCompChoice = useMemo(
+    () => competencyChoices.find((c) => c.key === chosenCompKey) || null,
+    [competencyChoices, chosenCompKey],
+  );
+  const selectedStart = useMemo(
+    () => LOOP_START_OPTIONS.find((o) => o.id === chosenStartId) || LOOP_START_OPTIONS[0],
+    [chosenStartId],
+  );
+  const customPracticeUrl = selectedCompChoice
+    ? buildLoopUrl(
+      { id: selectedCompChoice.domainId, name: selectedCompChoice.domainName },
+      selectedCompChoice.standardId,
+      selectedStart?.phase,
+    )
+    : null;
 
   const toggleReflChip = (c) => {
     setReflChips((prev) => (prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]));
@@ -972,6 +1053,8 @@ function MasteryScreen({
     setReflError('');
     setReflSaved(true);
   };
+
+  const endLoopConfidenceLabel = END_LOOP_CONFIDENCE_OPTIONS.find((o) => o.v === endLoopConfidence)?.label || '';
 
   const handleShare = async () => {
     const body = `${shareTitle || compName}\n${shareUrl || window.location.href}`;
@@ -1033,8 +1116,64 @@ function MasteryScreen({
               <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: COLOR.blue, marginBottom: 4 }}>Next focus</div>
               <p style={{ margin: 0, fontSize: 14, color: COLOR.text, lineHeight: 1.5 }}>{sessionSummary.nextFocus}</p>
             </div>
+            {(sessionSummary.needsWorkTopics?.length > 0 || sessionSummary.needsWorkCheckpoints?.length > 0) && (
+              <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${COLOR.borderLight}` }}>
+                <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#b45309', marginBottom: 4 }}>Needs more work</div>
+                {sessionSummary.needsWorkTopics?.length > 0 && (
+                  <p style={{ margin: '0 0 4px', fontSize: 12, color: COLOR.textSecondary }}>
+                    Topics: {sessionSummary.needsWorkTopics.join(' · ')}
+                  </p>
+                )}
+                {sessionSummary.needsWorkCheckpoints?.length > 0 && (
+                  <p style={{ margin: 0, fontSize: 12, color: COLOR.textSecondary }}>
+                    Checkpoints: {sessionSummary.needsWorkCheckpoints.join(' · ')}
+                  </p>
+                )}
+              </div>
+            )}
+            <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${COLOR.borderLight}` }}>
+              <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: COLOR.textMuted, marginBottom: 4 }}>How to read the progress bar</div>
+              <p style={{ margin: 0, fontSize: 12, color: COLOR.textSecondary, lineHeight: 1.5 }}>
+                Each block is one tile in the loop. Green is strong (75%+), amber means partial understanding (45-74%), red means revisit soon (&lt;45%), and blue marks the current tile. Faded blocks are upcoming steps.
+              </p>
+            </div>
           </div>
         )}
+        <div style={{ textAlign: 'left', marginBottom: 20, padding: '14px 16px', borderRadius: 12, background: '#eef2ff', border: `1px solid ${COLOR.blue}33` }}>
+          <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: COLOR.blue, marginBottom: 8 }}>Final check-in</div>
+          <p style={{ margin: '0 0 10px', fontSize: 13, color: COLOR.textSecondary, lineHeight: 1.5 }}>
+            You finished this learning loop. How confident do you feel about this competency now?
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8 }}>
+            {END_LOOP_CONFIDENCE_OPTIONS.map(({ v, label }) => (
+              <button
+                key={`end-loop-confidence-${v}`}
+                type="button"
+                onClick={() => {
+                  setEndLoopConfidence(v);
+                  if (onFinalConfidenceCheckIn) onFinalConfidenceCheckIn(v);
+                }}
+                style={{
+                  ...BTN_PRIMARY,
+                  minHeight: 40,
+                  background: endLoopConfidence === v ? COLOR.blue : '#fff',
+                  color: endLoopConfidence === v ? '#fff' : COLOR.text,
+                  border: `1px solid ${endLoopConfidence === v ? COLOR.blue : COLOR.border}`,
+                  boxShadow: 'none',
+                  fontSize: 12,
+                  fontWeight: 600,
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {endLoopConfidence != null && (
+            <p style={{ margin: '10px 0 0', fontSize: 12, color: '#1e3a8a', fontWeight: 600 }}>
+              Saved for this session: {endLoopConfidenceLabel}
+            </p>
+          )}
+        </div>
         {teachingMove && (
           <div style={{ textAlign: 'left', marginBottom: 20, padding: '14px 16px', borderRadius: 12, background: '#fefce8', border: `1px solid #fde047`, fontSize: 13, color: '#713f12', lineHeight: 1.55 }}>
             <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#a16207', marginBottom: 6 }}>Bring it to the classroom</div>
@@ -1096,6 +1235,37 @@ function MasteryScreen({
             )}
           </div>
         )}
+        <div style={{ marginBottom: 20, padding: '14px 16px', borderRadius: 12, background: '#eff6ff', border: `1px solid ${COLOR.blue}33`, textAlign: 'left' }}>
+          <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: COLOR.blue, marginBottom: 8 }}>Practice your way</div>
+          <p style={{ margin: '0 0 10px', fontSize: 12, color: COLOR.textSecondary, lineHeight: 1.5 }}>
+            Choose the competency you want to practice next, then choose how you want to start (video, lesson, game, quiz, or mastery quiz).
+          </p>
+          <label style={{ display: 'block', marginBottom: 6, fontSize: 11, fontWeight: 700, color: COLOR.textMuted }}>Competency</label>
+          <select
+            value={chosenCompKey}
+            onChange={(e) => setChosenCompKey(e.target.value)}
+            style={{ width: '100%', marginBottom: 10, padding: '10px 12px', borderRadius: 8, border: `1px solid ${COLOR.border}`, fontSize: 13, fontFamily: 'inherit' }}
+          >
+            {competencyChoices.map((choice) => (
+              <option key={choice.key} value={choice.key}>{choice.label}</option>
+            ))}
+          </select>
+          <label style={{ display: 'block', marginBottom: 6, fontSize: 11, fontWeight: 700, color: COLOR.textMuted }}>Start with</label>
+          <select
+            value={chosenStartId}
+            onChange={(e) => setChosenStartId(e.target.value)}
+            style={{ width: '100%', marginBottom: 12, padding: '10px 12px', borderRadius: 8, border: `1px solid ${COLOR.border}`, fontSize: 13, fontFamily: 'inherit' }}
+          >
+            {LOOP_START_OPTIONS.map((option) => (
+              <option key={option.id} value={option.id}>{option.label}</option>
+            ))}
+          </select>
+          {customPracticeUrl && (
+            <Link to={customPracticeUrl} style={{ ...BTN_GAME_LINK, marginBottom: 0 }}>
+              Start selected practice →
+            </Link>
+          )}
+        </div>
         <div style={{ fontSize: 48, marginBottom: 12 }}>🎉</div>
         <h2 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 800, color: COLOR.successText }}>
           Competency complete!
@@ -1111,12 +1281,12 @@ function MasteryScreen({
           {globalCompIdx + 1} of {totalComps} competencies completed
         </p>
         {nextStd && (
-          <Link to={buildLoopUrl(currentDomain, nextStd.id)} style={{ ...BTN_GAME_LINK, marginBottom: 10 }}>
+          <Link to={buildLoopUrl(currentDomain, nextStd.id, 'diagnostic')} style={{ ...BTN_GAME_LINK, marginBottom: 10 }}>
             Next: {nextStd.name} →
           </Link>
         )}
         {!nextStd && nextDomain && nextDomainFirstComp && (
-          <Link to={buildLoopUrl(nextDomain, nextDomainFirstComp.id)} style={{ ...BTN_GAME_LINK, marginBottom: 10 }}>
+          <Link to={buildLoopUrl(nextDomain, nextDomainFirstComp.id, 'diagnostic')} style={{ ...BTN_GAME_LINK, marginBottom: 10 }}>
             Next Domain: {ROMAN[currentIdx + 1] || currentIdx + 2} — {nextDomain.name} →
           </Link>
         )}
@@ -1211,7 +1381,7 @@ export default function PracticeLoop() {
   const sid = params.get('sid') || '';
   const cid = params.get('cid') || '';
   const requestedPhase = params.get('phase');
-  const sessionPhaseKey = `practice-loop-phase:${comp}:${teks}`;
+  const sessionPhaseKey = `practice-loop-phase:${examId}:${comp}:${currentStd || ''}:${teks}`;
   const sessionQuizKey = `practice-loop-quiz:${comp}:${teks}:${currentStd || ''}`;
   const savePromptSessionKey = `practice-loop-save-prompted:${grade}:${comp}:${currentStd || ''}`;
   const savedPhase = typeof window !== 'undefined' ? window.sessionStorage.getItem(sessionPhaseKey) : null;
@@ -1226,6 +1396,9 @@ export default function PracticeLoop() {
   const [phase, setPhase] = useState(initialPhase);
   const [roadmapExpanded, setRoadmapExpanded] = useState(false);
   const [studyNavOpen, setStudyNavOpen] = useState(false);
+  const [practiceSwitchOpen, setPracticeSwitchOpen] = useState(false);
+  const [practiceCompKey, setPracticeCompKey] = useState('');
+  const [practiceStartId, setPracticeStartId] = useState('diagnostic');
   const [loopSessionSeed] = useState(() => {
     if (typeof window === 'undefined') return 'ssr';
     const key = 'practice-loop-session-seed';
@@ -1291,7 +1464,6 @@ export default function PracticeLoop() {
   const MAX_VIDEO_REPLAYS = 0;
   const [showEarlyMasteryOffer, setShowEarlyMasteryOffer] = useState(false);
   const [readinessRetries, setReadinessRetries] = useState(0);
-  const [showConceptBoost, setShowConceptBoost] = useState(false);
   const [conceptRefreshReturnPhase, setConceptRefreshReturnPhase] = useState(null);
   const [adaptiveDebugMessage, setAdaptiveDebugMessage] = useState('init');
   const [xpPoints, setXpPoints] = useState(0);
@@ -1479,6 +1651,67 @@ export default function PracticeLoop() {
     return `/practice-loop?${p.toString()}`;
   }, [comp, currentStd, examId, grade, label]);
 
+  const practiceCompChoices = useMemo(() => {
+    const out = [];
+    domains.forEach((dom, di) => {
+      const standards = dom.standards || [];
+      if (!standards.length) {
+        out.push({
+          key: `${dom.id}::`,
+          domainId: dom.id,
+          domainName: dom.name || dom.id,
+          standardId: '',
+          label: `Domain ${ROMAN[di] || di + 1}: ${dom.name || dom.id}`,
+        });
+        return;
+      }
+      standards.forEach((s) => {
+        out.push({
+          key: `${dom.id}::${s.id}`,
+          domainId: dom.id,
+          domainName: dom.name || dom.id,
+          standardId: s.id,
+          label: `Domain ${ROMAN[di] || di + 1}: ${dom.name || dom.id} · ${s.name || s.id}`,
+        });
+      });
+    });
+    return out;
+  }, [domains]);
+
+  useEffect(() => {
+    if (!practiceCompChoices.length) return;
+    const currentKey = `${comp || ''}::${currentStd || ''}`;
+    const fallback = practiceCompChoices[0]?.key || '';
+    if (!practiceCompKey) {
+      const preferred = practiceCompChoices.find((c) => c.key === currentKey)?.key || fallback;
+      setPracticeCompKey(preferred);
+      return;
+    }
+    if (!practiceCompChoices.some((c) => c.key === practiceCompKey)) {
+      setPracticeCompKey(fallback);
+    }
+  }, [practiceCompChoices, practiceCompKey, comp, currentStd]);
+
+  const selectedPracticeComp = useMemo(
+    () => practiceCompChoices.find((c) => c.key === practiceCompKey) || null,
+    [practiceCompChoices, practiceCompKey],
+  );
+  const selectedPracticeStart = useMemo(
+    () => LOOP_START_OPTIONS.find((o) => o.id === practiceStartId) || LOOP_START_OPTIONS[0],
+    [practiceStartId],
+  );
+  const practiceSwitchUrl = useMemo(() => {
+    if (!selectedPracticeComp) return null;
+    const p = new URLSearchParams();
+    p.set('comp', selectedPracticeComp.domainId);
+    p.set('examId', examId || 'math712');
+    p.set('grade', grade || 'grade7-12');
+    p.set('label', selectedPracticeComp.domainName || selectedPracticeComp.domainId);
+    if (selectedPracticeComp.standardId) p.set('currentStd', selectedPracticeComp.standardId);
+    if (selectedPracticeStart?.phase) p.set('phase', selectedPracticeStart.phase);
+    return `/practice-loop?${p.toString()}`;
+  }, [selectedPracticeComp, selectedPracticeStart, examId, grade]);
+
   const diagnosticPctForRecap = diagnosticSessionPct != null
     ? diagnosticSessionPct
     : (loopMilestoneKey ? getSessionDiagnosticPct(loopMilestoneKey) : null);
@@ -1573,12 +1806,30 @@ export default function PracticeLoop() {
       if (t === 0) return;
       if (!worst || e.accuracy < worst.accuracy) worst = e;
     });
+    const focusCounts = new Map();
+    quizHistory.forEach((e) => {
+      const focus = String(e.topMissFocus || '').trim();
+      if (!focus || (e.wrongCount ?? 0) <= 0) return;
+      focusCounts.set(focus, (focusCounts.get(focus) || 0) + 1);
+    });
+    const needsWorkTopics = [...focusCounts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([focus, count]) => (count > 1 ? `${focus} (${count} checkpoints)` : focus));
+    const needsWorkCheckpoints = quizHistory
+      .filter((e) => (e.total ?? 0) > 0 && (e.accuracy ?? 1) < 0.75)
+      .sort((a, b) => (a.accuracy ?? 1) - (b.accuracy ?? 1))
+      .slice(0, 3)
+      .map((e) => `${e.label || e.phase} (${Math.round((e.accuracy || 0) * 100)}%)`);
     const parts = [];
     if (flaggedCount > 0) {
       parts.push(`Revisit the ${flaggedCount} question${flaggedCount === 1 ? '' : 's'} you flagged—they can appear again in mid-loop and readiness quizzes.`);
     }
     if (worst && worst.accuracy < 0.85) {
       parts.push(`Sharpen ${worst.label || worst.phase} (you scored ${Math.round(worst.accuracy * 100)}% there this session).`);
+    }
+    if (needsWorkTopics.length > 0) {
+      parts.push(`Topic pattern to revisit: ${needsWorkTopics[0]}.`);
     }
     if (weakTracked > 0 && !parts.length) {
       parts.push(`You have ${weakTracked} item${weakTracked === 1 ? '' : 's'} saved for spaced review on your next loop run.`);
@@ -1593,6 +1844,8 @@ export default function PracticeLoop() {
       quizCount: quizHistory.length,
       flaggedCount,
       weakTracked,
+      needsWorkTopics,
+      needsWorkCheckpoints,
       nextFocus: parts.join(' '),
     };
   }, [quizHistory, loopReviewKey]);
@@ -1618,19 +1871,33 @@ export default function PracticeLoop() {
 
   const goToPhase = useCallback((p, options = {}) => {
     setReviewPoolEpoch((n) => n + 1);
-    const { keepConceptBoost = false, skipProgress = false } = options;
+    const { skipProgress = false } = options;
+    const normalizedPhase = PHASES.includes(p) ? p : (TILE_ID_TO_PHASE[p] || 'diagnostic');
 
     if (revisitReturnRef.current && !options._fromRevisitReturn) {
       const returnTo = revisitReturnRef.current;
+      // If revisit state points to the current tile (stale), clear it and continue.
+      if (returnTo === phase || returnTo === normalizedPhase) {
+        revisitReturnRef.current = null;
+        setRevisitReturnPhase(null);
+        setDetourFromStep(null);
+        showAppToast('Continuing to next tile...');
+      } else {
+        revisitReturnRef.current = null;
+        setRevisitReturnPhase(null);
+        setDetourFromStep(null);
+        setPhase(returnTo);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+    }
+
+    if (revisitReturnRef.current && !options._fromRevisitReturn) {
+      // Safety fallback: if anything re-set the ref synchronously, clear and continue.
       revisitReturnRef.current = null;
       setRevisitReturnPhase(null);
       setDetourFromStep(null);
-      setPhase(returnTo);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
     }
-
-    const normalizedPhase = PHASES.includes(p) ? p : (TILE_ID_TO_PHASE[p] || 'diagnostic');
     const targetIdx = PHASES.indexOf(normalizedPhase);
     const willAdvance = !skipProgress && targetIdx > highWatermark;
     const projectedTilesCompleted = willAdvance ? tilesCompleted + 1 : tilesCompleted;
@@ -1638,8 +1905,6 @@ export default function PracticeLoop() {
       setHighWatermark(targetIdx);
       setTilesCompleted((n) => n + 1);
     }
-    if (!keepConceptBoost) setShowConceptBoost(false);
-
     if (!isPaid && normalizedPhase !== 'paywall' && normalizedPhase !== 'diagnostic' && projectedTilesCompleted > FREE_TILE_LIMIT) {
       pendingPaywallPhaseRef.current = normalizedPhase;
       setPhase('paywall');
@@ -1696,7 +1961,6 @@ export default function PracticeLoop() {
     setCheckQuizFailStreak(nextStreak);
 
     let nextPhase = normalNext;
-    let keepConceptBoost = false;
 
     if (nextStreak >= 2 && ADAPTIVE.struggleDetection.twoConsecutiveFailures?.action === 'replayPreviousVideo') {
       if (videoReplayCount < MAX_VIDEO_REPLAYS) {
@@ -1710,8 +1974,6 @@ export default function PracticeLoop() {
         setCoachAdaptiveNote('Moving forward — you can always revisit concepts later.');
       }
     } else if (correctCount === 0 && total > 0 && ADAPTIVE.struggleDetection.zeroCorrectOnCheckQuiz?.action === 'insertConceptReminder') {
-      setShowConceptBoost(true);
-      keepConceptBoost = true;
       setConceptRefreshReturnPhase(normalNext);
       setDetourFromStep(PHASES.indexOf(phaseKey));
       nextPhase = 'concept-refresh';
@@ -1722,7 +1984,7 @@ export default function PracticeLoop() {
       setAdaptiveDebugMessage(`check:${phaseKey} score:${correctCount}/${total} streak:${nextStreak} replays:${videoReplayCount}/${MAX_VIDEO_REPLAYS} next:${nextPhase}`);
     }
     const isDetour = nextPhase === 'concept-refresh' && nextPhase !== normalNext;
-    goToPhase(nextPhase, { keepConceptBoost, skipProgress: isDetour });
+    goToPhase(nextPhase, { skipProgress: isDetour });
   }, [ADAPTIVE, goToPhase, checkQuizFailStreak, videoReplayCount, isAdaptiveDebug]);
 
   const goToPhaseAfterReadiness = useCallback((correctCount, pool, answers) => {
@@ -2402,6 +2664,27 @@ export default function PracticeLoop() {
     if (ci >= 0) return `Domain ${ROMAN[ci] || ci + 1}: ${allDomains[ci].name}`;
     return compShort || label || teks;
   }, [currentStdObj, examId, comp, compShort, label, teks]);
+  const useGeometricRefreshActivity = comp === 'comp005' || currentStd === 'c018';
+  const conceptRefreshConcept = useMemo(() => {
+    const alt = getMicroConcept(examId, comp, singleTeks, currentStd, tilesCompleted + revisitSeed + 1);
+    if (!microConcept) return alt;
+    if (!alt) return microConcept;
+    if (alt.conceptText && alt.conceptText !== microConcept.conceptText) return alt;
+
+    // Last-resort fallback so recap is not a duplicate of the prior concept tile.
+    const fallbackText = microConcept?.misconception
+      ? `Watch out focus: ${microConcept.misconception}`
+      : (microConcept?.workedExample
+        ? `Worked-example focus: ${microConcept.workedExample}`
+        : (reminderText || microConcept.conceptText || ''));
+
+    return {
+      ...microConcept,
+      title: microConcept?.title ? `${microConcept.title} — New Angle` : conceptTitle,
+      conceptText: fallbackText,
+      illustrationHtml: undefined,
+    };
+  }, [examId, comp, singleTeks, currentStd, tilesCompleted, revisitSeed, microConcept, reminderText, conceptTitle]);
 
   const buildReturnUrl = (returnPhase) => {
     const base = `/practice-loop?teks=${encodeURIComponent(teks)}&label=${encodeURIComponent(label)}&grade=${encodeURIComponent(grade)}&phase=${returnPhase}`;
@@ -2681,7 +2964,9 @@ export default function PracticeLoop() {
       correct: correctCount,
       accuracyPct,
     });
-    const wrongIds = pool.filter((q) => answers[q.id] !== q.correct).map((q) => q.id);
+    const missedQuestions = pool.filter((q) => answers[q.id] !== q.correct);
+    const wrongIds = missedQuestions.map((q) => q.id);
+    const topMissFocus = summarizeMathFocus(missedQuestions);
     if (loopReviewKey && wrongIds.length) {
       const weakRes = addWeakQuestionIds(loopReviewKey, wrongIds);
       if (!weakRes.ok) {
@@ -2742,6 +3027,7 @@ export default function PracticeLoop() {
       accuracy,
       total: pool.length,
       wrongCount: wrongIds.length,
+      topMissFocus,
     }].slice(-12));
 
     if (accuracy === 1 && pool.length >= 3) {
@@ -3356,16 +3642,6 @@ export default function PracticeLoop() {
           </div>
         )}
 
-        {showConceptBoost && (
-          <div style={{ marginBottom: 16, padding: '14px 18px', borderRadius: 12, background: COLOR.amberBg, border: `1px solid ${COLOR.amberBorder}` }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: COLOR.amber, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Extra help{microConcept?.title ? ` — ${microConcept.title}` : ''}
-            </div>
-            <div style={{ fontSize: 13, color: COLOR.text, lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(conceptToBulletHtml(microConcept?.conceptText || reminderText || '')) }} />
-            {microConcept?.workedExample && <p style={{ margin: '8px 0 0', fontSize: 13, fontWeight: 600, color: COLOR.green }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(microConcept.workedExample)) }} />}
-          </div>
-        )}
-
         {phase === 'paywall' && (
           <PaywallGate
             examId={examId}
@@ -3422,6 +3698,9 @@ export default function PracticeLoop() {
             {hasTopic ? (
               <>
                 <div style={{ ...BODY, lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(conceptToBulletHtml(microConcept?.conceptText || reminderText || '')) }} />
+                {microConcept?.illustrationHtml && (
+                  <div style={{ marginTop: 12 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(microConcept.illustrationHtml) }} />
+                )}
                 {microConcept?.workedExample && (
                   <div style={{ marginBottom: 16, padding: 14, background: COLOR.successBg, borderRadius: 12, border: `1px solid ${COLOR.successBorder}` }}>
                     <div style={{ fontSize: 11, fontWeight: 800, color: COLOR.successText, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Worked example</div>
@@ -3553,14 +3832,33 @@ export default function PracticeLoop() {
           <PhaseCard stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase}>
             <PhaseHeader
               badgeColor={COLOR.purple}
-              badgeLabel={getTileLabel('concept-refresh', 'Concept recap')}
-              title={hasTopic ? (microConcept?.title || conceptTitle || 'Key idea') : null}
+              badgeLabel={getTileLabel('concept-refresh', useGeometricRefreshActivity ? 'Interactive recap' : 'Concept recap')}
+              title={hasTopic ? (useGeometricRefreshActivity ? 'Geometric Sequence Challenge' : (conceptRefreshConcept?.title || conceptTitle || 'Key idea')) : null}
             />
             {hasTopic ? (
-              <>
-                <div style={{ ...BODY, lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(conceptToBulletHtml(microConcept?.conceptText || reminderText || '')) }} />
-                <button type="button" onClick={() => { const dest = conceptRefreshReturnPhase || 'check-quiz-4'; setConceptRefreshReturnPhase(null); setDetourFromStep(null); goToPhase(dest); }} style={BTN_PRIMARY}>Continue</button>
-              </>
+              useGeometricRefreshActivity ? (
+                <ReasoningExplorer
+                  modeOverride="pattern-finder"
+                  forcePatternType="geometric"
+                  embedded
+                  badgeLabel={getTileLabel('concept-refresh', 'Interactive recap')}
+                  continueLabel="Continue"
+                  onComplete={() => {
+                    const dest = conceptRefreshReturnPhase || 'check-quiz-4';
+                    setConceptRefreshReturnPhase(null);
+                    setDetourFromStep(null);
+                    goToPhase(dest);
+                  }}
+                />
+              ) : (
+                <>
+                  <div style={{ ...BODY, lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(conceptToBulletHtml(conceptRefreshConcept?.conceptText || reminderText || '')) }} />
+                  {conceptRefreshConcept?.illustrationHtml && (
+                    <div style={{ marginTop: 12 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(conceptRefreshConcept.illustrationHtml) }} />
+                  )}
+                  <button type="button" onClick={() => { const dest = conceptRefreshReturnPhase || 'check-quiz-4'; setConceptRefreshReturnPhase(null); setDetourFromStep(null); goToPhase(dest); }} style={BTN_PRIMARY}>Continue</button>
+                </>
+              )
             ) : (
               <button type="button" onClick={() => { const dest = conceptRefreshReturnPhase || 'check-quiz-4'; setConceptRefreshReturnPhase(null); setDetourFromStep(null); goToPhase(dest); }} style={BTN_PRIMARY}>Continue</button>
             )}
@@ -3802,6 +4100,7 @@ export default function PracticeLoop() {
                   shareTitle={`${conceptTitle} — QuantegyAI loop complete`}
                   loopKeyForReflection={loopReviewKey}
                   loopCompleteBanner
+                  onFinalConfidenceCheckIn={recordConfidenceCheckIn}
                 />
               </>
             )}
@@ -3892,6 +4191,47 @@ export default function PracticeLoop() {
                   {quizHistory.length > 0 && ` · Quiz trend: ${recentQuizAccuracy}%`}
                   {' · '}
                   Support: {supportLevel.replace(/-/g, ' ')}
+                </div>
+                <div style={{ marginTop: 12, paddingTop: 10, borderTop: `1px solid ${COLOR.borderLight}` }}>
+                  <button
+                    type="button"
+                    onClick={() => setPracticeSwitchOpen((v) => !v)}
+                    style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 800, color: COLOR.blue, textTransform: 'uppercase', letterSpacing: '0.05em', padding: 0 }}
+                  >
+                    {practiceSwitchOpen ? '▼' : '▶'} Practice your way (switch competency anytime)
+                  </button>
+                  {practiceSwitchOpen && (
+                    <div style={{ marginTop: 10 }}>
+                      <div style={{ marginBottom: 6, fontSize: 12, color: COLOR.textSecondary, lineHeight: 1.45 }}>
+                        Pick any competency and choose where to start: video, lesson, interactive, game, quiz, readiness, or mastery.
+                      </div>
+                      <label style={{ display: 'block', marginBottom: 4, fontSize: 11, fontWeight: 700, color: COLOR.textMuted }}>Competency</label>
+                      <select
+                        value={practiceCompKey}
+                        onChange={(e) => setPracticeCompKey(e.target.value)}
+                        style={{ width: '100%', marginBottom: 8, padding: '8px 10px', borderRadius: 8, border: `1px solid ${COLOR.border}`, fontSize: 12, fontFamily: 'inherit' }}
+                      >
+                        {practiceCompChoices.map((choice) => (
+                          <option key={choice.key} value={choice.key}>{choice.label}</option>
+                        ))}
+                      </select>
+                      <label style={{ display: 'block', marginBottom: 4, fontSize: 11, fontWeight: 700, color: COLOR.textMuted }}>Start with</label>
+                      <select
+                        value={practiceStartId}
+                        onChange={(e) => setPracticeStartId(e.target.value)}
+                        style={{ width: '100%', marginBottom: 10, padding: '8px 10px', borderRadius: 8, border: `1px solid ${COLOR.border}`, fontSize: 12, fontFamily: 'inherit' }}
+                      >
+                        {LOOP_START_OPTIONS.map((option) => (
+                          <option key={`mid-loop-start-${option.id}`} value={option.id}>{option.label}</option>
+                        ))}
+                      </select>
+                      {practiceSwitchUrl && (
+                        <Link to={practiceSwitchUrl} style={{ ...BTN_GAME_LINK, marginBottom: 0 }}>
+                          Start selected practice →
+                        </Link>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

@@ -341,6 +341,38 @@ function parseMath(s) {
  * @param {string} str - e.g. "m = (y₂−y₁)/(x₂−x₁)"
  * @returns {string} HTML with inline-styled fractions and <sup> tags
  */
+/**
+ * Rewrite exponent notation for text-to-speech so ^ is not read as "caret".
+ * Handles ^{…}, ^(…), ^digits, ^single letter, and stray ^.
+ */
+export function speechifyForNarration(str) {
+  if (typeof str !== 'string' || !str) return str;
+  let s = str;
+
+  // Pronunciation tuning for common assessment vocabulary.
+  s = s.replace(/\bsummative\b/gi, 'sum-uh-tiv');
+
+  const superDigits = {
+    '\u2070': '0', '\u00B9': '1', '\u00B2': '2', '\u00B3': '3', '\u2074': '4',
+    '\u2075': '5', '\u2076': '6', '\u2077': '7', '\u2078': '8', '\u2079': '9',
+  };
+  s = s.replace(/([\w\)\]\}])\s*([\u2070\u00B9\u00B2\u00B3\u2074-\u2079]+)/g, (_, base, sup) => {
+    const digits = [...sup].map((c) => superDigits[c] || c).join('');
+    return `${base} to the power of ${digits}`;
+  });
+
+  for (let n = 0; n < 10 && /\^\{/.test(s); n++) {
+    s = s.replace(/\^\{([^{}]*)\}/g, ' to the power of $1');
+  }
+  for (let n = 0; n < 10 && /\^\(/.test(s); n++) {
+    s = s.replace(/\^\(([^()]*)\)/g, ' to the power of $1');
+  }
+  s = s.replace(/\^([0-9]+)/g, ' to the power of $1');
+  s = s.replace(/\^([a-zA-Z])/g, ' to the power of $1');
+  s = s.replace(/\^/g, ' to the power of ');
+  return s.replace(/\s{2,}/g, ' ').trim();
+}
+
 export function formatMathHtml(str) {
   if (typeof str !== 'string') return '';
   // Normalize common authoring patterns into standard math notation.

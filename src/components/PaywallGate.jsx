@@ -31,8 +31,8 @@ const PLANS = [
     highlight: false,
   },
 ];
-const AUTH_TIMEOUT_MS = 15000;
-const ACCESS_TIMEOUT_MS = 10000;
+/** Billing/subscription check after login — allow for API cold start. */
+const ACCESS_TIMEOUT_MS = 35000;
 
 const INPUT_STYLE = {
   width: '100%',
@@ -103,7 +103,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
     setBusy(true);
     try {
       const args = mode === 'signup'
-        ? { email: email.trim(), password, displayName: displayName.trim() || email.split('@')[0], timeoutMs: AUTH_TIMEOUT_MS }
+        ? { email: email.trim(), password, displayName: displayName.trim() || email.split('@')[0] }
         : { email: email.trim(), password };
       let result = mode === 'signup'
         ? await studentSignup(args)
@@ -228,6 +228,11 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
 
               {error && (
                 <p style={{ color: COLOR.red, fontSize: 13, fontWeight: 600, marginBottom: 12 }}>{error}</p>
+              )}
+              {busy && mode === 'signup' && (
+                <p style={{ color: COLOR.textSecondary, fontSize: 12, lineHeight: 1.45, marginBottom: 12 }}>
+                  Connecting to our servers. If you haven&rsquo;t signed in for a while, this can take up to a minute the first time.
+                </p>
               )}
 
               <button

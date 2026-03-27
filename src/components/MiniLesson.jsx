@@ -3,6 +3,9 @@ import qbotImg from '../assets/qbot.svg';
 import { formatMathHtml } from '../utils/mathFormat';
 import { sanitizeHtml } from '../utils/sanitize';
 
+/** Domain III — Geometry and Measurement (micro-lesson shows intro only). */
+const GEOMETRY_MEASUREMENT_TEKS = new Set(['c011', 'c012', 'c013', 'c014']);
+
 /**
  * MiniLesson – A short, engaging lesson modal for a TEKS standard.
  *
@@ -18,25 +21,26 @@ const MiniLesson = ({ lecture, onClose, onPractice, onWarmUp, flow }) => {
 
   if (!lecture) return null;
 
+  const videoUrl = lecture.video || null;
+  const youtubeId = videoUrl && (videoUrl.match(/(?:embed\/|v=)([a-zA-Z0-9_-]+)/) || videoUrl.match(/youtu\.be\/([a-zA-Z0-9_-]+)/))?.[1];
+  const youtubeEmbedUrl = youtubeId ? `https://www.youtube.com/embed/${youtubeId}` : null;
+  const hasVideo = youtubeEmbedUrl || videoUrl;
+  // Global rule: any video micro-lesson is intro-only (single slide, one key concept/tip).
+  const introOnly = hasVideo || GEOMETRY_MEASUREMENT_TEKS.has(String(lecture.teks));
   const totalTeachSteps = lecture.steps.length;
   const INTRO = 0;
   const TEACH_START = 1;
   const TEACH_END = totalTeachSteps;
   const EXAMPLE = totalTeachSteps + 1;
   const SUMMARY = totalTeachSteps + 2;
-  const totalSteps = SUMMARY + 1;
+  const totalSteps = introOnly ? 1 : SUMMARY + 1;
   const progress = ((step + 1) / totalSteps) * 100;
 
   const isIntro = step === INTRO;
-  const isTeach = step >= TEACH_START && step <= TEACH_END;
-  const isExample = step === EXAMPLE;
-  const isSummary = step === SUMMARY;
+  const isTeach = !introOnly && step >= TEACH_START && step <= TEACH_END;
+  const isExample = !introOnly && step === EXAMPLE;
+  const isSummary = !introOnly && step === SUMMARY;
   const teachIdx = step - TEACH_START; // 0-based index into lecture.steps
-
-  const videoUrl = lecture.video || null;
-  const youtubeId = videoUrl && (videoUrl.match(/(?:embed\/|v=)([a-zA-Z0-9_-]+)/) || videoUrl.match(/youtu\.be\/([a-zA-Z0-9_-]+)/))?.[1];
-  const youtubeEmbedUrl = youtubeId ? `https://www.youtube.com/embed/${youtubeId}` : null;
-  const hasVideo = youtubeEmbedUrl || videoUrl;
 
   return (
     <div style={{
@@ -199,6 +203,31 @@ const MiniLesson = ({ lecture, onClose, onPractice, onWarmUp, flow }) => {
                   dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(lecture.keyIdea)) }}
                 />
               </div>
+
+              {introOnly && (
+                <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+                  {onWarmUp && (
+                    <button type="button" onClick={onWarmUp} style={{
+                      flex: 1, padding: '14px 18px', borderRadius: 12, border: 'none',
+                      background: 'linear-gradient(135deg, #f59e0b, #f97316)',
+                      color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer',
+                      boxShadow: '0 3px 12px rgba(245,158,11,0.3)',
+                    }}>
+                      {flow === 'learn-check-game' ? '✓ Check your understanding' : '🔥 Take Warm-Up Quiz'}
+                    </button>
+                  )}
+                  {onPractice && flow !== 'learn-check-game' && (
+                    <button type="button" onClick={onPractice} style={{
+                      flex: 1, padding: '14px 18px', borderRadius: 12, border: 'none',
+                      background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                      color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer',
+                      boxShadow: '0 3px 12px rgba(37,99,235,0.3)',
+                    }}>
+                      🎮 Start Practicing
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -451,7 +480,20 @@ const MiniLesson = ({ lecture, onClose, onPractice, onWarmUp, flow }) => {
             {step + 1} / {totalSteps}
           </span>
 
-          {step < SUMMARY ? (
+          {introOnly ? (
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                padding: '10px 24px', borderRadius: 10, border: 'none',
+                background: 'linear-gradient(135deg, #16a34a, #15803d)',
+                color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer',
+                boxShadow: '0 2px 10px rgba(22,163,74,0.3)',
+              }}
+            >
+              Done ✓
+            </button>
+          ) : step < SUMMARY ? (
             <button
               type="button"
               onClick={() => setStep(step + 1)}

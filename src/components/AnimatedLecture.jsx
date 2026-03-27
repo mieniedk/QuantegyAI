@@ -1,18 +1,17 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import qbotImg from '../assets/qbot.svg';
-import { formatMathHtml } from '../utils/mathFormat';
+import { formatMathHtml, speechifyForNarration } from '../utils/mathFormat';
 import { sanitizeHtml } from '../utils/sanitize';
 
 /**
- * AnimatedLecture – A video-like micro-lecture player built from structured
- * lecture data. Auto-advances through narrated slides with TTS, animated text
- * reveals, and full playback controls (play/pause, scrub, speed, replay).
+ * AnimatedLecture – Single-slide “video micro-lesson”: one quick tip or key concept,
+ * optional TTS, text reveal, and playback controls. No multi-slide narration.
  *
  * Props:
- *   lecture    – { title, teks, objective, keyIdea, steps[], example, tip }
+ *   lecture    – { title, teks, objective, keyIdea, tip, ... }
  *   compName  – Optional competency/domain display name
- *   onDone    – Called when the student finishes (clicks Continue on last slide)
- *   variant   – 'intro' | 'deep-dive' (changes opening framing)
+ *   onDone    – Called when the student finishes (clicks Continue)
+ *   variant   – 'intro' | 'deep-dive' (badge label only)
  */
 
 const SPEEDS = [0.75, 1, 1.25, 1.5, 2];
@@ -37,70 +36,28 @@ function narrationDuration(text, speed) {
 }
 
 function buildSlides(lecture, variant) {
-  const slides = [];
   const title = lecture.title || 'Micro-Lesson';
+  const tip = (lecture.tip || '').trim();
+  const keyIdea = (lecture.keyIdea || '').trim();
+  const objective = (lecture.objective || '').trim();
+  const stepFocus = (lecture.steps?.[0]?.content || '').trim();
+  const exampleFocus = [
+    (lecture.example?.problem || '').trim(),
+    (lecture.example?.answer || '').trim(),
+  ].filter(Boolean).join(' \u2192 ');
 
-  // Slide 1 — Key Idea (combine intro + objective + keyIdea)
-  const keyParts = [];
-  if (lecture.objective) keyParts.push(lecture.objective);
-  if (lecture.keyIdea) keyParts.push(lecture.keyIdea);
-  slides.push({
-    id: 'key-idea',
-    badge: variant === 'deep-dive' ? 'Deep Dive' : 'Key Concept',
+  // Keep one-slide format and always anchor to the same first-slide (Video A) idea.
+  const introBody = keyIdea || objective || tip || stepFocus || exampleFocus || `Let\u2019s focus on ${title}.`;
+  const body = introBody;
+
+  return [{
+    id: 'quick-tip',
+    badge: variant === 'deep-dive' ? 'Deep dive' : 'Quick tip',
     heading: title,
-    body: keyParts.join('\n\n') || `Let\u2019s learn about ${title}.`,
-    accent: '#2563eb',
+    body,
+    accent: '#0ea5e6',
     icon: '\uD83D\uDCA1',
-  });
-
-  // Slide 2 — How it works (combine all teaching steps into one)
-  const steps = lecture.steps || [];
-  if (steps.length > 0) {
-    const combined = steps.map((s) => `${s.title}: ${s.content}`).join('\n\n');
-    slides.push({
-      id: 'how-it-works',
-      badge: 'How It Works',
-      heading: 'Breaking It Down',
-      body: combined,
-      accent: '#7c3aed',
-      icon: '\uD83D\uDD0D',
-      isStep: true,
-      steps,
-    });
-  }
-
-  // Slide 3 — Worked example (problem + solution + answer on one slide)
-  if (lecture.example) {
-    const solLines = (lecture.example.solution || []).join('\n');
-    const ansLine = lecture.example.answer ? `\n\nAnswer: ${lecture.example.answer}` : '';
-    slides.push({
-      id: 'example',
-      badge: 'Worked Example',
-      heading: lecture.example.problem,
-      body: solLines + ansLine,
-      accent: '#0369a1',
-      icon: '\uD83D\uDCDD',
-      isExample: true,
-      hasAnswer: !!lecture.example.answer,
-      answer: lecture.example.answer,
-    });
-  }
-
-  // Slide 4 — Tip + ready to go
-  const tipText = lecture.tip
-    ? `${lecture.tip}\n\nReady to put it into practice?`
-    : `You\u2019ve got the key idea for ${title}. Ready to put it into practice?`;
-  slides.push({
-    id: 'wrap-up',
-    badge: 'Remember This',
-    heading: '\uD83C\uDF1F You\u2019re Ready',
-    body: tipText,
-    accent: '#059669',
-    icon: '\uD83C\uDF1F',
-    isSummary: true,
-  });
-
-  return slides;
+  }];
 }
 
 export default function AnimatedLecture({ lecture, compName, onDone, variant = 'intro' }) {
@@ -156,9 +113,10 @@ export default function AnimatedLecture({ lecture, compName, onDone, variant = '
     startRef.current = Date.now();
 
     const shouldNarrate = slide.isSummary || !muted;
-    const narrationText = slide.isSummary && slide.body
+    const narrationRaw = slide.isSummary && slide.body
       ? slide.body.split('\n\n')[0]
       : (slide.body || slide.heading);
+    const narrationText = speechifyForNarration(String(narrationRaw || ''));
     const dur = shouldNarrate
       ? Math.max(baseDur, narrationDuration(narrationText, speed))
       : baseDur;
