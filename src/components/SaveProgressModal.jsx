@@ -12,8 +12,8 @@ const LEGACY_TO_NEW = {
   'allen-ace-loop-review': REVIEW_KEY,
 };
 const PENDING_SIGNUP_KEY = 'quantegy-pending-signup';
-/** After cold-start wake, signup can still take a while — don’t alarm before this (ms). */
-const BUSY_LONG_HINT_MS = 52000;
+/** Show “taking a while” + local save after this (ms); signup no longer blocks on a 90s wake. */
+const BUSY_LONG_HINT_MS = 22000;
 
 function isAccountExistsError(message) {
   const text = String(message || '').toLowerCase();
@@ -114,6 +114,8 @@ export default function SaveProgressModal({ onClose, onSignedUp }) {
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+    // New signup attempt should always clear any previous "save locally" cancel state.
+    cancelledRef.current = false;
     setError('');
     const trimmedEmail = email.trim();
     if (!trimmedEmail || !password) {

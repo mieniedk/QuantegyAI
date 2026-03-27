@@ -8,10 +8,15 @@ const isLocalHost = typeof window !== 'undefined'
 const API_BASE = envApiBase || (isLocalHost ? '' : DEFAULT_PROD_API_BASE);
 let ACTIVE_API_BASE = API_BASE;
 const REQUEST_TIMEOUT_MS = 20000;
-/** Per-request timeout for signup/login after the API is awake (hosted APIs can be slow right after wake). */
-const SIGNUP_TIMEOUT_MS = 90000;
-/** Cold start (e.g. Render free tier): wake the host before signup/login. */
-const WAKE_REMOTE_API_MS = 90000;
+/** Per-request timeout for signup/login (server may be cold; one attempt can take tens of seconds). */
+const SIGNUP_TIMEOUT_MS = 45000;
+/**
+ * Best-effort GET /api/health to nudge a sleeping host (e.g. Render).
+ * Do not block signup on a long wait — the signup request itself also wakes the dyno.
+ */
+const WAKE_REMOTE_FIRE_AND_FORGET_MS = 8000;
+/** Shorter cap when retrying wake after a timeout. */
+const WAKE_RETRY_MS = 12000;
 
 try {
   if (typeof localStorage !== 'undefined') {
@@ -41,7 +46,7 @@ function getApiBaseCandidates(preferredBase) {
 }
 
 /** GET /api/health on a remote base so serverless hosts can spin up before auth. */
-async function wakeRemoteApiBase(base, timeoutMs = WAKE_REMOTE_API_MS) {
+async function wakeRemoteApiBase(base, timeoutMs = WAKE_RETRY_MS) {
   if (!base || !/^https?:\/\//i.test(base)) return;
   const root = base.replace(/\/$/, '');
   const controller = new AbortController();
@@ -110,7 +115,7 @@ export async function studentSignup({ email, password, displayName, timeoutMs = 
   const baseCandidates = getApiBaseCandidates(ACTIVE_API_BASE);
   const remotes = remoteBasesFromCandidates(baseCandidates);
   if (remotes.length > 0) {
-    await wakeRemoteApiBase(remotes[0], WAKE_REMOTE_API_MS);
+    wakeRemoteApiBase(remotes[0], WAKE_REMOTE_FIRE_AND_FORGET_MS).catch(() => {});
   }
 
   let lastResult = { success: false, error: 'Signup failed.' };
@@ -133,7 +138,7 @@ export async function studentSignup({ email, password, displayName, timeoutMs = 
 
     // On timeout only, try a health-check warm-up and retry once.
     if (!data?.success && /timed out/i.test(String(data?.error || ''))) {
-      await wakeRemoteApiBase(base, 45000);
+      await wakeRemoteApiBase(base, WAKE_RETRY_MS);
       data = await fetchJsonWithTimeout(
         `${base}/api/auth/student/signup`,
         {
@@ -161,7 +166,7 @@ export async function studentLogin({ email, password }) {
   const baseCandidates = getApiBaseCandidates(ACTIVE_API_BASE);
   const remotes = remoteBasesFromCandidates(baseCandidates);
   if (remotes.length > 0) {
-    await wakeRemoteApiBase(remotes[0], WAKE_REMOTE_API_MS);
+    wakeRemoteApiBase(remotes[0], WAKE_REMOTE_FIRE_AND_FORGET_MS).catch(() => {});
   }
   let lastResult = { success: false, error: 'Login failed.' };
   for (const base of baseCandidates) {
@@ -182,7 +187,7 @@ export async function studentLogin({ email, password }) {
     }
 
     if (!data?.success && /timed out/i.test(String(data?.error || ''))) {
-      await wakeRemoteApiBase(base, 45000);
+      await wakeRemoteApiBase(base, WAKE_RETRY_MS);
       data = await fetchJsonWithTimeout(
         `${base}/api/auth/student/login`,
         {
