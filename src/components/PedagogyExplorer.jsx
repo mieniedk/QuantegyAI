@@ -474,17 +474,22 @@ function AssessmentMatcher({ onComplete, continueLabel, badgeLabel, embedded }) 
 
   const [answers, setAnswers] = useState({});
   const [checked, setChecked] = useState(false);
+  const [checkHint, setCheckHint] = useState('');
 
-  useEffect(() => { setAnswers({}); setChecked(false); }, [roundIdx]);
+  useEffect(() => { setAnswers({}); setChecked(false); setCheckHint(''); }, [roundIdx]);
 
   const assessTypes = ['Diagnostic', 'Formative', 'Summative'];
   const bloomsLevels = ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'];
 
   const setAnswer = (idx, field, value) => {
+    setCheckHint('');
     setAnswers((prev) => ({ ...prev, [`${idx}-${field}`]: value }));
   };
 
   const allFilled = items.every((_, i) => answers[`${i}-type`] && answers[`${i}-blooms`]);
+  const rowsComplete = items.filter((_, i) => answers[`${i}-type`] && answers[`${i}-blooms`]).length;
+  const selectionsNeeded = items.length * 2;
+
   const allCorrect = checked && items.every((item, i) => answers[`${i}-type`] === item.assessmentType && answers[`${i}-blooms`] === item.blooms);
   const totalCorrect = checked ? items.filter((item, i) => answers[`${i}-type`] === item.assessmentType && answers[`${i}-blooms`] === item.blooms).length : 0;
 
@@ -504,14 +509,14 @@ function AssessmentMatcher({ onComplete, continueLabel, badgeLabel, embedded }) 
       </p>
       <div style={{ margin: '0 0 10px', display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 12, fontWeight: 700, color: COLOR.textSecondary, background: '#f1f5f9', border: `1px solid ${COLOR.border}`, borderRadius: 999, padding: '4px 10px' }}>
-          Progress: {Object.keys(answers).length}/6 selections
+          Progress: {rowsComplete}/{items.length} rows · {Object.keys(answers).length}/{selectionsNeeded} choices
         </span>
         <span style={{ fontSize: 12, fontWeight: 700, color: allCorrect ? '#047857' : checked ? '#9a3412' : '#64748b', background: allCorrect ? '#ecfdf5' : checked ? '#fff7ed' : '#f8fafc', border: `1px solid ${allCorrect ? '#86efac' : checked ? '#fdba74' : '#e5e7eb'}`, borderRadius: 999, padding: '4px 10px' }}>
           Status: {checked ? `${totalCorrect}/${items.length} correct` : 'In progress'}
         </span>
       </div>
       <div style={{ marginBottom: 10, padding: '8px 12px', borderRadius: 10, background: '#f8fafc', border: `1px solid ${COLOR.border}`, fontSize: 12, color: COLOR.textSecondary, lineHeight: 1.45 }}>
-        <strong>How to use:</strong> Choose when evidence is gathered (before/during/after instruction), then the cognitive demand.
+        <strong>How to use:</strong> For <strong>each</strong> of the three scenarios, tap <strong>one</strong> assessment type <strong>and</strong> <strong>one</strong> Bloom level (six choices total). Then tap <strong>Check Answers</strong>.
       </div>
 
       <QBotBubble
@@ -523,8 +528,9 @@ function AssessmentMatcher({ onComplete, continueLabel, badgeLabel, embedded }) 
         {items.map((item, idx) => {
           const typeCorrect = checked && answers[`${idx}-type`] === item.assessmentType;
           const bloomsCorrect = checked && answers[`${idx}-blooms`] === item.blooms;
+          const rowKey = item.objective.slice(0, 48);
           return (
-            <div key={idx} style={{ padding: '12px 16px', borderRadius: 12, background: '#f8fafc', border: `1px solid ${COLOR.border}` }}>
+            <div key={rowKey} style={{ padding: '12px 16px', borderRadius: 12, background: '#f8fafc', border: `1px solid ${COLOR.border}` }}>
               <p style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 700, color: COLOR.text, lineHeight: 1.4 }}>
                 <span style={{ color: COLOR.blue, fontWeight: 800 }}>{idx + 1}.</span> {item.objective}
               </p>
@@ -572,10 +578,40 @@ function AssessmentMatcher({ onComplete, continueLabel, badgeLabel, embedded }) 
         })}
       </div>
 
+      {checkHint && !checked && (
+        <div role="alert" style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 10, background: '#fff7ed', border: '1px solid #fdba74', fontSize: 13, fontWeight: 600, color: '#9a3412', lineHeight: 1.45 }}>
+          {checkHint}
+        </div>
+      )}
       <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
         {!checked && (
-          <button type="button" onClick={() => setChecked(true)} disabled={!allFilled}
-            style={{ ...BTN_PRIMARY, background: `linear-gradient(135deg, ${COLOR.blue}, #1d4ed8)`, flex: '1 1 auto', opacity: allFilled ? 1 : 0.4 }}>
+          <button
+            type="button"
+            onClick={() => {
+              if (!allFilled) {
+                const missing = items
+                  .map((_, i) => (!(answers[`${i}-type`] && answers[`${i}-blooms`]) ? i + 1 : null))
+                  .filter((n) => n != null);
+                setCheckHint(
+                  missing.length
+                    ? `Choose both an assessment type and a Bloom level for row(s): ${missing.join(', ')}. (${rowsComplete}/${items.length} rows complete.)`
+                    : 'Choose both an assessment type and a Bloom level for every scenario.',
+                );
+                return;
+              }
+              setCheckHint('');
+              setChecked(true);
+            }}
+            style={{
+              ...BTN_PRIMARY,
+              width: 'auto',
+              minWidth: 200,
+              flex: '1 1 220px',
+              background: `linear-gradient(135deg, ${COLOR.blue}, #1d4ed8)`,
+              opacity: 1,
+              cursor: 'pointer',
+            }}
+          >
             Check Answers
           </button>
         )}
