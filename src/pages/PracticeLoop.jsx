@@ -1380,6 +1380,7 @@ export default function PracticeLoop() {
   const singleTeks = teks.split(',')[0] || '';
   const sid = params.get('sid') || '';
   const cid = params.get('cid') || '';
+  const examId = params.get('examId') || gradeToExamId(grade) || 'math712';
   const requestedPhase = params.get('phase');
   const sessionPhaseKey = `practice-loop-phase:${examId}:${comp}:${currentStd || ''}:${teks}`;
   const sessionQuizKey = `practice-loop-quiz:${comp}:${teks}:${currentStd || ''}`;
@@ -1391,7 +1392,6 @@ export default function PracticeLoop() {
       ? savedPhase
       : (PHASES[0] || 'diagnostic');
   const subject = params.get('subject') || 'math';
-  const examId = params.get('examId') || gradeToExamId(grade) || 'math712';
 
   const [phase, setPhase] = useState(initialPhase);
   const [roadmapExpanded, setRoadmapExpanded] = useState(false);
@@ -1483,6 +1483,7 @@ export default function PracticeLoop() {
   const [confidenceRatings, setConfidenceRatings] = useState([]);
   const [lastCheckInMilestone, setLastCheckInMilestone] = useState(0);
   const [showConfidenceCheckIn, setShowConfidenceCheckIn] = useState(false);
+  const [pendingConfidenceCheckIn, setPendingConfidenceCheckIn] = useState(false);
   const [coachAdaptiveNote, setCoachAdaptiveNote] = useState('');
   const [celebrationToast, setCelebrationToast] = useState(null);
   const [showBreakModal, setShowBreakModal] = useState(false);
@@ -1974,7 +1975,8 @@ export default function PracticeLoop() {
         setCoachAdaptiveNote('Moving forward — you can always revisit concepts later.');
       }
     } else if (correctCount === 0 && total > 0 && ADAPTIVE.struggleDetection.zeroCorrectOnCheckQuiz?.action === 'insertConceptReminder') {
-      setConceptRefreshReturnPhase(normalNext);
+      const resumeAfterRefresh = normalNext === 'concept-refresh' ? 'check-quiz-4' : normalNext;
+      setConceptRefreshReturnPhase(resumeAfterRefresh);
       setDetourFromStep(PHASES.indexOf(phaseKey));
       nextPhase = 'concept-refresh';
       setCoachAdaptiveNote('That checkpoint had no correct answers — we are inserting a concept recap before the next challenge.');
@@ -2131,6 +2133,7 @@ export default function PracticeLoop() {
   const recordConfidenceCheckIn = useCallback((value) => {
     setConfidenceRatings((prev) => [...prev, value].slice(-8));
     setLastCheckInMilestone(tilesCompleted);
+    setPendingConfidenceCheckIn(false);
     setShowConfidenceCheckIn(false);
     if (isAdaptiveDebug) setAdaptiveDebugMessage(`confidence:${value}/5 milestone:${tilesCompleted}`);
   }, [tilesCompleted, isAdaptiveDebug]);
@@ -2919,7 +2922,8 @@ export default function PracticeLoop() {
     if (!hasTopic) return;
     if (!CONFIDENCE_CHECKIN_TILES.includes(tilesCompleted)) return;
     if (tilesCompleted <= lastCheckInMilestone) return;
-    setShowConfidenceCheckIn(true);
+    // Non-blocking: surface an optional prompt instead of auto-opening a modal.
+    setPendingConfidenceCheckIn(true);
   }, [tilesCompleted, lastCheckInMilestone, hasTopic]);
 
   useEffect(() => {
@@ -3228,6 +3232,56 @@ export default function PracticeLoop() {
           >
             <span aria-hidden>⌨</span>
             <span>Typing mode: header tools are hidden while the keyboard is open.</span>
+          </div>
+        )}
+
+        {hasTopic && pendingConfidenceCheckIn && !showConfidenceCheckIn && (
+          <div
+            style={{
+              marginBottom: 10,
+              padding: '10px 12px',
+              borderRadius: 10,
+              background: '#eef6ff',
+              border: `1px solid ${COLOR.blue}44`,
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 8,
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <div style={{ fontSize: 12, color: '#1e3a8a', fontWeight: 600 }}>
+              Quick confidence check-in is ready. Open it when convenient.
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                type="button"
+                onClick={() => setShowConfidenceCheckIn(true)}
+                style={{ ...BTN_PRIMARY, padding: '7px 12px', minHeight: 34, fontSize: 12 }}
+              >
+                Open check-in
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setLastCheckInMilestone(tilesCompleted);
+                  setPendingConfidenceCheckIn(false);
+                }}
+                style={{
+                  padding: '7px 12px',
+                  minHeight: 34,
+                  borderRadius: 8,
+                  border: `1px solid ${COLOR.border}`,
+                  background: '#fff',
+                  color: COLOR.textSecondary,
+                  fontWeight: 600,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                }}
+              >
+                Later
+              </button>
+            </div>
           </div>
         )}
 
@@ -3572,6 +3626,7 @@ export default function PracticeLoop() {
                       }
                       setPacingPref('support');
                       setLastCheckInMilestone(tilesCompleted);
+                      setPendingConfidenceCheckIn(false);
                       setShowConfidenceCheckIn(false);
                     }}
                     style={{ ...BTN_PRIMARY, textAlign: 'left', padding: '10px 14px', minHeight: 42, background: '#f1f5f9', color: COLOR.text, border: `1px solid ${COLOR.border}`, boxShadow: 'none', fontSize: 13 }}
@@ -3593,6 +3648,7 @@ export default function PracticeLoop() {
                       }
                       setPacingPref('faster');
                       setLastCheckInMilestone(tilesCompleted);
+                      setPendingConfidenceCheckIn(false);
                       setShowConfidenceCheckIn(false);
                     }}
                     style={{ ...BTN_PRIMARY, textAlign: 'left', padding: '10px 14px', minHeight: 42, background: '#f1f5f9', color: COLOR.text, border: `1px solid ${COLOR.border}`, boxShadow: 'none', fontSize: 13 }}
@@ -3605,6 +3661,7 @@ export default function PracticeLoop() {
                 type="button"
                 onClick={() => {
                   setLastCheckInMilestone(tilesCompleted);
+                  setPendingConfidenceCheckIn(false);
                   setShowConfidenceCheckIn(false);
                 }}
                 style={{
@@ -3844,7 +3901,9 @@ export default function PracticeLoop() {
                   badgeLabel={getTileLabel('concept-refresh', 'Interactive recap')}
                   continueLabel="Continue"
                   onComplete={() => {
-                    const dest = conceptRefreshReturnPhase || 'check-quiz-4';
+                    const dest = (conceptRefreshReturnPhase && conceptRefreshReturnPhase !== 'concept-refresh')
+                      ? conceptRefreshReturnPhase
+                      : 'check-quiz-4';
                     setConceptRefreshReturnPhase(null);
                     setDetourFromStep(null);
                     goToPhase(dest);
@@ -3856,11 +3915,11 @@ export default function PracticeLoop() {
                   {conceptRefreshConcept?.illustrationHtml && (
                     <div style={{ marginTop: 12 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(conceptRefreshConcept.illustrationHtml) }} />
                   )}
-                  <button type="button" onClick={() => { const dest = conceptRefreshReturnPhase || 'check-quiz-4'; setConceptRefreshReturnPhase(null); setDetourFromStep(null); goToPhase(dest); }} style={BTN_PRIMARY}>Continue</button>
+                  <button type="button" onClick={() => { const dest = (conceptRefreshReturnPhase && conceptRefreshReturnPhase !== 'concept-refresh') ? conceptRefreshReturnPhase : 'check-quiz-4'; setConceptRefreshReturnPhase(null); setDetourFromStep(null); goToPhase(dest); }} style={BTN_PRIMARY}>Continue</button>
                 </>
               )
             ) : (
-              <button type="button" onClick={() => { const dest = conceptRefreshReturnPhase || 'check-quiz-4'; setConceptRefreshReturnPhase(null); setDetourFromStep(null); goToPhase(dest); }} style={BTN_PRIMARY}>Continue</button>
+              <button type="button" onClick={() => { const dest = (conceptRefreshReturnPhase && conceptRefreshReturnPhase !== 'concept-refresh') ? conceptRefreshReturnPhase : 'check-quiz-4'; setConceptRefreshReturnPhase(null); setDetourFromStep(null); goToPhase(dest); }} style={BTN_PRIMARY}>Continue</button>
             )}
           </PhaseCard>
         )}
