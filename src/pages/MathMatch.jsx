@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { TEKS_GRADES, TEKS_STANDARDS } from '../data/teks';
 import { saveGameResult, findMatchingAssignment } from '../utils/storage';
 import { formatMathHtml } from '../utils/mathFormat';
 import { sanitizeHtml } from '../utils/sanitize';
 import GameReview from '../components/GameReview';
 import LoopContinueButton from '../components/LoopContinueButton';
+import useGameReturn from '../hooks/useGameReturn';
 import qbotImg from '../assets/qbot.svg';
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -448,24 +449,10 @@ const MathMatch = () => {
   const examId = searchParams.get('examId') || '';
   const strictScope = searchParams.get('from') === 'loop' && !!(teksParam || compParam || currentStd);
   const launchedFromLoop = searchParams.get('from') === 'loop';
+  const embeddedLaunch = searchParams.get('embed') === '1';
+  const loopEmbeddedMode = launchedFromLoop && embeddedLaunch;
   const labelParam = searchParams.get('label') || '';
-  const gradeParamForUrl = searchParams.get('grade') || 'grade3';
-  const fromParams = searchParams.get('returnUrl') || '';
-  const fromStorage = (() => { try { return sessionStorage.getItem('practice-loop-return') || ''; } catch { return ''; } })();
-  const buildFallback = () => {
-    if (!teksParam) return '';
-    const p = new URLSearchParams();
-    p.set('phase', 'reminder');
-    p.set('teks', teksParam);
-    if (labelParam) p.set('label', labelParam);
-    p.set('grade', gradeParamForUrl);
-    return `/practice-loop?${p.toString()}`;
-  };
-  const returnUrl = fromParams || fromStorage || buildFallback();
-  const navigate = useNavigate();
-  useEffect(() => {
-    if (fromParams) try { sessionStorage.setItem('practice-loop-return', fromParams); } catch (_) {}
-  }, [fromParams]);
+  const { returnUrl, goBack } = useGameReturn();
   // Resolve student identity: URL params first, then fall back to saved session
   const _session = (() => {
     try {
@@ -585,14 +572,14 @@ const MathMatch = () => {
 
   // Loop launches should start immediately for snappier UX.
   useEffect(() => {
-    if (!launchedFromLoop || autoStartRef.current || gameStarted || gameComplete) return;
+    if (!loopEmbeddedMode || autoStartRef.current || gameStarted || gameComplete) return;
     autoStartRef.current = true;
     setAutoStarting(true);
     requestAnimationFrame(() => {
       startGame();
       setAutoStarting(false);
     });
-  }, [launchedFromLoop, gameStarted, gameComplete, startGame]);
+  }, [loopEmbeddedMode, gameStarted, gameComplete, startGame]);
 
   const handleCardClick = (cardId) => {
     if (lockRef.current) return;
@@ -650,11 +637,11 @@ const MathMatch = () => {
   return (
     <div style={{ padding: '12px 16px', maxWidth: 600, margin: '0 auto', fontFamily: 'system-ui, sans-serif', paddingBottom: returnUrl ? 96 : 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        {returnUrl ? (
-          <button type="button" onClick={() => navigate(returnUrl)} style={{ background: 'none', border: 'none', color: '#059669', fontWeight: 600, fontSize: 13, cursor: 'pointer', padding: 0 }}>← Continue practice</button>
+        {!loopEmbeddedMode && (returnUrl ? (
+          <button type="button" onClick={goBack} style={{ background: 'none', border: 'none', color: '#059669', fontWeight: 600, fontSize: 13, cursor: 'pointer', padding: 0 }}>← Continue practice</button>
         ) : (
           <Link to="/games" style={{ color: '#007bff', textDecoration: 'none', fontSize: 13 }}>← Games</Link>
-        )}
+        ))}
         {gameStarted && !gameComplete && (
           <div style={{ display: 'flex', gap: 12, fontSize: 12, fontWeight: 600, color: '#475569' }}>
             <span>Moves: {moves}</span>
@@ -703,7 +690,7 @@ const MathMatch = () => {
       )}
 
       {/* ── Setup Screen ── */}
-      {!gameStarted && (
+      {!gameStarted && !loopEmbeddedMode && (
         <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: 24 }}>
           {autoStarting && launchedFromLoop && (
             <div style={{ marginBottom: 12, padding: 12, background: '#eff6ff', borderRadius: 8, border: '1px solid #bfdbfe', fontSize: 13, color: '#1e3a8a' }}>
@@ -778,6 +765,14 @@ const MathMatch = () => {
             }}>
             Start Game
           </button>
+        </div>
+      )}
+
+      {!gameStarted && loopEmbeddedMode && (
+        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: 16, fontSize: 13, color: '#475569' }}>
+          {scopeUnavailable
+            ? 'No scoped Math Match board is available for this loop right now. Use Continue to move to the next tile.'
+            : 'Loading Math Match board...'}
         </div>
       )}
 
@@ -927,7 +922,7 @@ const MathMatch = () => {
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center', marginTop: 8 }}>
               {returnUrl && (
-                <button type="button" onClick={() => navigate(returnUrl)} style={{
+                <button type="button" onClick={goBack} style={{
                   width: '100%', padding: '14px 24px', fontSize: 16, fontWeight: 700, cursor: 'pointer',
                   background: 'linear-gradient(135deg, #059669, #047857)', color: '#fff',
                   border: '2px solid #34d399', borderRadius: 12,
@@ -956,13 +951,15 @@ const MathMatch = () => {
                   }}>
                   Play Again
                 </button>
-                <button type="button" onClick={() => { setGameStarted(false); setGameComplete(false); setShowReview(false); }}
-                  style={{
-                    padding: '12px 24px', fontSize: 15, fontWeight: 600, cursor: 'pointer',
-                    background: '#f8fafc', color: '#475569', border: '1px solid #d1d5db', borderRadius: 8,
-                  }}>
-                  Back
-                </button>
+                {!loopEmbeddedMode && (
+                  <button type="button" onClick={() => { setGameStarted(false); setGameComplete(false); setShowReview(false); }}
+                    style={{
+                      padding: '12px 24px', fontSize: 15, fontWeight: 600, cursor: 'pointer',
+                      background: '#f8fafc', color: '#475569', border: '1px solid #d1d5db', borderRadius: 8,
+                    }}>
+                    Back
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -1008,7 +1005,7 @@ const MathMatch = () => {
       })()}
 
       {/* ── Bottom controls during game ── */}
-      {gameStarted && !gameComplete && (
+      {gameStarted && !gameComplete && !loopEmbeddedMode && (
         <div style={{ marginTop: 16, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button type="button" onClick={startGame}
             style={{ padding: '8px 16px', fontSize: 13, cursor: 'pointer', borderRadius: 6, border: '1px solid #d1d5db', background: '#fff' }}>
@@ -1023,7 +1020,7 @@ const MathMatch = () => {
 
       {/* ── Consistent loop CTA: always available at every screen/state ── */}
       {returnUrl && (
-        <LoopContinueButton onClick={() => navigate(returnUrl)} label="Continue" />
+        <LoopContinueButton onClick={goBack} label="Continue" />
       )}
     </div>
   );

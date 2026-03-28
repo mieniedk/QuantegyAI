@@ -5,6 +5,7 @@ import {
   isTrialExpired, getStatusLabel,
 } from '../utils/subscription';
 import { getTeachers } from '../utils/storage';
+import { createStudentCheckout, getStudentInfo, isStudentLoggedIn } from '../utils/studentAuth';
 import { showAppToast } from '../utils/appToast';
 
 /* ── Pricing & Subscription page ── */
@@ -14,6 +15,36 @@ const Pricing = () => {
   const [searchParams] = useSearchParams();
   const [username, setUsername] = useState('');
   const [sub, setSub] = useState(null);
+  const [pricingAudience, setPricingAudience] = useState('teacher');
+  const [studentExamId, setStudentExamId] = useState('math712');
+  const [studentBusyPlanId, setStudentBusyPlanId] = useState('');
+  const studentInfo = getStudentInfo();
+  const hasStudentSession = isStudentLoggedIn() && !!studentInfo;
+
+  const STUDENT_PLANS = [
+    {
+      id: 'student_exam_onetime',
+      name: 'Student - This Exam',
+      price: 29,
+      period: 'one-time',
+      features: [
+        'Unlock full loop for selected exam',
+        'All 21 tiles and mastery checks',
+        'Continue where you left off',
+      ],
+    },
+    {
+      id: 'student_monthly',
+      name: 'Student - All Exams',
+      price: 9.99,
+      period: 'month',
+      features: [
+        'Access all student exams',
+        'Unlimited loop practice',
+        'New exams included while active',
+      ],
+    },
+  ];
 
   /* Detect logged-in teacher from localStorage (same key as Teacher.jsx) */
   useEffect(() => {
@@ -31,16 +62,42 @@ const Pricing = () => {
       setUsername(sessionUser);
       setSub(getSubscription(sessionUser));
     }
+    const hasTeacherSession = !!sessionUser || !!urlUser;
+    if (hasStudentSession && !hasTeacherSession) setPricingAudience('student');
+    else setPricingAudience('teacher');
   }, [searchParams]);
 
   const handleCheckout = (planId) => {
     if (!username) {
-      showAppToast('Please log in to the Teacher Portal first, then come back to upgrade.', { type: 'warning' });
-      navigate('/teacher');
+      if (hasStudentSession) {
+        showAppToast('You are signed in as a student. Teacher subscriptions are in the Teacher Portal.', { type: 'info' });
+        navigate('/student');
+        return;
+      }
+      showAppToast('Choose your portal: Student or Teacher.', { type: 'warning' });
       return;
     }
     // Navigate to the checkout page with plan and user info
     navigate(`/checkout?plan=${planId}&user=${encodeURIComponent(username)}`);
+  };
+
+  const handleStudentCheckout = async (planId) => {
+    if (!hasStudentSession) {
+      showAppToast('Please sign in to the Student Portal to continue.', { type: 'warning' });
+      navigate('/student');
+      return;
+    }
+    setStudentBusyPlanId(planId);
+    try {
+      const result = await createStudentCheckout(studentExamId, planId);
+      if (!result?.success && !result?.url) {
+        showAppToast(result?.error || 'Could not start student checkout.', { type: 'error' });
+      }
+    } catch (err) {
+      showAppToast(err?.message || 'Could not start student checkout.', { type: 'error' });
+    } finally {
+      setStudentBusyPlanId('');
+    }
   };
 
   const daysLeft = username ? getTrialDaysLeft(username) : 0;
@@ -53,13 +110,77 @@ const Pricing = () => {
       {/* Nav */}
       <div style={{ marginBottom: 24, display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         <Link to="/" style={{ color: '#2563eb', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>← Home</Link>
+        <Link to="/student" style={{ color: '#2563eb', textDecoration: 'none', fontSize: 14 }}>Student Portal</Link>
         <Link to="/teacher" style={{ color: '#2563eb', textDecoration: 'none', fontSize: 14 }}>Teacher Portal</Link>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+        <div style={{ display: 'inline-flex', border: '1px solid #cbd5e1', borderRadius: 10, overflow: 'hidden' }}>
+          <button
+            type="button"
+            onClick={() => setPricingAudience('student')}
+            style={{
+              padding: '8px 14px',
+              fontSize: 13,
+              fontWeight: 700,
+              border: 'none',
+              cursor: 'pointer',
+              background: pricingAudience === 'student' ? '#dbeafe' : '#fff',
+              color: pricingAudience === 'student' ? '#1d4ed8' : '#475569',
+            }}
+          >
+            Student Plans
+          </button>
+          <button
+            type="button"
+            onClick={() => setPricingAudience('teacher')}
+            style={{
+              padding: '8px 14px',
+              fontSize: 13,
+              fontWeight: 700,
+              border: 'none',
+              cursor: 'pointer',
+              background: pricingAudience === 'teacher' ? '#dbeafe' : '#fff',
+              color: pricingAudience === 'teacher' ? '#1d4ed8' : '#475569',
+            }}
+          >
+            Teacher Plans
+          </button>
+        </div>
       </div>
 
       <h1 style={{ textAlign: 'center', marginBottom: 4, fontSize: 32 }}>Quantegy AI Pricing</h1>
       <p style={{ textAlign: 'center', color: '#64748b', fontSize: 15, marginBottom: 8 }}>
         Start with a <strong>free 7-day trial</strong> of all Pro features. No credit card required.
       </p>
+
+      {/* Portal choice helper */}
+      <div style={{
+        textAlign: 'center', margin: '12px auto 0', padding: '10px 14px',
+        background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, maxWidth: 620,
+      }}>
+        <div style={{ fontSize: 13, color: '#334155', marginBottom: 8 }}>
+          {hasStudentSession
+            ? `Signed in as student ${studentInfo?.displayName || studentInfo?.username}.`
+            : 'Need a different portal? Choose where to continue:'}
+        </div>
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => navigate('/student')}
+            style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #16a34a', background: '#ecfdf5', color: '#166534', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}
+          >
+            Go to Student Portal
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/teacher')}
+            style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #2563eb', background: '#eff6ff', color: '#1d4ed8', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}
+          >
+            Go to Teacher Portal
+          </button>
+        </div>
+      </div>
 
       {/* Status banner */}
       {username && (
@@ -79,37 +200,70 @@ const Pricing = () => {
         </div>
       )}
 
-      {/* Plan cards */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-        gap: 24, marginTop: 32,
-      }}>
-        {/* FREE */}
-        <PlanCard
-          plan={PLANS.free}
-          current={sub && expired && !hasPro}
-          onSelect={null}
-          accent="#94a3b8"
-        />
-
-        {/* PRO MONTHLY */}
-        <PlanCard
-          plan={PLANS.pro_monthly}
-          current={sub?.plan === 'pro_monthly' && hasPro}
-          popular
-          onSelect={() => handleCheckout('pro_monthly')}
-          accent="#2563eb"
-        />
-
-        {/* PRO YEARLY */}
-        <PlanCard
-          plan={PLANS.pro_yearly}
-          current={sub?.plan === 'pro_yearly' && hasPro}
-          onSelect={() => handleCheckout('pro_yearly')}
-          accent="#7c3aed"
-          badge={PLANS.pro_yearly.savings}
-        />
-      </div>
+      {pricingAudience === 'teacher' ? (
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: 24, marginTop: 32,
+        }}>
+          <PlanCard
+            plan={PLANS.free}
+            current={sub && expired && !hasPro}
+            onSelect={null}
+            accent="#94a3b8"
+          />
+          <PlanCard
+            plan={PLANS.pro_monthly}
+            current={sub?.plan === 'pro_monthly' && hasPro}
+            popular
+            onSelect={() => handleCheckout('pro_monthly')}
+            accent="#2563eb"
+          />
+          <PlanCard
+            plan={PLANS.pro_yearly}
+            current={sub?.plan === 'pro_yearly' && hasPro}
+            onSelect={() => handleCheckout('pro_yearly')}
+            accent="#7c3aed"
+            badge={PLANS.pro_yearly.savings}
+          />
+        </div>
+      ) : (
+        <>
+          <div style={{ marginTop: 16, marginBottom: 8, display: 'flex', justifyContent: 'center' }}>
+            <label style={{ fontSize: 13, color: '#334155', fontWeight: 600 }}>
+              Exam:
+              <select
+                value={studentExamId}
+                onChange={(e) => setStudentExamId(e.target.value)}
+                style={{ marginLeft: 8, padding: '6px 10px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13 }}
+              >
+                <option value="math712">TExES Math 7-12</option>
+                <option value="math48">TExES Math 4-8</option>
+              </select>
+            </label>
+          </div>
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            gap: 24, marginTop: 16,
+          }}>
+            {STUDENT_PLANS.map((plan) => (
+              <PlanCard
+                key={plan.id}
+                plan={plan}
+                current={false}
+                popular={plan.id === 'student_exam_onetime'}
+                onSelect={() => handleStudentCheckout(plan.id)}
+                loading={studentBusyPlanId === plan.id}
+                accent={plan.id === 'student_exam_onetime' ? '#059669' : '#2563eb'}
+              />
+            ))}
+          </div>
+          {!hasStudentSession && (
+            <p style={{ textAlign: 'center', marginTop: 10, fontSize: 13, color: '#64748b' }}>
+              Sign in to the Student Portal before checkout.
+            </p>
+          )}
+        </>
+      )}
 
       {/* Feature comparison */}
       <div style={{ marginTop: 48 }}>

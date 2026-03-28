@@ -731,7 +731,7 @@ export default function TestPrepPage({ config }) {
               <p style={{ fontSize: 14, color: '#15803d', margin: '0 0 16px', lineHeight: 1.5 }}>Play a game to reinforce what you learned.</p>
               {(() => {
                 const firstWithGame = learnCheckDomains.find((d) => d.games && d.games.length);
-                const defaultGameId = firstWithGame?.games?.[0] || (isTexesResultsKey ? 'teks-crush' : 'math-sprint');
+                const defaultGameId = firstWithGame?.games?.[0] || (isTexesResultsKey ? 'q-blocks' : 'math-sprint');
                 const defaultGame = GAMES_CATALOG.find((g) => g.id === defaultGameId) || GAMES_CATALOG.find((g) => g.id === 'math-match');
                 return defaultGame ? (
                   <Link to={getGamePath(defaultGame.path, defaultGame.id, examId)} style={{ display: 'inline-block', padding: '12px 24px', background: '#16a34a', color: '#fff', borderRadius: 10, textDecoration: 'none', fontSize: 14, fontWeight: 700 }}>
@@ -1368,7 +1368,7 @@ export default function TestPrepPage({ config }) {
             {inStudyFlow && testRunMode === 'quick' && (() => {
               const doms = configGetDomains(examId);
               const firstWithGame = Array.isArray(doms) ? doms.find((d) => d.games && d.games.length) : null;
-              const defaultGameId = firstWithGame?.games?.[0] || (isTexesResultsKey ? 'teks-crush' : 'math-sprint');
+              const defaultGameId = firstWithGame?.games?.[0] || (isTexesResultsKey ? 'q-blocks' : 'math-sprint');
               const defaultGame = GAMES_CATALOG.find((g) => g.id === defaultGameId);
               return (
                 <div style={{ width: '100%', maxWidth: 500, marginBottom: 20, padding: '18px 20px', background: 'linear-gradient(135deg,#ecfdf5,#d1fae5)', borderRadius: 12, border: '1px solid #6ee7b7' }}>
@@ -1473,7 +1473,7 @@ export default function TestPrepPage({ config }) {
               const nextIndex = learnCheckIndex + 1;
               const hasNext = nextIndex < resultDomains.length;
               const firstWithGame = resultDomains.find((d) => d.games && d.games.length);
-              const defaultGameId = firstWithGame?.games?.[0] || (isTexesResultsKey ? 'teks-crush' : 'math-sprint');
+              const defaultGameId = firstWithGame?.games?.[0] || (isTexesResultsKey ? 'q-blocks' : 'math-sprint');
               const defaultGame = GAMES_CATALOG.find((g) => g.id === defaultGameId) || GAMES_CATALOG.find((g) => g.id === 'math-sprint');
               return (
                 <div style={{ width: '100%', maxWidth: 500, marginBottom: 20, padding: '18px 20px', background: 'linear-gradient(135deg,#ecfdf5,#d1fae5)', borderRadius: 12, border: '1px solid #6ee7b7' }}>
@@ -1503,7 +1503,7 @@ export default function TestPrepPage({ config }) {
             {inKeepGoingFlow && mode === 'adaptive' && (() => {
               const doms = configGetDomains(examId);
               const firstWithGame = Array.isArray(doms) ? doms.find((d) => d.games && d.games.length) : null;
-              const defaultGameId = firstWithGame?.games?.[0] || (isTexesResultsKey ? 'teks-crush' : 'math-match');
+              const defaultGameId = firstWithGame?.games?.[0] || (isTexesResultsKey ? 'q-blocks' : 'math-match');
               const defaultGame = GAMES_CATALOG.find((g) => g.id === defaultGameId) || GAMES_CATALOG.find((g) => g.id === 'math-sprint');
               const strengthened = compBreakdown.filter((c) => c.total > 0 && c.correct === c.total).map((c) => c.name);
               const needPractice = compBreakdown.filter((c) => c.total > 0 && c.correct < c.total).map((c) => c.name);

@@ -370,10 +370,14 @@ const Teacher = () => {
         <p style={{ margin: '0 0 28px', color: '#64748b', fontSize: 14 }}>{headings[view].subtitle}</p>
 
         {/* ── Backend unreachable: show first so user sees it before trying to log in ── */}
-        {view === 'login' && apiReachable === false && (
+        {(view === 'login' || view === 'signup') && apiReachable === false && (
           <div style={{ marginBottom: 20, padding: 14, background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: 10, fontSize: 13, color: '#92400e' }}>
-            <strong>Cannot sign in: backend not reachable.</strong>
-            <p style={{ margin: '8px 0 0', lineHeight: 1.5 }}>Teacher login requires the API. In the project folder run <code style={{ background: '#fff', padding: '2px 6px', borderRadius: 4 }}>npm run start</code> (not <code>npm run dev</code>). Then open the URL from the terminal (e.g. http://localhost:4173) and try again.</p>
+            <strong>Backend not reachable.</strong>
+            <p style={{ margin: '8px 0 0', lineHeight: 1.5 }}>
+              In the project folder run <code style={{ background: '#fff', padding: '2px 6px', borderRadius: 4 }}>npm run start</code> (not <code>npm run dev</code>).
+              Then open the URL from the terminal (for example http://localhost:4173) and try again.
+              {view === 'signup' ? ' You can still create a local account on this device while offline.' : ''}
+            </p>
             <button type="button" onClick={checkApiReachable} style={{ marginTop: 10, padding: '8px 14px', background: '#f59e0b', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, fontSize: 12 }}>Check again</button>
           </div>
         )}

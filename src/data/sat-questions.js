@@ -6,7 +6,7 @@
 export const SAT_DOMAINS_MATH = [
   { id: 'sat_m_algebra', name: 'Heart of Algebra', desc: 'Linear equations, inequalities, systems', weight: 0.35, games: ['algebra-sprint', 'equation-balance', 'math-maze', 'q-blocks'] },
   { id: 'sat_m_data', name: 'Problem Solving & Data Analysis', desc: 'Ratios, percentages, statistics', weight: 0.35, games: ['math-sprint', 'graph-explorer', 'math-jeopardy'] },
-  { id: 'sat_m_advanced', name: 'Passport to Advanced Math', desc: 'Quadratics, exponents, radicals', weight: 0.30, games: ['algebra-sprint', 'math-maze', 'teks-crush'] },
+  { id: 'sat_m_advanced', name: 'Passport to Advanced Math', desc: 'Quadratics, exponents, radicals', weight: 0.30, games: ['algebra-sprint', 'math-maze', 'q-blocks'] },
 ];
 
 export const SAT_QUESTIONS_MATH = [

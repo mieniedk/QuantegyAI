@@ -5,6 +5,7 @@ import { sanitizeReturnUrl } from '../utils/sanitize';
 import GameReview from '../components/GameReview';
 import SkeletonLoader from '../components/SkeletonLoader';
 import LoopContinueButton from '../components/LoopContinueButton';
+import useGameReturn from '../hooks/useGameReturn';
 
 const NAV_HEIGHT = 44;
 const BOTTOM_BAR = 56;
@@ -51,7 +52,11 @@ const QBlocks = () => {
   const gradeParam = searchParams.get('grade') || 'grade3';
   const teksParam = searchParams.get('teks') || '';
   const labelParam = searchParams.get('label') || '';
-  const returnUrl = sanitizeReturnUrl(searchParams.get('returnUrl') || '');
+  const compParam = searchParams.get('comp') || '';
+  const currentStdParam = searchParams.get('currentStd') || searchParams.get('std') || '';
+  const examIdParam = searchParams.get('examId') || '';
+  const { returnUrl: gameReturnUrl, goBack } = useGameReturn();
+  const returnUrl = sanitizeReturnUrl(gameReturnUrl);
 
   // Redirect to raw game in same window — avoids iframe issues with PLAY button
   useEffect(() => {
@@ -59,6 +64,9 @@ const QBlocks = () => {
     if (gradeParam) p.set('grade', gradeParam);
     if (teksParam) p.set('teks', teksParam);
     if (labelParam) p.set('label', labelParam);
+    if (compParam) p.set('comp', compParam);
+    if (currentStdParam) p.set('currentStd', currentStdParam);
+    if (examIdParam) p.set('examId', examIdParam);
     if (returnUrl) p.set('returnUrl', returnUrl);
     if (studentId) p.set('sid', studentId);
     if (classId) p.set('cid', classId);
@@ -67,7 +75,7 @@ const QBlocks = () => {
     if (!window.location.pathname.endsWith('.html')) {
       window.location.replace(gameUrl);
     }
-  }, [gradeParam, teksParam, labelParam, returnUrl, studentId, classId]);
+  }, [gradeParam, teksParam, labelParam, compParam, currentStdParam, examIdParam, returnUrl, studentId, classId]);
 
   useEffect(() => {
     const handleMessage = (event) => {
@@ -181,6 +189,9 @@ const QBlocks = () => {
           if (gradeParam) p.set('grade', gradeParam);
           if (teksParam) p.set('teks', teksParam);
           if (labelParam) p.set('label', labelParam);
+          if (compParam) p.set('comp', compParam);
+          if (currentStdParam) p.set('currentStd', currentStdParam);
+          if (examIdParam) p.set('examId', examIdParam);
           if (returnUrl) p.set('returnUrl', returnUrl);
           p.set('from', 'loop');
           return `/games/q-blocks.html?${p.toString()}`;
@@ -224,7 +235,7 @@ const QBlocks = () => {
           }}>
             Back
           </Link>
-          <LoopContinueButton fixed={false} onClick={() => navigate(returnUrl)} label="Continue →" />
+          <LoopContinueButton fixed={false} onClick={goBack} label="Continue →" />
         </div>
       )}
 

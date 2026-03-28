@@ -4,6 +4,7 @@ import { saveGameResult } from '../utils/storage';
 import GameReview from '../components/GameReview';
 import LoopContinueButton from '../components/LoopContinueButton';
 import qbotImg from '../assets/qbot.svg';
+import useGameReturn from '../hooks/useGameReturn';
 
 /* ═══════════════════════════════════════════════════════════
    MATH MAZE RUNNER — Visual grid maze with multiple levels
@@ -128,24 +129,7 @@ const MathMaze = () => {
   const sid = searchParams.get('sid');
   const aid = searchParams.get('aid');
   const cid = searchParams.get('cid');
-  const fromParams = searchParams.get('returnUrl') || '';
-  const fromStorage = (() => { try { return sessionStorage.getItem('practice-loop-return') || ''; } catch { return ''; } })();
-  const teksParam = searchParams.get('teks') || '';
-  const labelParam = searchParams.get('label') || '';
-  const gradeParam = searchParams.get('grade') || 'grade3';
-  const buildFallback = () => {
-    if (!teksParam) return '';
-    const p = new URLSearchParams();
-    p.set('phase', 'micro-teach');
-    p.set('teks', teksParam);
-    if (labelParam) p.set('label', labelParam);
-    p.set('grade', gradeParam);
-    return `/practice-loop?${p.toString()}`;
-  };
-  const returnUrl = fromParams || fromStorage || buildFallback();
-  useEffect(() => {
-    if (fromParams) try { sessionStorage.setItem('practice-loop-return', fromParams); } catch (_) {}
-  }, [fromParams]);
+  const { returnUrl, goBack } = useGameReturn();
 
   const [level, setLevel] = useState(1);
   const [maze, setMaze] = useState(null);
@@ -449,7 +433,7 @@ const MathMaze = () => {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {returnUrl && (
-              <button onClick={() => navigate(returnUrl)} style={{ width: '100%', padding: '14px 24px', fontSize: 16, fontWeight: 700, cursor: 'pointer', background: 'linear-gradient(135deg, #059669, #047857)', color: '#fff', border: '2px solid #34d399', borderRadius: 12, boxShadow: '0 0 14px rgba(5,150,105,0.35)' }}>
+              <button onClick={goBack} style={{ width: '100%', padding: '14px 24px', fontSize: 16, fontWeight: 700, cursor: 'pointer', background: 'linear-gradient(135deg, #059669, #047857)', color: '#fff', border: '2px solid #34d399', borderRadius: 12, boxShadow: '0 0 14px rgba(5,150,105,0.35)' }}>
                 Continue
               </button>
             )}
@@ -470,7 +454,7 @@ const MathMaze = () => {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 14px', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         {returnUrl ? (
-          <button type="button" onClick={() => navigate(returnUrl)} style={{ background: 'none', border: 'none', color: '#34d399', fontWeight: 600, fontSize: 12, cursor: 'pointer', padding: 0 }}>
+          <button type="button" onClick={goBack} style={{ background: 'none', border: 'none', color: '#34d399', fontWeight: 600, fontSize: 12, cursor: 'pointer', padding: 0 }}>
             ← Continue
           </button>
         ) : (
@@ -739,7 +723,7 @@ const MathMaze = () => {
             <QBotGuide msg={pick(QBOT_MSGS.exit)} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 14 }}>
               {returnUrl && (
-                <button onClick={() => navigate(returnUrl)} style={{ width: '100%', padding: '14px 24px', fontSize: 16, fontWeight: 700, cursor: 'pointer', background: 'linear-gradient(135deg, #059669, #047857)', color: '#fff', border: '2px solid #34d399', borderRadius: 12, boxShadow: '0 0 14px rgba(5,150,105,0.35)' }}>Continue</button>
+                <button onClick={goBack} style={{ width: '100%', padding: '14px 24px', fontSize: 16, fontWeight: 700, cursor: 'pointer', background: 'linear-gradient(135deg, #059669, #047857)', color: '#fff', border: '2px solid #34d399', borderRadius: 12, boxShadow: '0 0 14px rgba(5,150,105,0.35)' }}>Continue</button>
               )}
               {level < 5 && <button onClick={handleNextLevel} style={btn(returnUrl ? '#6366f1' : '#22c55e')}>Next Level (Lv.{level + 1}) →</button>}
               <button onClick={handleFinish} style={btn('#6366f1')}>Finish & See Results</button>
@@ -748,7 +732,7 @@ const MathMaze = () => {
         </div>
       )}
 
-      {returnUrl && <LoopContinueButton onClick={() => navigate(returnUrl)} />}
+      {returnUrl && <LoopContinueButton onClick={goBack} />}
 
       <style>{`
         @keyframes playerBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }

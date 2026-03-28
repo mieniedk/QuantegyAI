@@ -4,6 +4,7 @@ import { saveGameResult } from '../utils/storage';
 import GameReview from '../components/GameReview';
 import LoopContinueButton from '../components/LoopContinueButton';
 import qbotImg from '../assets/qbot.svg';
+import useGameReturn from '../hooks/useGameReturn';
 
 /* ═══════════════════════════════════════════════════════════
    EQUATION BALANCE
@@ -78,24 +79,7 @@ const EquationBalance = () => {
   const sid = searchParams.get('sid');
   const aid = searchParams.get('aid');
   const cid = searchParams.get('cid');
-  const fromParams = searchParams.get('returnUrl') || '';
-  const fromStorage = (() => { try { return sessionStorage.getItem('practice-loop-return') || ''; } catch { return ''; } })();
-  const teksParam = searchParams.get('teks') || '';
-  const labelParam = searchParams.get('label') || '';
-  const gradeParam = searchParams.get('grade') || 'grade3';
-  const buildFallback = () => {
-    if (!teksParam) return '';
-    const p = new URLSearchParams();
-    p.set('phase', 'micro-teach');
-    p.set('teks', teksParam);
-    if (labelParam) p.set('label', labelParam);
-    p.set('grade', gradeParam);
-    return `/practice-loop?${p.toString()}`;
-  };
-  const returnUrl = fromParams || fromStorage || buildFallback();
-  useEffect(() => {
-    if (fromParams) try { sessionStorage.setItem('practice-loop-return', fromParams); } catch (_) {}
-  }, [fromParams]);
+  const { returnUrl, goBack } = useGameReturn();
 
   const [round, setRound] = useState(0);
   const [puzzle, setPuzzle] = useState(() => generatePuzzle(1));
@@ -379,7 +363,7 @@ const EquationBalance = () => {
               border: '1px solid rgba(245,158,11,0.4)', borderRadius: 10,
             }}>Review</button>
           )}
-          <LoopContinueButton fixed={false} onClick={() => navigate(returnUrl)} label="Continue \u2192" />
+          <LoopContinueButton fixed={false} onClick={goBack} label="Continue \u2192" />
         </div>
       )}
 

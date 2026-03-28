@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { PLANS, syncSubscriptionFromServer, activatePlan } from '../utils/subscription';
+import { isStudentLoggedIn } from '../utils/studentAuth';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ const Checkout = () => {
 
   const launchCheckout = async () => {
     if (!username) {
-      navigate('/teacher');
+      navigate(isStudentLoggedIn() ? '/student' : '/teacher');
       return;
     }
     try {
@@ -108,7 +109,8 @@ const Checkout = () => {
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <Link to="/teacher" style={linkBtn}>Go to Teacher Portal</Link>
+            <Link to="/student" style={linkBtn}>Go to Student Portal</Link>
+            <Link to="/teacher" style={{ ...btnGhost, textDecoration: 'none', textAlign: 'center', display: 'block' }}>Go to Teacher Portal</Link>
             <button type="button" onClick={openBillingPortal} style={btnGhost}>Manage Billing</button>
             <Link to="/pricing" style={{ textAlign: 'center', color: '#64748b', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>View Plans</Link>
           </div>

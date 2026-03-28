@@ -80,6 +80,11 @@ body:has(#game.screen.active) #menu{display:none!important;visibility:hidden!imp
 .top-bar{display:flex;align-items:center;justify-content:space-between;width:100%;padding:6px 10px;background:rgba(0,0,0,.3);border-bottom:1px solid rgba(0,245,255,.1);flex-shrink:0;gap:8px;flex-wrap:wrap;}
 .top-bar .domain-area{font-size:.7em;font-weight:700;color:#94a3b8;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;}
 .top-bar .domain-area .domain-label{color:#00f5ff;}
+.top-bar .domain-area .scope-badge{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:999px;font-size:.95em;font-weight:800;letter-spacing:.02em;vertical-align:middle;border:1px solid rgba(148,163,184,.4);background:rgba(71,85,105,.18);color:#cbd5e1;}
+.top-bar .domain-area .scope-standard{border-color:rgba(59,130,246,.45);background:rgba(37,99,235,.18);color:#93c5fd;}
+.top-bar .domain-area .scope-competency{border-color:rgba(16,185,129,.45);background:rgba(5,150,105,.18);color:#6ee7b7;}
+.top-bar .domain-area .scope-equation{border-color:rgba(245,158,11,.45);background:rgba(217,119,6,.18);color:#fcd34d;}
+.top-bar .domain-area .scope-general{border-color:rgba(148,163,184,.4);background:rgba(71,85,105,.18);color:#cbd5e1;}
 .top-bar .score-area{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
 .top-bar .skip-game-btn{display:none!important;}
 .loop-continue-float{position:fixed;bottom:0;left:0;right:0;z-index:9999;display:none;justify-content:center;align-items:center;padding:10px 16px;background:rgba(10,10,26,0.96);border-top:1px solid rgba(52,211,153,0.3);box-shadow:0 -4px 20px rgba(0,0,0,0.5);}
@@ -476,7 +481,202 @@ let stats={
 // Topic from URL (practice loop): games align with concept — e.g. solving equations → equation questions in Q-Blocks
 const teksParam=(urlParams.get('teks')||'').toUpperCase();
 const labelParam=(urlParams.get('label')||'').toLowerCase();
+const compParam=(urlParams.get('comp')||'').toLowerCase();
+const currentStdParam=(urlParams.get('currentStd')||urlParams.get('std')||'').toLowerCase();
+const examIdParam=(urlParams.get('examId')||'').toLowerCase();
+const gradeParam=(urlParams.get('grade')||'').toLowerCase();
 const useEquationTopic=!/^\s*$/.test(teksParam)&&(teksParam.indexOf('A.')!==-1||teksParam.indexOf('8.')!==-1||/equation|equations|algebra|linear|solve|solving|pattern/.test(labelParam));
+
+function compFromStd(std){
+  const s=String(std||'').toLowerCase();
+  if(/^c00[1-3]$/.test(s))return'comp001';
+  if(/^c00[4-9]$/.test(s)||/^c010$/.test(s))return'comp002';
+  if(/^c01[1-4]$/.test(s))return'comp003';
+  if(/^c01[5-7]$/.test(s))return'comp004';
+  if(/^c01[8-9]$/.test(s))return'comp005';
+  if(/^c02[0-1]$/.test(s))return'comp006';
+  return'';
+}
+
+const scopedCompId=compParam||compFromStd(currentStdParam);
+const scopedStdId=currentStdParam;
+const useMath712CompBank=(examIdParam==='math712'||gradeParam==='grade7-12'||gradeParam==='algebra')&&/^comp00[1-6]$/.test(scopedCompId);
+const useMath712StdBank=(examIdParam==='math712'||gradeParam==='grade7-12'||gradeParam==='algebra')&&/^c0(0[1-9]|1[0-9]|21)$/.test(scopedStdId);
+const activeQBlocksScope=(function(){
+  if(useMath712StdBank)return{mode:'standard',label:'STD '+scopedStdId.toUpperCase(),css:'scope-standard'};
+  if(useMath712CompBank)return{mode:'competency',label:'COMP '+scopedCompId.toUpperCase(),css:'scope-competency'};
+  if(useEquationTopic)return{mode:'equation',label:'EQUATION',css:'scope-equation'};
+  return{mode:'general',label:'GENERAL',css:'scope-general'};
+})();
+
+const QBLOCKS_STD_BANK={
+  c001:{easy:[{q:'Evaluate: |−8| + 1',ans:9}],medium:[{q:'Compute: 2^4 / 2^2',ans:4}],hard:[{q:'Find gcd(84,30)',ans:6}]},
+  c002:{easy:[{q:'Evaluate i^2',ans:-1}],medium:[{q:'Compute (2+3i)(2−3i)',ans:13}],hard:[{q:'Magnitude |3+4i|',ans:5}]},
+  c003:{easy:[{q:'Compute lcm(6,8)',ans:24}],medium:[{q:'Compute gcd(48,18)',ans:6}],hard:[{q:'How many positive factors does 36 have?',ans:9}]},
+  c004:{easy:[{q:'Arithmetic: 4,7,10,... term 6',ans:19}],medium:[{q:'Geometric: 3,6,12,... term 5',ans:48}],hard:[{q:'Sum of first 5 terms of arithmetic 2,5,8,...',ans:40}]},
+  c005:{easy:[{q:'Evaluate f(x)=2x+3 at x=4',ans:11}],medium:[{q:'If f(x)=x^2, g(x)=x+1, find (f∘g)(2)',ans:9}],hard:[{q:'If f(x)=3x−6, solve f(x)=0 for x',ans:2}]},
+  c006:{easy:[{q:'Solve: x^2−9=0. Positive root?',ans:3}],medium:[{q:'Slope through (1,2) and (5,10)',ans:2}],hard:[{q:'For x^2−5x+6=0, sum of roots',ans:5}]},
+  c007:{easy:[{q:'Evaluate sqrt(81)',ans:9}],medium:[{q:'Solve: x^2−4=0. Positive root?',ans:2}],hard:[{q:'Vertical asymptote of f(x)=1/(x−3)',ans:3}]},
+  c008:{easy:[{q:'Solve: 2^x=32',ans:5}],medium:[{q:'Evaluate log10(1000)',ans:3}],hard:[{q:'If 3^(x)=81, find x',ans:4}]},
+  c009:{easy:[{q:'sin(30°) as decimal hundredths',ans:50}],medium:[{q:'If right triangle has sides 3,4,5, value of sin(theta) opposite 3 (hundredths)',ans:60}],hard:[{q:'cos(60°) as decimal hundredths',ans:50}]},
+  c010:{easy:[{q:'Derivative of x^2 at x=3',ans:6}],medium:[{q:'Derivative of x^3 at x=2',ans:12}],hard:[{q:'Integral of 2x from 0 to 3',ans:9}]},
+  c011:{easy:[{q:'Area of circle radius 3 using pi≈3.14 (nearest whole)',ans:28}],medium:[{q:'Volume of cylinder r=2, h=5 using pi≈3.14 (nearest whole)',ans:63}],hard:[{q:'Surface area of cube side 6',ans:216}]},
+  c012:{easy:[{q:'Sum of supplementary angles',ans:180}],medium:[{q:'Triangle angle sum in Euclidean plane',ans:180}],hard:[{q:'How many points determine a line?',ans:2}]},
+  c013:{easy:[{q:'Interior angle sum of hexagon',ans:720}],medium:[{q:'Inscribed angle intercepts 80° arc. Angle measure?',ans:40}],hard:[{q:'Regular octagon interior angle',ans:135}]},
+  c014:{easy:[{q:'Distance from (0,0) to (6,8)',ans:10}],medium:[{q:'Midpoint x-coordinate of (2,5) and (8,1)',ans:5}],hard:[{q:'Dot product of <3,4> and <4,−3>',ans:0}]},
+  c015:{easy:[{q:'Mean of 5,7,9',ans:7}],medium:[{q:'Range of 3,8,12,19',ans:16}],hard:[{q:'Median of 2,4,6,8,10,12',ans:7}]},
+  c016:{easy:[{q:'Probability of drawing heart from 52-card deck denominator',ans:4}],medium:[{q:'Compute C(6,2)',ans:15}],hard:[{q:'If P(A)=0.4 and P(B)=0.5 independent, P(A and B) as percent',ans:20}]},
+  c017:{easy:[{q:'95% z critical value rounded hundredths',ans:196}],medium:[{q:'Sample mean 50, sigma 10, n=25. Standard error',ans:2}],hard:[{q:'Type I error probability symbol alpha=0.05 as percent',ans:5}]},
+  c018:{easy:[{q:'Counterexamples needed to disprove universal claim',ans:1}],medium:[{q:'If n=9, compute n^2+n',ans:90}],hard:[{q:'Work backward: number doubled plus 5 gives 29. Original?',ans:12}]},
+  c019:{easy:[{q:'Slope of line through (0,2) and (3,11)',ans:3}],medium:[{q:'Translate "at most 7" as inequality upper bound value',ans:7}],hard:[{q:'If y=3x+2, y-intercept value',ans:2}]},
+  c020:{easy:[{q:'Wait time of 3–5 seconds midpoint',ans:4}],medium:[{q:'If 12 students in group and 3 groups, total students',ans:36}],hard:[{q:'Exit ticket has 3 items and class average 2 correct. Percent',ans:67}]},
+  c021:{easy:[{q:'Student got 8 of 10. Percent score',ans:80}],medium:[{q:'Item missed by 9 of 30 students. Miss percent',ans:30}],hard:[{q:'Rubric weights 40 and 60, scores 70 and 80. Weighted score',ans:76}]},
+};
+
+const QBLOCKS_COMP_BANK={
+  comp001:{
+    easy:[
+      {q:'Evaluate: 3^2 + 4',ans:13},
+      {q:'Which integer is the additive inverse of 7? Enter the value.',ans:-7},
+      {q:'Compute: |−9| + 2',ans:11},
+      {q:'Simplify: 2^3 + 1',ans:9},
+    ],
+    medium:[
+      {q:'Compute: 7^(−1) denominator value (7^(−1)=1/n). Enter n.',ans:7},
+      {q:'How many integers are between −2 and 3 (exclusive)?',ans:4},
+      {q:'Evaluate: (−3)^2 + (−2)',ans:7},
+      {q:'Convert 0.75 to a fraction denominator when simplified to 3/n. Enter n.',ans:4},
+    ],
+    hard:[
+      {q:'Compute: (2^5) / (2^2)',ans:8},
+      {q:'Evaluate: (−4)^2 − 3^2',ans:7},
+      {q:'If a^0=1 for a!=0, evaluate 19^0 + 6',ans:7},
+      {q:'Compute: sqrt(196) + 1',ans:15},
+    ],
+  },
+  comp002:{
+    easy:[
+      {q:'Solve: x + 9 = 23',ans:14},
+      {q:'Find slope m from points (1,3) and (3,7)',ans:2},
+      {q:'Evaluate f(x)=2x+5 at x=4',ans:13},
+      {q:'Arithmetic sequence 5,8,11,... common difference d=?',ans:3},
+    ],
+    medium:[
+      {q:'Solve: 3x − 4 = 20',ans:8},
+      {q:'For y=4x−7, find y when x=3',ans:5},
+      {q:'Solve system: x+y=10 and x−y=2. Find x.',ans:6},
+      {q:'Quadratic x^2−9=0 has positive root?',ans:3},
+    ],
+    hard:[
+      {q:'Solve: 2(x−3)=18',ans:12},
+      {q:'If f(x)=x^2−2x, find f(5)',ans:15},
+      {q:'Geometric sequence 3,6,12,... find term 5',ans:48},
+      {q:'Solve: x^2−5x+6=0. Larger root?',ans:3},
+    ],
+  },
+  comp003:{
+    easy:[
+      {q:'Triangle angle sum is how many degrees?',ans:180},
+      {q:'Area of rectangle 8 by 6',ans:48},
+      {q:'Perimeter of square side 9',ans:36},
+      {q:'Volume of cube side 4',ans:64},
+    ],
+    medium:[
+      {q:'Right triangle legs 6 and 8. Hypotenuse?',ans:10},
+      {q:'Circle with radius 5. Diameter?',ans:10},
+      {q:'Area of triangle base 10, height 6',ans:30},
+      {q:'Interior angle sum of pentagon',ans:540},
+    ],
+    hard:[
+      {q:'Cylinder volume with r=3, h=4 (use pi≈3.14, nearest whole)',ans:113},
+      {q:'Distance between (0,0) and (9,12)',ans:15},
+      {q:'A scale factor 3 changes area by factor?',ans:9},
+      {q:'Surface area of cube side 5',ans:150},
+    ],
+  },
+  comp004:{
+    easy:[
+      {q:'Mean of 2, 4, 6',ans:4},
+      {q:'Probability of rolling a 6 on fair die denominator?',ans:6},
+      {q:'Median of 3, 9, 11',ans:9},
+      {q:'Mode of 2, 2, 5, 7',ans:2},
+    ],
+    medium:[
+      {q:'Out of 20 trials, 15 success. Percent success?',ans:75},
+      {q:'Two coin tosses total outcomes?',ans:4},
+      {q:'Range of data 4, 12, 19, 25',ans:21},
+      {q:'Expected value of fair die (nearest whole)',ans:4},
+    ],
+    hard:[
+      {q:'If P(A)=0.3 and P(B)=0.5 independent, P(A and B) as percent?',ans:15},
+      {q:'In normal model, about what percent lie within 2 SD?',ans:95},
+      {q:'From 5 items choose 2: combinations count',ans:10},
+      {q:'Mean of 10, 20, 20, 30',ans:20},
+    ],
+  },
+  comp005:{
+    easy:[
+      {q:'Counterexample: statement "all primes are odd" fails at prime?',ans:2},
+      {q:'How many examples disprove a universal claim?',ans:1},
+      {q:'If pattern adds 4 starting at 3, term 4 is?',ans:15},
+      {q:'Check reasonableness: 49+51 should be near?',ans:100},
+    ],
+    medium:[
+      {q:'Use induction base case for n=1. Value of n?',ans:1},
+      {q:'If a conjecture fails for n=7, smallest found counterexample?',ans:7},
+      {q:'Work backwards: number doubled then +3 gives 19. Original?',ans:8},
+      {q:'In ratio table, 6 maps to 15. Value for 2 maps to?',ans:5},
+    ],
+    hard:[
+      {q:'If f(n)=n^2+n and n=12, compute f(n)',ans:156},
+      {q:'Direct proof check: if x=4 then x^2=?',ans:16},
+      {q:'Equivalent statements count: statement and contrapositive -> total valid pair size?',ans:2},
+      {q:'A model predicts 48, observed 53. Residual observed−predicted?',ans:5},
+    ],
+  },
+  comp006:{
+    easy:[
+      {q:'Exit ticket has 4 items, student correct 3. Percent?',ans:75},
+      {q:'Rubric with 4 levels, top level number?',ans:4},
+      {q:'Diagnostic pretest 8 correct out of 10. Percent?',ans:80},
+      {q:'Student misses 2 of 12. Correct count?',ans:10},
+    ],
+    medium:[
+      {q:'Class average rose from 60 to 72. Gain points?',ans:12},
+      {q:'Item analysis: 18 of 30 missed item. Miss percent?',ans:60},
+      {q:'Criterion score is 70; student has 68. Needed points to reach?',ans:2},
+      {q:'Portfolio has 5 artifacts each scored 4 max. Total max?',ans:20},
+    ],
+    hard:[
+      {q:'Pretest 45%, posttest 75%. Absolute gain?',ans:30},
+      {q:'Reliability sample: scores 80 and 82. Difference?',ans:2},
+      {q:'A rubric weighted 40 and 60 with scores 70 and 80. Weighted total?',ans:76},
+      {q:'Formative checks weekly for 9 weeks, 2 per week. Total checks?',ans:18},
+    ],
+  },
+};
+
+function buildChoiceFromPool(pool,diff,type){
+  if(!pool||!pool.length)return null;
+  const item=pool[Math.floor(Math.random()*pool.length)];
+  const ans=Number(item.ans);
+  if(!Number.isFinite(ans))return null;
+  const offsets=(diff==='hard'?[2,-2,3,-3,5,-5,7,-7]:[1,-1,2,-2,3,-3]).filter(function(d){return ans+d!==ans;});
+  const wrong=ans+offsets[Math.floor(Math.random()*offsets.length)];
+  return {type:type,q:item.q,ans:ans,wrong:wrong,diff:diff};
+}
+
+function buildStdQuestion(diff){
+  const bank=QBLOCKS_STD_BANK[scopedStdId];
+  const pool=(bank&&bank[diff])||[];
+  return buildChoiceFromPool(pool,diff,'standard');
+}
+
+function buildCompQuestion(diff){
+  const bank=QBLOCKS_COMP_BANK[scopedCompId];
+  const pool=(bank&&bank[diff])||[];
+  return buildChoiceFromPool(pool,diff,'competency');
+}
 
 // ─── Firebase ───
 let db=null;
@@ -895,6 +1095,50 @@ function setSpeed(){
 // When teks/label indicate equations (e.g. from practice-loop quiz), include equation questions.
 function mkQ(){
   let a,b,op,ans,diff,qText,isEquation=false;
+  if(useMath712StdBank){
+    diff=level<=3?'easy':level<=6?'medium':'hard';
+    const scopedStd=buildStdQuestion(diff);
+    if(scopedStd){
+      currentQuestion=scopedStd;
+      var stdQEl=$('qText');
+      if(stdQEl)stdQEl.textContent=scopedStd.q;
+      const stdBtns=[$('ansA'),$('ansB')];
+      if(Math.random()<.5){
+        stdBtns[0].textContent=scopedStd.ans;stdBtns[0].dataset.correct='1';
+        stdBtns[1].textContent=scopedStd.wrong;stdBtns[1].dataset.correct='0';
+      }else{
+        stdBtns[1].textContent=scopedStd.ans;stdBtns[1].dataset.correct='1';
+        stdBtns[0].textContent=scopedStd.wrong;stdBtns[0].dataset.correct='0';
+      }
+      stdBtns.forEach(function(btn){btn.classList.remove('correct-flash','wrong-flash');btn.disabled=false;});
+      var stdMb=$('mathBonus');
+      stdMb.classList.remove('show');
+      stdMb.textContent='';
+      return;
+    }
+  }
+  if(useMath712CompBank){
+    diff=level<=3?'easy':level<=6?'medium':'hard';
+    const scoped=buildCompQuestion(diff);
+    if(scoped){
+      currentQuestion=scoped;
+      var scopedQEl=$('qText');
+      if(scopedQEl)scopedQEl.textContent=scoped.q;
+      const scopedBtns=[$('ansA'),$('ansB')];
+      if(Math.random()<.5){
+        scopedBtns[0].textContent=scoped.ans;scopedBtns[0].dataset.correct='1';
+        scopedBtns[1].textContent=scoped.wrong;scopedBtns[1].dataset.correct='0';
+      }else{
+        scopedBtns[1].textContent=scoped.ans;scopedBtns[1].dataset.correct='1';
+        scopedBtns[0].textContent=scoped.wrong;scopedBtns[0].dataset.correct='0';
+      }
+      scopedBtns.forEach(function(btn){btn.classList.remove('correct-flash','wrong-flash');btn.disabled=false;});
+      var scopedMb=$('mathBonus');
+      scopedMb.classList.remove('show');
+      scopedMb.textContent='';
+      return;
+    }
+  }
   if(useEquationTopic){
     isEquation=true;
     diff=level<=3?'easy':level<=6?'medium':'hard';
@@ -977,8 +1221,12 @@ function checkAnswer(btn){
     $('comboVal').textContent='0';
     stats.mathWrong++;
     stats.byDifficulty[currentQuestion.diff].wrong++;
-    const qStr=currentQuestion.type==='equation'?currentQuestion.q:`${currentQuestion.a} ${currentQuestion.op} ${currentQuestion.b}`;
-    wrongAnswers.push({q:qStr,correct:currentQuestion.ans,given:parseInt(btn.textContent),a:currentQuestion.a,b:currentQuestion.b,op:currentQuestion.op});
+    const qStr=currentQuestion.type==='equation'
+      ?currentQuestion.q
+      :(currentQuestion.type==='competency'
+        ?currentQuestion.q
+        :`${currentQuestion.a} ${currentQuestion.op} ${currentQuestion.b}`);
+    wrongAnswers.push({q:qStr,correct:currentQuestion.ans,given:Number(btn.textContent),a:currentQuestion.a,b:currentQuestion.b,op:currentQuestion.op});
     playSfx('wrong');
     // PENALTY: drop the piece one row (if possible)
     if(piece&&!hit(px,py+1,piece)){py++;renderBoard();}
@@ -1299,12 +1547,20 @@ function init(){
     var lbl = (urlParams.get('label') || '').trim();
     var tks = (urlParams.get('teks') || '').trim();
     var domainText = lbl || tks || '';
+    var scopeText = (activeQBlocksScope && activeQBlocksScope.label) ? String(activeQBlocksScope.label) : '';
+    var scopeClass = (activeQBlocksScope && activeQBlocksScope.css) ? String(activeQBlocksScope.css) : 'scope-general';
+    scopeText = scopeText.replace(/</g,'&lt;');
     if (domainText) {
       try { domainText = decodeURIComponent(domainText); } catch(e) {}
-      domainArea.innerHTML = '<span class="domain-label">Domain:</span> ' + String(domainText).replace(/</g,'&lt;');
+      domainArea.innerHTML = '<span class="domain-label">Domain:</span> ' + String(domainText).replace(/</g,'&lt;') + (scopeText ? (' <span class="scope-badge ' + scopeClass + '">' + scopeText + '</span>') : '');
       domainArea.style.display = 'block';
     } else {
-      domainArea.style.display = 'none';
+      if (scopeText) {
+        domainArea.innerHTML = '<span class="domain-label">Scope:</span> <span class="scope-badge ' + scopeClass + '">' + scopeText + '</span>';
+        domainArea.style.display = 'block';
+      } else {
+        domainArea.style.display = 'none';
+      }
     }
   }
   var skipGameBtn = document.getElementById('skipGameBtn');

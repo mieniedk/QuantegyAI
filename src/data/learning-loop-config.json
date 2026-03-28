@@ -349,9 +349,9 @@
           "path": "/games/q-blocks"
         },
         {
-          "id": "teks-crush",
+          "id": "q-blocks",
           "type": "matching-grid",
-          "path": "/games/teks-crush"
+          "path": "/games/q-blocks"
         }
       ],
       "interactiveModes": [

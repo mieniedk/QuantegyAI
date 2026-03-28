@@ -11,7 +11,7 @@
 export const TEXES_DOMAINS = [
   // ═══ Domain I — Number Concepts (approx. 14%) ═══
   { id: 'comp001', name: 'Number Concepts', desc: 'Real numbers and number theory foundations.', weight: 0.14,
-    games: ['math-match', 'math-sprint', 'q-blocks', 'number-line-ninja', 'qbot-shop', 'math-bingo', 'math-memory', 'teks-crush'],
+    games: ['math-match', 'math-sprint', 'q-blocks', 'number-line-ninja', 'qbot-shop', 'math-bingo', 'math-memory'],
     video: 'https://www.youtube.com/embed/VEY08fMYmEU',
     videos: ['https://www.youtube.com/embed/VEY08fMYmEU', 'https://www.youtube.com/embed/vRJqPo_zcnQ', 'https://www.youtube.com/embed/6OgDTCG1QCU'],
     standards: [
@@ -25,7 +25,7 @@ export const TEXES_DOMAINS = [
   },
   // ═══ Domain II — Patterns and Algebra (approx. 33%) ═══
   { id: 'comp002', name: 'Patterns and Algebra', desc: 'Patterns, functions, equations, algebraic reasoning, calculus.', weight: 0.33,
-    games: ['algebra-sprint', 'math-sprint', 'equation-balance', 'math-maze', 'q-blocks', 'teks-crush', 'math-millionaire'],
+    games: ['algebra-sprint', 'math-sprint', 'equation-balance', 'math-maze', 'q-blocks', 'math-millionaire'],
     video: 'https://www.youtube.com/embed/NybHckSEQBI',
     videos: ['https://www.youtube.com/embed/NybHckSEQBI', 'https://www.youtube.com/embed/MHeirBPOI6w', 'https://www.youtube.com/embed/qeByhTF8WEw'],
     standards: [
@@ -63,7 +63,7 @@ export const TEXES_DOMAINS = [
   },
   // ═══ Domain IV — Probability and Statistics (approx. 14%) ═══
   { id: 'comp004', name: 'Probability and Statistics', desc: 'Data analysis, probability, statistical inference.', weight: 0.14,
-    games: ['math-sprint', 'graph-explorer', 'math-jeopardy', 'math-millionaire', 'math-bingo', 'q-blocks', 'teks-crush'],
+    games: ['math-sprint', 'graph-explorer', 'math-jeopardy', 'math-millionaire', 'math-bingo', 'q-blocks'],
     video: 'https://www.youtube.com/embed/uAxyI_XfqXk',
     videos: ['https://www.youtube.com/embed/uAxyI_XfqXk', 'https://www.youtube.com/embed/KzfWUEJjG18', 'https://www.youtube.com/embed/xxpc-HPKN28'],
     standards: [
@@ -77,7 +77,7 @@ export const TEXES_DOMAINS = [
   },
   // ═══ Domain V — Mathematical Processes and Perspectives (approx. 10%) ═══
   { id: 'comp005', name: 'Mathematical Processes and Perspectives', desc: 'Reasoning, problem-solving, connections, communication, history of math.', weight: 0.10,
-    games: ['math-maze', 'teks-crush', 'crosses-knots', 'math-sprint', 'algebra-sprint', 'math-memory', 'math-millionaire'],
+    games: ['math-maze', 'q-blocks', 'crosses-knots', 'math-sprint', 'algebra-sprint', 'math-memory', 'math-millionaire'],
     video: 'https://www.youtube.com/embed/tN9Xl1AcSv8',
     videos: ['https://www.youtube.com/embed/tN9Xl1AcSv8', 'https://www.youtube.com/embed/oECKpn0GELY', 'https://www.youtube.com/embed/ZZQO3HGkFa8'],
     standards: [
@@ -89,7 +89,7 @@ export const TEXES_DOMAINS = [
   },
   // ═══ Domain VI — Mathematical Learning, Instruction & Assessment (approx. 10%) ═══
   { id: 'comp006', name: 'Mathematical Learning, Instruction & Assessment', desc: 'How students learn math, instructional planning, assessment.', weight: 0.10,
-    games: ['math-sprint', 'math-memory', 'math-match', 'crosses-knots', 'math-bingo', 'q-blocks', 'teks-crush'],
+    games: ['math-sprint', 'math-memory', 'math-match', 'crosses-knots', 'math-bingo', 'q-blocks'],
     video: 'https://www.youtube.com/embed/tN9Xl1AcSv8',
     videos: ['https://www.youtube.com/embed/tN9Xl1AcSv8', 'https://www.youtube.com/embed/oECKpn0GELY', 'https://www.youtube.com/embed/ZZQO3HGkFa8'],
     standards: [
@@ -2627,7 +2627,7 @@ export const TEXES_DOMAINS_48 = [
   { id: 'comp48_1', name: 'Number Concepts', desc: 'Number systems, operations, number theory (grades 4–8).', weight: 0.16, games: ['math-match', 'math-sprint', 'q-blocks', 'fraction-pizza', 'fraction-frenzy', 'number-line-ninja'],
     video: 'https://www.youtube.com/embed/Bz4RUgka_Ew',
     videos: ['https://www.youtube.com/embed/Bz4RUgka_Ew', 'https://www.youtube.com/embed/BpBh8gvMifs', 'https://www.youtube.com/embed/CLWpkv6ccpA'] },
-  { id: 'comp48_2', name: 'Patterns and Algebra', desc: 'Patterns, functions, algebraic reasoning (grades 4–8).', weight: 0.21, games: ['math-sprint', 'equation-balance', 'math-maze', 'q-blocks', 'math-match', 'teks-crush'],
+  { id: 'comp48_2', name: 'Patterns and Algebra', desc: 'Patterns, functions, algebraic reasoning (grades 4–8).', weight: 0.21, games: ['math-sprint', 'equation-balance', 'math-maze', 'q-blocks', 'math-match'],
     video: 'https://www.youtube.com/embed/NybHckSEQBI',
     videos: ['https://www.youtube.com/embed/NybHckSEQBI', 'https://www.youtube.com/embed/bAerID24QJ0', 'https://www.youtube.com/embed/LzYJVsvqS50'] },
   { id: 'comp48_3', name: 'Geometry and Measurement', desc: 'Geometric properties, measurement (grades 4–8).', weight: 0.21, games: ['shape-shifter', 'graph-explorer', 'number-line-ninja', 'time-traveler', 'math-sprint'],
@@ -2636,7 +2636,7 @@ export const TEXES_DOMAINS_48 = [
   { id: 'comp48_4', name: 'Probability and Statistics', desc: 'Probability, statistics, data analysis (grades 4–8).', weight: 0.16, games: ['math-sprint', 'graph-explorer', 'math-jeopardy', 'math-millionaire'],
     video: 'https://www.youtube.com/embed/uAxyI_XfqXk',
     videos: ['https://www.youtube.com/embed/uAxyI_XfqXk', 'https://www.youtube.com/embed/hgtMWR3TFnY', 'https://www.youtube.com/embed/S5_5KyCVjrU'] },
-  { id: 'comp48_5', name: 'Mathematical Processes and Perspectives', desc: 'Reasoning, problem solving, connections.', weight: 0.10, games: ['math-maze', 'teks-crush', 'crosses-knots', 'math-sprint'],
+  { id: 'comp48_5', name: 'Mathematical Processes and Perspectives', desc: 'Reasoning, problem solving, connections.', weight: 0.10, games: ['math-maze', 'q-blocks', 'crosses-knots', 'math-sprint'],
     video: 'https://www.youtube.com/embed/ZZQO3HGkFa8',
     videos: ['https://www.youtube.com/embed/ZZQO3HGkFa8', 'https://www.youtube.com/embed/wblW_M_HVQ8', 'https://www.youtube.com/embed/VMEV__2wW3E'] },
   { id: 'comp48_6', name: 'Mathematical Learning, Instruction and Assessment', desc: 'Pedagogy, assessment, equity.', weight: 0.16, games: ['math-sprint', 'math-match', 'fraction-frenzy'],
@@ -2714,7 +2714,7 @@ export const TEXES_QUESTIONS_48 = [
 // ═══════════════════════════════════════════════════════════════
 
 export const TEXES_DOMAINS_EC6 = [
-  { id: 'comp_ec6_1', name: 'Mathematical Processes', desc: 'Reasoning, problem solving, connections (EC–6).', weight: 0.17, games: ['math-maze', 'teks-crush', 'crosses-knots', 'math-sprint'] },
+  { id: 'comp_ec6_1', name: 'Mathematical Processes', desc: 'Reasoning, problem solving, connections (EC–6).', weight: 0.17, games: ['math-maze', 'q-blocks', 'crosses-knots', 'math-sprint'] },
   { id: 'comp_ec6_2', name: 'Probability and Statistics', desc: 'Data, probability, graphs (EC–6).', weight: 0.17, games: ['graph-explorer', 'math-sprint', 'math-jeopardy'] },
   { id: 'comp_ec6_3', name: 'Geometry and Measurement', desc: 'Shapes, measurement, spatial reasoning (EC–6).', weight: 0.17, games: ['shape-shifter', 'time-traveler', 'number-line-ninja', 'math-sprint'] },
   { id: 'comp_ec6_4', name: 'Patterns and Algebra', desc: 'Patterns, operations, algebraic thinking (EC–6).', weight: 0.21, games: ['equation-balance', 'math-maze', 'q-blocks', 'math-match'] },

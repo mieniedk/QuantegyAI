@@ -866,9 +866,28 @@ const VERIFIED_GAME_PATHS = new Set(
   GAMES_CATALOG.map((g) => g.path).concat(['/concept-explorer']),
 );
 
-function GamePhase({ gameLabel, scopeBadge, description, gameUrl, gameName, onSkip, stepIndex, totalSteps, phaseKey }) {
+function GamePhase({ gameLabel, scopeBadge, description, gameUrl, gameName, onSkip, stepIndex, totalSteps, phaseKey, continueOnly = false, scopeDebugText = '' }) {
   const basePath = (gameUrl || '').split('?')[0];
   const isVerified = VERIFIED_GAME_PATHS.has(basePath);
+  const [frameHeight, setFrameHeight] = useState(560);
+
+  useEffect(() => {
+    const computeHeight = () => {
+      const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
+      const vw = typeof window !== 'undefined' ? window.innerWidth : 1200;
+      const maxByViewport = Math.max(420, Math.floor(vh * 0.72));
+      const target = vw <= 480
+        ? 430
+        : vw <= 768
+          ? 500
+          : 620;
+      setFrameHeight(Math.min(target, maxByViewport));
+    };
+    computeHeight();
+    window.addEventListener('resize', computeHeight);
+    return () => window.removeEventListener('resize', computeHeight);
+  }, []);
+
   return (
     <PhaseCard stepIndex={stepIndex} totalSteps={totalSteps} phaseKey={phaseKey}>
       <PhaseHeader
@@ -878,8 +897,36 @@ function GamePhase({ gameLabel, scopeBadge, description, gameUrl, gameName, onSk
         description={description}
         scopeBadge={scopeBadge}
       />
+      {scopeDebugText && (
+        <div
+          style={{
+            marginBottom: 10,
+            padding: '8px 10px',
+            borderRadius: 8,
+            border: `1px solid ${COLOR.blue}44`,
+            background: '#eff6ff',
+            color: '#1e3a8a',
+            fontSize: 12,
+            fontWeight: 700,
+          }}
+        >
+          {scopeDebugText}
+        </div>
+      )}
       {isVerified ? (
-        <Link to={gameUrl} style={BTN_GAME_LINK}>Play {gameName}</Link>
+        <div style={{ marginBottom: 12 }}>
+          <iframe
+            title={`Embedded ${gameName}`}
+            src={gameUrl}
+            style={{
+              width: '100%',
+              height: frameHeight,
+              border: `1px solid ${COLOR.border}`,
+              borderRadius: 12,
+              background: '#0f172a',
+            }}
+          />
+        </div>
       ) : (
         <div style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 10, background: '#fef3c7', border: '1px solid #fcd34d', fontSize: 13, color: '#78350f', lineHeight: 1.5 }}>
           This game is coming soon. Tap Continue to keep practicing.
@@ -906,6 +953,136 @@ function ActivityPhase({ subject, examId, comp, currentStd, mode, activityIndex,
         embedded
       />
     </PhaseCard>
+  );
+}
+
+const NUMBER_SET_OPTIONS = [
+  { id: 'N', label: 'Natural (N)' },
+  { id: 'Z', label: 'Integer (Z)' },
+  { id: 'Q', label: 'Rational (Q)' },
+  { id: 'I', label: 'Irrational (I)' },
+];
+
+const NUMBER_SET_PROMPTS = [
+  { id: 'v1', value: '6', answer: 'N' },
+  { id: 'v2', value: '-4', answer: 'Z' },
+  { id: 'v3', value: '1.5', answer: 'Q' },
+  { id: 'v4', value: '0.121212...', answer: 'Q' },
+  { id: 'v5', value: 'π', answer: 'I' },
+  { id: 'v6', value: '√2', answer: 'I' },
+];
+
+const PROPERTY_OPTIONS = [
+  { id: 'commutative', label: 'Commutative' },
+  { id: 'associative', label: 'Associative' },
+  { id: 'distributive', label: 'Distributive' },
+  { id: 'inverse', label: 'Inverse' },
+];
+
+const PROPERTY_PROMPTS = [
+  { id: 'p1', text: 'a + b = b + a', answer: 'commutative' },
+  { id: 'p2', text: '(a + b) + c = a + (b + c)', answer: 'associative' },
+  { id: 'p3', text: 'a(b + c) = ab + ac', answer: 'distributive' },
+  { id: 'p4', text: 'a + (−a) = 0', answer: 'inverse' },
+];
+
+function NumberSetsChallenge({ onContinue }) {
+  const [setAnswers, setSetAnswers] = useState({});
+  const [propertyAnswers, setPropertyAnswers] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+
+  const allSetAnswered = NUMBER_SET_PROMPTS.every((item) => !!setAnswers[item.id]);
+  const allPropertyAnswered = PROPERTY_PROMPTS.every((item) => !!propertyAnswers[item.id]);
+  const canSubmit = allSetAnswered && allPropertyAnswered;
+
+  const setCorrect = NUMBER_SET_PROMPTS.filter((item) => setAnswers[item.id] === item.answer).length;
+  const propertyCorrect = PROPERTY_PROMPTS.filter((item) => propertyAnswers[item.id] === item.answer).length;
+  const total = NUMBER_SET_PROMPTS.length + PROPERTY_PROMPTS.length;
+  const score = setCorrect + propertyCorrect;
+
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ ...BODY, marginBottom: 10 }}>
+        Place each value in the smallest set that fits (N, Z, Q, or I), then match each algebra statement to its property.
+      </div>
+
+      <div style={{ marginBottom: 14, padding: '12px 14px', border: `1px solid ${COLOR.border}`, borderRadius: 10, background: '#fff' }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: COLOR.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+          Number sets
+        </div>
+        {NUMBER_SET_PROMPTS.map((item) => (
+          <div key={item.id} style={{ marginBottom: 10 }}>
+            <div style={{ fontWeight: 700, color: COLOR.text, marginBottom: 6 }}>{item.value}</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {NUMBER_SET_OPTIONS.map((opt) => {
+                const selected = setAnswers[item.id] === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => {
+                      setSubmitted(false);
+                      setSetAnswers((prev) => ({ ...prev, [item.id]: opt.id }));
+                    }}
+                    style={selected ? { ...OPTION_BASE, ...OPTION_SELECTED } : OPTION_BASE}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ marginBottom: 14, padding: '12px 14px', border: `1px solid ${COLOR.border}`, borderRadius: 10, background: '#fff' }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: COLOR.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+          Properties
+        </div>
+        {PROPERTY_PROMPTS.map((item) => (
+          <div key={item.id} style={{ marginBottom: 10 }}>
+            <div style={{ fontWeight: 700, color: COLOR.text, marginBottom: 6 }}>{item.text}</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {PROPERTY_OPTIONS.map((opt) => {
+                const selected = propertyAnswers[item.id] === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => {
+                      setSubmitted(false);
+                      setPropertyAnswers((prev) => ({ ...prev, [item.id]: opt.id }));
+                    }}
+                    style={selected ? { ...OPTION_BASE, ...OPTION_SELECTED } : OPTION_BASE}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {!submitted ? (
+        <button
+          type="button"
+          onClick={() => setSubmitted(true)}
+          disabled={!canSubmit}
+          style={!canSubmit ? { ...BTN_PRIMARY, opacity: 0.55, cursor: 'not-allowed' } : BTN_PRIMARY}
+        >
+          Check answers
+        </button>
+      ) : (
+        <>
+          <div style={resultBanner(score === total)}>
+            <div style={resultTitle}>{score === total ? 'Excellent!' : 'Nice effort'}</div>
+            <div style={resultScore(score === total)}>{score}/{total} correct</div>
+          </div>
+          <button type="button" onClick={onContinue} style={BTN_PRIMARY}>Continue</button>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -2029,6 +2206,14 @@ export default function PracticeLoop() {
   const phaseRawIdx = PHASES.indexOf(phase);
   const phaseIndex = phaseRawIdx >= 0 ? phaseRawIdx : 0;
   const displayPhaseIndex = detourFromStep != null ? detourFromStep : phaseIndex;
+  // When switching competency/standard scopes, clear detour-only indexing so
+  // each loop paints tile progress from its own current phase.
+  useEffect(() => {
+    revisitReturnRef.current = null;
+    setRevisitReturnPhase(null);
+    setConceptRefreshReturnPhase(null);
+    setDetourFromStep(null);
+  }, [examId, comp, teks, currentStd]);
   const phaseTileMeta = useMemo(() => {
     const out = {};
     (learningLoopConfig.sequence || []).forEach((tile) => {
@@ -2465,7 +2650,8 @@ export default function PracticeLoop() {
   ]);
 
   const tileProgress = useMemo(() => {
-    const currentIdx = PHASES.indexOf(phase);
+    // Keep the visual tile bar aligned with the displayed step number.
+    const currentIdx = Math.max(0, Math.min(PHASES.length - 1, Number(displayPhaseIndex) || 0));
     return PHASES.map((p, i) => {
       const meta = getTileMeta(p);
       const label = meta?.icon || '';
@@ -2479,7 +2665,7 @@ export default function PracticeLoop() {
       if (i === currentIdx) return { key: p, label, name, pct: null, color: COLOR.blue, status: 'current' };
       return { key: p, label, name, pct: null, color: null, status: 'future' };
     });
-  }, [phase, phaseTileMeta, quizPhaseScores]);
+  }, [displayPhaseIndex, phaseTileMeta, quizPhaseScores]);
 
   const quizResetMap = useMemo(() => ({
     'check-quiz': [setCheckQuizAnswers, setCheckQuizSubmitted],
@@ -2509,6 +2695,13 @@ export default function PracticeLoop() {
     let eligible = GAMES_CATALOG.filter(isOk);
     if (eligible.length === 0) return [COMPETENCY_EXPLORER];
 
+    const strictMath712StdScope = examId === 'math712' && !!currentStd;
+    const STRICT_SCOPED_GAME_IDS = new Set(['q-blocks', 'math-bingo', 'math-match']);
+    if (strictMath712StdScope) {
+      eligible = eligible.filter((g) => STRICT_SCOPED_GAME_IDS.has(g.id));
+      if (eligible.length === 0) return [COMPETENCY_EXPLORER];
+    }
+
     // Games whose content is hardcoded to a specific domain and can't adapt to
     // arbitrary TEKS.  Map competency → set of game IDs to exclude.
     // Games whose content is hardcoded and can't adapt to the competency's TEKS.
@@ -2531,14 +2724,23 @@ export default function PracticeLoop() {
       comp006: new Set([...HARDCODED_GAMES, 'qbot-shop']),
     };
     // Games extended with content for a competency — placed first in rotation.
-    const COMP_GAME_PREFER = {
-      comp001: ['math-match', 'math-bingo', 'math-jeopardy', 'teks-crush'],
-      comp002: ['math-match', 'math-bingo', 'math-jeopardy', 'teks-crush'],
-      comp003: ['math-match', 'math-bingo', 'math-jeopardy', 'teks-crush'],
-      comp004: ['math-match', 'math-bingo', 'math-jeopardy', 'math-millionaire', 'teks-crush'],
-      comp005: ['math-match', 'math-bingo', 'math-jeopardy', 'teks-crush'],
-      comp006: ['math-match', 'math-bingo', 'math-jeopardy', 'teks-crush'],
-    };
+    const COMP_GAME_PREFER = strictMath712StdScope
+      ? {
+          comp001: ['q-blocks', 'math-bingo', 'math-match'],
+          comp002: ['q-blocks', 'math-bingo', 'math-match'],
+          comp003: ['q-blocks', 'math-bingo', 'math-match'],
+          comp004: ['q-blocks', 'math-bingo', 'math-match'],
+          comp005: ['q-blocks', 'math-bingo', 'math-match'],
+          comp006: ['q-blocks', 'math-bingo', 'math-match'],
+        }
+      : {
+          comp001: ['math-match', 'math-bingo', 'math-jeopardy', 'q-blocks'],
+          comp002: ['math-match', 'math-bingo', 'math-jeopardy', 'q-blocks'],
+          comp003: ['math-match', 'math-bingo', 'math-jeopardy', 'q-blocks'],
+          comp004: ['math-match', 'math-bingo', 'math-jeopardy', 'math-millionaire', 'q-blocks'],
+          comp005: ['math-match', 'math-bingo', 'math-jeopardy', 'q-blocks'],
+          comp006: ['math-match', 'math-bingo', 'math-jeopardy', 'q-blocks'],
+        };
 
     const exclude = comp && COMP_GAME_EXCLUDE[comp];
     if (exclude) eligible = eligible.filter((g) => !exclude.has(g.id));
@@ -2667,11 +2869,49 @@ export default function PracticeLoop() {
     if (ci >= 0) return `Domain ${ROMAN[ci] || ci + 1}: ${allDomains[ci].name}`;
     return compShort || label || teks;
   }, [currentStdObj, examId, comp, compShort, label, teks]);
+  const showNumberSetsActivity = !deepDiveVideoEmbed && (comp === 'comp001' || currentStd === 'c001');
+  const hasUniqueDeepDiveLecture = !!(deepDiveLecture && comp !== 'comp001' && deepDiveLecture !== introLecture);
   const useGeometricRefreshActivity = comp === 'comp005' || currentStd === 'c018';
   const conceptRefreshConcept = useMemo(() => {
-    const alt = getMicroConcept(examId, comp, singleTeks, currentStd, tilesCompleted + revisitSeed + 1);
+    const normalizeConceptText = (v) => String(v || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    const seen = new Set([
+      normalizeConceptText(microConcept?.conceptText),
+      normalizeConceptText(reminderText),
+    ].filter(Boolean));
+
+    // Also avoid texts already surfaced earlier in this same loop session.
+    const maxSeenIndex = Math.max(0, tilesCompleted + revisitSeed + 2);
+    for (let vi = 0; vi <= maxSeenIndex; vi++) {
+      const prior = getMicroConcept(examId, comp, singleTeks, currentStd, vi);
+      const priorKey = normalizeConceptText(prior?.conceptText);
+      if (priorKey) seen.add(priorKey);
+    }
+
+    let alt = null;
+    // Try several variant offsets so recap content stays fresh within the same loop.
+    for (let step = 1; step <= 10; step++) {
+      const candidate = getMicroConcept(examId, comp, singleTeks, currentStd, tilesCompleted + revisitSeed + step);
+      const textKey = normalizeConceptText(candidate?.conceptText);
+      if (candidate?.conceptText && !seen.has(textKey)) {
+        alt = candidate;
+        break;
+      }
+    }
+
     if (!microConcept) return alt;
-    if (!alt) return microConcept;
+    if (!alt) {
+      const nonDuplicateFallbackText = microConcept?.misconception
+        ? `Watch out focus: ${microConcept.misconception}`
+        : (microConcept?.workedExample
+          ? `Worked-example focus: ${microConcept.workedExample}`
+          : (reminderText || microConcept?.title || conceptTitle || 'Quick recap'));
+      return {
+        ...microConcept,
+        title: microConcept?.title ? `${microConcept.title} - New Angle` : conceptTitle,
+        conceptText: nonDuplicateFallbackText,
+        illustrationHtml: undefined,
+      };
+    }
     if (alt.conceptText && alt.conceptText !== microConcept.conceptText) return alt;
 
     // Last-resort fallback so recap is not a duplicate of the prior concept tile.
@@ -2705,7 +2945,7 @@ export default function PracticeLoop() {
     const compParam = comp ? `&comp=${encodeURIComponent(comp)}` : '';
     const stdParam = currentStd ? `&currentStd=${encodeURIComponent(currentStd)}` : '';
     const examParam = examId ? `&examId=${encodeURIComponent(examId)}` : '';
-    return `${base}${sep}teks=${encodeURIComponent(gameTeks)}&label=${encodeURIComponent(label)}&grade=${encodeURIComponent(grade)}&sid=${encodeURIComponent(sid)}&cid=${encodeURIComponent(cid)}${compParam}${stdParam}${examParam}&mode=adaptive&from=loop&returnUrl=${returnUrl}`;
+    return `${base}${sep}teks=${encodeURIComponent(gameTeks)}&label=${encodeURIComponent(label)}&grade=${encodeURIComponent(grade)}&sid=${encodeURIComponent(sid)}&cid=${encodeURIComponent(cid)}${compParam}${stdParam}${examParam}&mode=adaptive&from=loop&embed=1&returnPhase=${encodeURIComponent(returnPhase)}&returnUrl=${returnUrl}`;
   };
   const gameUrl = buildGameUrl(game1?.path);
   const game2Url = buildGameUrl(game2?.path, 'check-quiz-5');
@@ -2714,6 +2954,10 @@ export default function PracticeLoop() {
   const game3DisplayName = game3?.name || gameDisplayName;
   const game4Url = buildGameUrl(game4?.path, 'readiness-quiz');
   const game4DisplayName = game4?.name || gameDisplayName;
+  const showScopedGameDebug = examId === 'math712' && !!currentStd;
+  const scopedGameDebugText = showScopedGameDebug
+    ? `Scoped games for ${currentStd.toUpperCase()}: 1) ${gameDisplayName}  2) ${game2DisplayName}  3) ${game3DisplayName}  4) ${game4DisplayName}`
+    : '';
 
   const hasTopic = !!(teks || label);
   const examLabel = examId === 'math712' ? 'Math 7\u201312' : examId === 'math48' ? 'Math 4\u20138' : examId ? String(examId) : null;
@@ -3740,6 +3984,8 @@ export default function PracticeLoop() {
             scopeBadge={gameScopeBadge}
             description="Play a quick game to build skills. Press the green Continue button whenever you're ready to move on."
             gameUrl={gameUrl} gameName={gameDisplayName}
+            continueOnly
+            scopeDebugText={scopedGameDebugText}
             onSkip={() => goToPhase('check-quiz-2')}
           />
         )}
@@ -3859,6 +4105,7 @@ export default function PracticeLoop() {
             scopeBadge={gameScopeBadge}
             description="A different game to reinforce what you've learned so far."
             gameUrl={game2Url} gameName={game2DisplayName}
+            scopeDebugText={scopedGameDebugText}
             onSkip={() => goToPhase('check-quiz-5')}
           />
         )}
@@ -3954,6 +4201,7 @@ export default function PracticeLoop() {
             scopeBadge={gameScopeBadge}
             description="Switch it up with another game to keep practicing."
             gameUrl={game3Url} gameName={game3DisplayName}
+            scopeDebugText={scopedGameDebugText}
             onSkip={() => goToPhase('check-quiz-8')}
           />
         )}
@@ -4008,7 +4256,7 @@ export default function PracticeLoop() {
             />
             {hasTopic ? (
               <>
-                {(deepDiveLecture && comp !== 'comp001') ? (
+                {hasUniqueDeepDiveLecture ? (
                   <div style={{ marginBottom: 16 }}>
                     <AnimatedLecture
                       lecture={deepDiveLecture}
@@ -4021,13 +4269,17 @@ export default function PracticeLoop() {
                   <div style={{ marginBottom: 16, borderRadius: 12, overflow: 'hidden', background: '#000' }}>
                     <iframe title={getTileLabel('video-2', 'Deep dive video')} src={deepDiveVideoEmbed} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ width: '100%', aspectRatio: '16/9', border: 'none' }} />
                   </div>
+                ) : showNumberSetsActivity ? (
+                  <NumberSetsChallenge onContinue={() => goToPhase('check-quiz-7')} />
                 ) : (
                   <div style={{ marginBottom: 16, padding: '12px 14px', borderRadius: 10, background: '#eef2ff', border: `1px solid ${COLOR.blue}55`, fontSize: 13, color: '#1e3a8a', lineHeight: 1.5 }}>
                     No second unique video for this competency right now, so this tile gives you a different recap angle instead of repeating the same clip.
                   </div>
                 )}
-                {!(deepDiveLecture && comp !== 'comp001') && <p style={BODY}>{reminderText}</p>}
-                <button type="button" onClick={() => goToPhase('check-quiz-7')} style={BTN_PRIMARY}>Continue</button>
+                {!hasUniqueDeepDiveLecture && !showNumberSetsActivity && (
+                  <div style={BODY} dangerouslySetInnerHTML={{ __html: sanitizeHtml(conceptToBulletHtml(conceptRefreshConcept?.conceptText || reminderText || '')) }} />
+                )}
+                {!showNumberSetsActivity && <button type="button" onClick={() => goToPhase('check-quiz-7')} style={BTN_PRIMARY}>Continue</button>}
               </>
             ) : (
               <button type="button" onClick={() => goToPhase('check-quiz-7')} style={BTN_PRIMARY}>Continue</button>
@@ -4063,6 +4315,7 @@ export default function PracticeLoop() {
             scopeBadge={gameScopeBadge}
             description="One last game for retention before the final stretch."
             gameUrl={game4Url} gameName={game4DisplayName}
+            scopeDebugText={scopedGameDebugText}
             onSkip={() => goToPhase('readiness-quiz')}
           />
         )}

@@ -8,6 +8,7 @@ import { getMicroConcept } from '../data/microConcepts';
 import { getCompName } from '../data/texes-questions';
 import { formatMathHtml, conceptToBulletHtml } from '../utils/mathFormat';
 import { sanitizeHtml } from '../utils/sanitize';
+import useGameReturn from '../hooks/useGameReturn';
 
 function gradeToExamId(grade) {
   if (grade === 'grade7-12') return 'math712';
@@ -26,7 +27,7 @@ export default function ConceptExplorer() {
   const grade = searchParams.get('grade') || 'grade7-12';
   const comp = searchParams.get('comp') || '';
   const label = searchParams.get('label') || '';
-  const returnUrl = searchParams.get('returnUrl') || '';
+  const { returnUrl, goBack } = useGameReturn();
 
   const examId = gradeToExamId(grade);
   const microConcept = getMicroConcept(examId, comp, teks);
@@ -150,15 +151,16 @@ export default function ConceptExplorer() {
 
         <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 10 }}>
           {returnUrl && (
-            <Link
-              to={returnUrl}
+            <button
+              type="button"
+              onClick={goBack}
               style={{
-                display: 'block', padding: '14px 24px', fontSize: 16, fontWeight: 700, textAlign: 'center',
-                background: 'linear-gradient(135deg, #059669, #047857)', color: '#fff', border: '2px solid #34d399', borderRadius: 12, boxShadow: '0 0 14px rgba(5,150,105,0.35)', textDecoration: 'none',
+                display: 'block', width: '100%', padding: '14px 24px', fontSize: 16, fontWeight: 700, textAlign: 'center',
+                background: 'linear-gradient(135deg, #059669, #047857)', color: '#fff', border: '2px solid #34d399', borderRadius: 12, boxShadow: '0 0 14px rgba(5,150,105,0.35)', textDecoration: 'none', cursor: 'pointer',
               }}
             >
               Continue
-            </Link>
+            </button>
           )}
           <Link
             to={practiceLoopUrl}

@@ -80,6 +80,10 @@ async function apiFetch(url, options = {}) {
   }
 }
 
+function isNetworkUnavailableError(message = '') {
+  return /unable to connect|internet connection|network|fetch failed|failed to fetch|econnrefused/i.test(String(message));
+}
+
 export async function serverSignup(username, password) {
   const result = await apiFetch('/api/auth/signup', {
     method: 'POST',
@@ -97,7 +101,24 @@ export async function serverSignup(username, password) {
       all[username] = result.subscription;
       localStorage.setItem(SUBS_KEY, JSON.stringify(all));
     }
+    return result;
   }
+
+  // Offline/dev fallback: allow local account creation when API is down.
+  if (isNetworkUnavailableError(result.error)) {
+    const teachers = getTeachers();
+    if (teachers.some((t) => t.username === username)) {
+      return { success: false, error: 'Username already exists on this device. Pick a different username.' };
+    }
+    saveTeachers([...teachers, { username, password }]);
+    return {
+      success: true,
+      username,
+      localOnly: true,
+      warning: 'Server is unreachable. Account was created locally on this device.',
+    };
+  }
+
   return result;
 }
 
@@ -183,7 +204,29 @@ export async function serverLogin(username, password) {
       local.forEach((l) => { if (!merged.some((s) => s.id === l.id)) merged.push(l); });
       localStorage.setItem(STORAGE_KEYS.chatMessages, JSON.stringify(merged));
     }
+    return result;
   }
+
+  // Offline/dev fallback: allow login using local teacher records when API is down.
+  if (isNetworkUnavailableError(result.error)) {
+    const teachers = getTeachers();
+    const localMatch = teachers.find((t) => t.username === username && t.password === password);
+    if (!localMatch) {
+      return {
+        success: false,
+        error: 'Server is unreachable and no matching local account was found on this device.',
+      };
+    }
+    return {
+      success: true,
+      username,
+      role: 'teacher',
+      profile: getTeacherProfile(username),
+      localOnly: true,
+      warning: 'Signed in with a local account because the server is unreachable.',
+    };
+  }
+
   return result;
 }
 

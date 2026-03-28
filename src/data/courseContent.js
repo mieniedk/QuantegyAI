@@ -3345,7 +3345,7 @@ COURSE_CONTENT['grade7-12'] = {
               keyVocabulary: ['arithmetic sequence', 'common difference', 'exponent rules'],
             },
             guidedPractice: { duration: '12 min', activity: 'Sequence & Exponents', description: 'Find terms of sequences; simplify expressions with exponents.' },
-            independentPractice: { duration: '6 min', activity: 'MC Practice', description: 'TExES-style questions on sequences and exponents.', suggestedGame: 'teks-crush' },
+            independentPractice: { duration: '6 min', activity: 'MC Practice', description: 'TExES-style questions on sequences and exponents.', suggestedGame: 'q-blocks' },
             closure: { duration: '2 min', exitTicket: '10th term of 3, 7, 11, 15? Simplify 2^(3x)·2^(2x).', reflection: 'How is an arithmetic sequence like a linear function?' },
             differentiation: { approaching: 'Arithmetic only; positive exponents.', onLevel: 'Standard.', advanced: 'Geometric sequences and rational exponents.' },
             materials: ['TExES Prep'],
@@ -3617,7 +3617,7 @@ COURSE_CONTENT['grade-ec6'] = {
               duration: '8 min',
               activity: 'TExES-Style Operations Items',
               description: 'Solve EC–6 multiple-choice questions that require selecting equations and models.',
-              suggestedGame: 'teks-crush',
+              suggestedGame: 'q-blocks',
             },
             closure: {
               duration: '2 min',

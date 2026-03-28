@@ -22,6 +22,23 @@ const NARRATION_WPM = 155;
 const MAX_NARRATION_MS = 45000;
 const NARRATION_BUFFER_MS = 1200;
 
+function narrationRateForSpeed(speed) {
+  // Keep narration naturally paced even when slide playback speed changes.
+  const scaled = (Number(speed) || 1) * 0.9;
+  return Math.max(0.82, Math.min(1.18, scaled));
+}
+
+function narrationTextForSpeaking(text) {
+  if (!text) return '';
+  return String(text)
+    // Add breathing room so TTS does not rush through long clauses.
+    .replace(/\s*[;:]\s*/g, '. ')
+    // Encourage short pauses around conjunction-heavy phrases.
+    .replace(/\s+\b(and|but|so|because|which)\b\s+/gi, ', $1 ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
 function slideDuration(text, speed) {
   const raw = Math.max(MIN_SLIDE_MS, Math.min(MAX_SLIDE_MS, text.length * MS_PER_CHAR));
   return raw / speed;
@@ -46,9 +63,20 @@ function buildSlides(lecture, variant) {
     (lecture.example?.answer || '').trim(),
   ].filter(Boolean).join(' \u2192 ');
 
-  // Keep one-slide format and always anchor to the same first-slide (Video A) idea.
+  // Keep one-slide format, but ensure Video B uses different material than Video A.
   const introBody = keyIdea || objective || tip || stepFocus || exampleFocus || `Let\u2019s focus on ${title}.`;
-  const body = introBody;
+  const deepCandidates = [
+    tip,
+    stepFocus,
+    exampleFocus ? `Worked example focus: ${exampleFocus}` : '',
+    objective,
+  ].filter(Boolean).filter((text) => text !== introBody);
+  const deepBody = deepCandidates[0] || (
+    keyIdea
+      ? `Deep-dive focus: ${keyIdea} Use this lens to spot misconceptions and choose the next best teaching move.`
+      : `Deep-dive focus: apply ${title} to one real classroom error pattern and plan your intervention.`
+  );
+  const body = variant === 'deep-dive' ? deepBody : introBody;
 
   return [{
     id: 'quick-tip',
@@ -85,11 +113,17 @@ export default function AnimatedLecture({ lecture, compName, onDone, variant = '
     cancelTTS();
     if (typeof speechSynthesis === 'undefined') return;
     const utter = new SpeechSynthesisUtterance(text);
-    utter.rate = spd;
-    utter.pitch = 1;
-    utter.volume = 0.8;
+    utter.rate = narrationRateForSpeed(spd);
+    utter.pitch = 1.03;
+    utter.volume = 0.9;
+    utter.lang = 'en-US';
     const voices = speechSynthesis.getVoices();
-    const preferred = voices.find(v => /samantha|google.*us|microsoft.*mark|zira/i.test(v.name));
+    const preferred = voices.find((v) => (
+      /en(-|_)?us|english.*us|united states/i.test(v.lang || '') &&
+      /aria|jenny|guy|davis|zira|samantha|google us|microsoft/i.test(v.name || '')
+    )) || voices.find((v) => (
+      /en(-|_)?us|english.*us|united states/i.test(v.lang || '')
+    ));
     if (preferred) utter.voice = preferred;
     speechSynthesis.speak(utter);
   }, [cancelTTS]);
@@ -116,7 +150,7 @@ export default function AnimatedLecture({ lecture, compName, onDone, variant = '
     const narrationRaw = slide.isSummary && slide.body
       ? slide.body.split('\n\n')[0]
       : (slide.body || slide.heading);
-    const narrationText = speechifyForNarration(String(narrationRaw || ''));
+    const narrationText = narrationTextForSpeaking(speechifyForNarration(String(narrationRaw || '')));
     const dur = shouldNarrate
       ? Math.max(baseDur, narrationDuration(narrationText, speed))
       : baseDur;

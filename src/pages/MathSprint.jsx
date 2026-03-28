@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { recordResult } from '../utils/conceptTracker';
 import { getAllConcepts } from '../data/taxonomy';
 import { saveGameResult, findMatchingAssignment } from '../utils/storage';
@@ -7,6 +7,7 @@ import { sanitizeReturnUrl } from '../utils/sanitize';
 import GameReview from '../components/GameReview';
 import SkeletonLoader from '../components/SkeletonLoader';
 import LoopContinueButton from '../components/LoopContinueButton';
+import useGameReturn from '../hooks/useGameReturn';
 
 const NAV_HEIGHT = 44;
 const BOTTOM_BAR_HEIGHT = 64;
@@ -132,22 +133,8 @@ const MathSprint = () => {
   const conceptParam = searchParams.get('concept') || '';
   const gradeParam = searchParams.get('grade') || '';
   const mode = searchParams.get('mode') || ''; // 'remedial' = easier to teach; 'adaptive' = slightly harder
-  const fromParams = searchParams.get('returnUrl') || '';
-  const fromStorage = (() => { try { return sessionStorage.getItem('practice-loop-return') || ''; } catch { return ''; } })();
-  const buildFallback = () => {
-    if (!teks) return '';
-    const p = new URLSearchParams();
-    p.set('phase', 'reminder');
-    p.set('teks', teks);
-    if (label) p.set('label', label);
-    p.set('grade', gradeParam || 'grade3');
-    return `/practice-loop?${p.toString()}`;
-  };
-  const returnUrl = sanitizeReturnUrl(fromParams) || sanitizeReturnUrl(fromStorage) || sanitizeReturnUrl(buildFallback());
-  const navigate = useNavigate();
-  useEffect(() => {
-    if (fromParams) try { sessionStorage.setItem('practice-loop-return', fromParams); } catch (_) {}
-  }, [fromParams]);
+  const { returnUrl: gameReturnUrl, goBack } = useGameReturn();
+  const returnUrl = sanitizeReturnUrl(gameReturnUrl);
 
   // Resolve student identity: URL params first, then fall back to saved session
   const session = (() => {
@@ -324,7 +311,7 @@ const MathSprint = () => {
             <LoopContinueButton
               fixed={false}
               label="Continue"
-              onClick={() => navigate(returnUrl)}
+              onClick={goBack}
             />
             {reviewData && !showReview && (
               <button type="button" onClick={() => setShowReview(true)} style={{
