@@ -2039,7 +2039,7 @@ function isCellOnPiece(col,row){
   if(!piece)return false;
   for(let r=0;r<piece.length;r++){
     for(let c=0;c<piece[r].length;c++){
-      if(piece[r][c]&&py+r===row&&px+c===col) return true;
+      if(piece[r][c]&&Math.abs(py+r-row)<=1&&Math.abs(px+c-col)<=1) return true;
     }
   }
   return false;
@@ -2297,7 +2297,7 @@ function init(){
     const now=Date.now();
     const dx=x-_lastTapX, dy=y-_lastTapY;
     const dist=Math.sqrt(dx*dx+dy*dy);
-    const isDbl=(now-_lastTapTime<350 && dist<35);
+    const isDbl=(now-_lastTapTime<400 && dist<50);
     _lastTapTime=now; _lastTapX=x; _lastTapY=y;
     return isDbl;
   }
@@ -2306,6 +2306,8 @@ function init(){
   let _startX=0, _startY=0, _startTime=0;
   let _trackX=0, _trackY=0;
   let _accumX=0, _accumY=0;
+  const TAP_SLOP=20;
+  const DRAG_THRESHOLD=10;
 
   boardBox.addEventListener('pointerdown',e=>{
     if(_down)return;
@@ -2315,7 +2317,7 @@ function init(){
     _startY=_trackY=e.clientY;
     _startTime=Date.now();
     _accumX=0; _accumY=0;
-    boardBox.setPointerCapture(e.pointerId);
+    try{boardBox.setPointerCapture(e.pointerId);}catch(_){}
     e.preventDefault();
   });
 
@@ -2329,7 +2331,7 @@ function init(){
     if(paused||over||!piece||!unlocked)return;
 
     const dx=e.clientX-_startX, dy=e.clientY-_startY;
-    if(!_dragging&&(Math.abs(dx)>6||Math.abs(dy)>6)) _dragging=true;
+    if(!_dragging&&(Math.abs(dx)>DRAG_THRESHOLD||Math.abs(dy)>DRAG_THRESHOLD)) _dragging=true;
     if(!_dragging)return;
 
     boardBox.classList.add('dragging');
@@ -2377,17 +2379,17 @@ function init(){
     const dx=e.clientX-_startX, dy=e.clientY-_startY;
     const adx=Math.abs(dx), ady=Math.abs(dy);
 
-    if(!_dragging&&adx<12&&ady<12){
+    if(!_dragging&&adx<TAP_SLOP&&ady<TAP_SLOP){
       // TAP (not a drag)
       if(checkDoubleTap(e.clientX,e.clientY)){
-        // ── DOUBLE-TAP → HARD DROP ──
-        drop();
+        // ── DOUBLE-TAP → ROTATE (change shape) ──
+        rotate();
       }else{
         // ── SINGLE TAP ──
         const col=getColFromEvent(e);
         const row=getRowFromEvent(e);
         if(isCellOnPiece(col,row)){
-          // Tapped ON the piece → ROTATE
+          // Tapped ON/near the piece → ROTATE
           rotate();
         }else if(piece&&!paused&&!over){
           // Tapped elsewhere → move piece to that column
@@ -2416,6 +2418,56 @@ function init(){
     _down=false;_dragging=false;_pointerId=null;
   });
   boardBox.addEventListener('pointerleave',()=>{hoverCol=-1;drawHoverHighlight(-1);});
+
+  // Touch fallback for devices where pointer events may not fire reliably in iframes
+  let _touchId=null,_touchSX=0,_touchSY=0,_touchST=0,_touchDrag=false;
+  let _touchTX=0,_touchTY=0,_touchAX=0,_touchAY=0;
+  boardBox.addEventListener('touchstart',function(te){
+    if(_down)return;
+    if(te.touches.length!==1)return;
+    const t=te.touches[0];
+    _touchId=t.identifier;_touchSX=_touchTX=t.clientX;_touchSY=_touchTY=t.clientY;
+    _touchST=Date.now();_touchDrag=false;_touchAX=0;_touchAY=0;
+    te.preventDefault();
+  },{passive:false});
+  boardBox.addEventListener('touchmove',function(te){
+    if(_down)return;
+    const t=Array.from(te.changedTouches).find(function(x){return x.identifier===_touchId;});
+    if(!t)return;
+    if(paused||over||!piece||!unlocked){te.preventDefault();return;}
+    const dx=t.clientX-_touchSX,dy=t.clientY-_touchSY;
+    if(!_touchDrag&&(Math.abs(dx)>DRAG_THRESHOLD||Math.abs(dy)>DRAG_THRESHOLD))_touchDrag=true;
+    if(!_touchDrag){te.preventDefault();return;}
+    const rect=boardBox.getBoundingClientRect();
+    const cW=rect.width/W,cH=rect.height/H;
+    _touchAX+=t.clientX-_touchTX;
+    const cs=Math.trunc(_touchAX/cW);
+    if(cs!==0){const d=cs>0?1:-1;for(let i=0;i<Math.abs(cs);i++){if(hit(px+d,py,piece))break;px+=d;}_touchAX-=cs*cW;playSfx('move');renderBoard();}
+    const dY=t.clientY-_touchTY;
+    if(dY>0){_touchAY+=dY;const rs=Math.floor(_touchAY/cH);if(rs>0){for(let i=0;i<rs;i++){if(!hit(px,py+1,piece))py++;else{lock();break;}}_touchAY-=rs*cH;renderBoard();}}else{_touchAY=0;}
+    _touchTX=t.clientX;_touchTY=t.clientY;
+    te.preventDefault();
+  },{passive:false});
+  boardBox.addEventListener('touchend',function(te){
+    if(_down)return;
+    const t=Array.from(te.changedTouches).find(function(x){return x.identifier===_touchId;});
+    if(!t)return;
+    const dt=Date.now()-_touchST;
+    const dx=t.clientX-_touchSX,dy=t.clientY-_touchSY;
+    const adx=Math.abs(dx),ady=Math.abs(dy);
+    if(!_touchDrag&&adx<TAP_SLOP&&ady<TAP_SLOP){
+      if(checkDoubleTap(t.clientX,t.clientY)){rotate();}
+      else{
+        const col=getColFromEvent(t),row=getRowFromEvent(t);
+        if(isCellOnPiece(col,row)){rotate();}
+        else if(piece&&!paused&&!over){
+          const pw=piece[0].length;let tx=col-Math.floor(pw/2);tx=Math.max(0,Math.min(tx,W-pw));
+          if(tx!==px){const d=tx>px?1:-1;while(px!==tx){if(hit(px+d,py,piece))break;px+=d;}playSfx('move');renderBoard();}
+        }
+      }
+    }else if(_touchDrag&&ady>adx&&dy>0&&ady>50&&dt<400){drop();}
+    _touchId=null;_touchDrag=false;_touchAX=0;_touchAY=0;
+  },{passive:false});
 
   // Right-click → rotate
   boardBox.addEventListener('contextmenu',e=>{e.preventDefault();rotate();});
