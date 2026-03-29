@@ -74,6 +74,7 @@
       <div class="card" id="unitCard" style="border-left:3px solid var(--magenta)">
         <div class="card-label">Unit Vector</div>
         <div class="card-value" id="infoUnit">û = ⟨0.60, 0.80⟩</div>
+        <div id="unitDef" style="margin-top:6px;font-size:12px;color:rgba(255,255,255,0.5);line-height:1.5">û = v / ‖v‖ — a vector with magnitude 1 pointing in the same direction as v.</div>
       </div>
       <div class="card" id="compCard" style="border-left:3px solid var(--yellow)">
         <div class="card-label">Components</div>
@@ -211,6 +212,7 @@
     if (showUnit && mag > 0.1) {
       document.getElementById('unitCard').style.display = '';
       document.getElementById('infoUnit').textContent = 'û = ⟨' + ux.toFixed(2) + ', ' + uy.toFixed(2) + '⟩';
+      document.getElementById('unitDef').innerHTML = 'û = v / ‖v‖ = ⟨' + vx + ', ' + vy + '⟩ / ' + mag.toFixed(2) + '<br><span style="font-size:11px;opacity:0.7">A vector with magnitude 1 pointing in the same direction as v.</span>';
     } else {
       document.getElementById('unitCard').style.display = 'none';
     }
