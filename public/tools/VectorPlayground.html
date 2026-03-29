@@ -36,6 +36,10 @@
   }
   .toggle-btn:hover{background:rgba(255,255,255,0.1)}
   .toggle-btn.active{background:rgba(0,229,255,0.12);border-color:rgba(0,229,255,0.3);color:var(--cyan)}
+  .sqrt{display:inline-flex;align-items:stretch;font-family:'JetBrains Mono',monospace}
+  .sqrt::before{content:'√';font-size:1.15em;line-height:1;margin-right:1px}
+  .sqrt .vin{border-top:1.5px solid currentColor;padding:0 3px 0 2px;display:inline-block}
+  .sup{font-size:0.7em;vertical-align:super;line-height:0}
   .legend{
     margin-top:8px;padding:12px 14px;background:rgba(255,255,255,0.03);
     border-radius:10px;border:1px solid rgba(255,255,255,0.06);
@@ -65,7 +69,7 @@
       </div>
       <div class="card" style="border-left:3px solid var(--orange)">
         <div class="card-label">Magnitude</div>
-        <div class="card-value" id="infoMag">‖v‖ = √(9 + 16) = 5.00</div>
+        <div class="card-value" id="infoMag">‖v‖ = <span class="sqrt"><span class="vin">3<sup class="sup">2</sup> + 4<sup class="sup">2</sup></span></span> = 5.00</div>
       </div>
       <div class="card" id="unitCard" style="border-left:3px solid var(--magenta)">
         <div class="card-label">Unit Vector</div>
@@ -200,7 +204,8 @@
 
     /* ── info panel ── */
     document.getElementById('infoVec').textContent = 'v = ⟨' + vx + ', ' + vy + '⟩';
-    document.getElementById('infoMag').textContent = '‖v‖ = √(' + (vx * vx) + ' + ' + (vy * vy) + ') = ' + mag.toFixed(2);
+    document.getElementById('infoMag').innerHTML =
+      '‖v‖ = <span class="sqrt"><span class="vin">' + vx + '<sup class="sup">2</sup> + ' + vy + '<sup class="sup">2</sup></span></span> = ' + mag.toFixed(2);
     document.getElementById('infoAngle').textContent = angle.toFixed(1) + '°';
 
     if (showUnit && mag > 0.1) {
