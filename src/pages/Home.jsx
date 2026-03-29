@@ -153,6 +153,40 @@ const Home = () => {
           ))}
         </div>
 
+        <section style={{ marginBottom: 36 }} aria-labelledby="tools-heading">
+          <h2 id="tools-heading" style={{ ...SECTION_HEADING, fontSize: 12, color: COLOR.textSecondary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            Interactive Tools
+          </h2>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            gap: 12,
+          }}>
+            <a
+              href="/tools/VectorPlayground.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                ...CARD,
+                padding: '22px 20px',
+                textDecoration: 'none',
+                color: COLOR.text,
+                background: 'linear-gradient(135deg, #0a0e1a, #101828)',
+                border: '2px solid #1e293b',
+                transition: 'transform 0.15s, box-shadow 0.2s',
+              }}
+            >
+              <span style={{ display: 'block', fontSize: 15, fontWeight: 800, marginBottom: 4, color: '#00e5ff' }}>Vector Playground</span>
+              <span style={{ display: 'block', fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5, marginBottom: 12 }}>
+                Drag vectors on an interactive grid. Explore magnitude, unit vectors, components, and angles in real time.
+              </span>
+              <span style={{ display: 'inline-block', padding: '6px 14px', borderRadius: 8, background: 'rgba(0,229,255,0.12)', border: '1px solid rgba(0,229,255,0.3)', fontSize: 12, fontWeight: 700, color: '#00e5ff' }}>
+                Open tool
+              </span>
+            </a>
+          </div>
+        </section>
+
         <section style={{ marginBottom: 36 }} aria-labelledby="cert-heading">
           <h2 id="cert-heading" style={{ ...SECTION_HEADING, fontSize: 12, color: COLOR.textSecondary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             All certification exams
