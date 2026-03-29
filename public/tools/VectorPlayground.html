@@ -17,22 +17,22 @@
     background:linear-gradient(135deg,#0a0e1a 0%,#101828 50%,#0d1420 100%);
     padding:24px;font-family:'Outfit',sans-serif;color:#fff;
   }
-  .wrap{max-width:1100px;margin:0 auto}
-  h1{font-size:28px;font-weight:700;letter-spacing:-0.5px;text-align:center}
-  .subtitle{color:rgba(255,255,255,0.4);font-size:14px;font-weight:300;text-align:center;margin:6px 0 20px}
-  .layout{display:flex;gap:20px;flex-wrap:wrap;justify-content:center}
-  .svg-wrap{position:relative;flex:0 0 auto}
-  svg{display:block;max-width:680px;width:100%;background:rgba(0,0,0,0.3);border-radius:16px;border:1px solid rgba(255,255,255,0.06)}
-  .panel{display:flex;flex-direction:column;gap:10px;min-width:220px;flex:1}
-  .card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px;backdrop-filter:blur(10px)}
-  .card-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.4);margin-bottom:6px;font-weight:500}
-  .card-value{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500}
-  .card-value.sm{font-size:15px}
-  .toggles{display:flex;gap:8px;margin-top:6px}
+  .wrap{max-width:1200px;margin:0 auto}
+  h1{font-size:22px;font-weight:700;letter-spacing:-0.5px;text-align:center}
+  .subtitle{color:rgba(255,255,255,0.4);font-size:12px;font-weight:300;text-align:center;margin:4px 0 14px}
+  .layout{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+  .svg-wrap{position:relative;flex:1 1 0;min-width:400px}
+  svg{display:block;width:100%;background:rgba(0,0,0,0.3);border-radius:16px;border:1px solid rgba(255,255,255,0.06)}
+  .panel{display:flex;flex-direction:column;gap:8px;min-width:200px;max-width:260px;flex:0 0 240px}
+  .card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px;backdrop-filter:blur(10px)}
+  .card-label{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.4);margin-bottom:4px;font-weight:500}
+  .card-value{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500}
+  .card-value.sm{font-size:13px}
+  .toggles{display:flex;gap:6px;margin-top:4px}
   .toggle-btn{
     background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
-    border-radius:8px;padding:8px 14px;color:rgba(255,255,255,0.6);
-    cursor:pointer;font-family:'Outfit',sans-serif;font-size:13px;transition:all .2s;
+    border-radius:8px;padding:6px 10px;color:rgba(255,255,255,0.6);
+    cursor:pointer;font-family:'Outfit',sans-serif;font-size:11px;transition:all .2s;
   }
   .toggle-btn:hover{background:rgba(255,255,255,0.1)}
   .toggle-btn.active{background:rgba(0,229,255,0.12);border-color:rgba(0,229,255,0.3);color:var(--cyan)}
@@ -41,9 +41,9 @@
   .sqrt .vin{border-top:1.5px solid currentColor;padding:0 3px 0 2px;display:inline-block}
   .sup{font-size:0.7em;vertical-align:super;line-height:0}
   .legend{
-    margin-top:8px;padding:12px 14px;background:rgba(255,255,255,0.03);
-    border-radius:10px;border:1px solid rgba(255,255,255,0.06);
-    color:rgba(255,255,255,0.5);font-size:12px;line-height:1.6;
+    margin-top:6px;padding:8px 10px;background:rgba(255,255,255,0.03);
+    border-radius:8px;border:1px solid rgba(255,255,255,0.06);
+    color:rgba(255,255,255,0.5);font-size:10px;line-height:1.5;
   }
   @media(max-width:600px){
     body{padding:12px}
@@ -128,7 +128,7 @@
   function buildDefs() {
     const defs = el('defs', {});
     const colors = { cyan: 'var(--cyan)', yellow: 'var(--yellow)', green: 'var(--green)', magenta: 'var(--magenta)' };
-    const sizes = { cyan: 8, yellow: 7, green: 7, magenta: 6 };
+    const sizes = { cyan: 12, yellow: 10, green: 10, magenta: 9 };
     for (const [name, color] of Object.entries(colors)) {
       const m = el('marker', { id: 'ah-' + name, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: sizes[name], markerHeight: sizes[name], orient: 'auto' }, defs);
       el('path', { d: 'M1 1L9 5L1 9', fill: 'none', stroke: color, strokeWidth: 1.5, strokeLinecap: 'round', strokeLinejoin: 'round' }, m);
@@ -167,41 +167,41 @@
 
     /* components */
     if (showComp && vx !== 0) {
-      el('line', { x1: OX, y1: OY, x2: compXEnd, y2: OY, stroke: 'var(--yellow)', strokeWidth: 2.5, strokeDasharray: '6 4', markerEnd: 'url(#ah-yellow)', opacity: 0.8 }, dynGroup);
-      el('text', { x: (OX + compXEnd) / 2, y: OY + (vy >= 0 ? 24 : -12), textAnchor: 'middle', fill: 'var(--yellow)', fontSize: 13, fontFamily: "'JetBrains Mono', monospace", fontWeight: 500, opacity: 0.9, text: vx + 'î' }, dynGroup);
+      el('line', { x1: OX, y1: OY, x2: compXEnd, y2: OY, stroke: 'var(--yellow)', strokeWidth: 3.5, strokeDasharray: '8 5', markerEnd: 'url(#ah-yellow)', opacity: 0.8 }, dynGroup);
+      el('text', { x: (OX + compXEnd) / 2, y: OY + (vy >= 0 ? 28 : -14), textAnchor: 'middle', fill: 'var(--yellow)', fontSize: 16, fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, opacity: 0.9, text: vx + 'î' }, dynGroup);
     }
     if (showComp && vy !== 0) {
-      el('line', { x1: compXEnd, y1: OY, x2: tipX, y2: tipY, stroke: 'var(--green)', strokeWidth: 2.5, strokeDasharray: '6 4', markerEnd: 'url(#ah-green)', opacity: 0.8 }, dynGroup);
-      el('text', { x: tipX + (vx >= 0 ? 18 : -18), y: (OY + tipY) / 2 + 4, textAnchor: vx >= 0 ? 'start' : 'end', fill: 'var(--green)', fontSize: 13, fontFamily: "'JetBrains Mono', monospace", fontWeight: 500, opacity: 0.9, text: vy + 'ĵ' }, dynGroup);
+      el('line', { x1: compXEnd, y1: OY, x2: tipX, y2: tipY, stroke: 'var(--green)', strokeWidth: 3.5, strokeDasharray: '8 5', markerEnd: 'url(#ah-green)', opacity: 0.8 }, dynGroup);
+      el('text', { x: tipX + (vx >= 0 ? 22 : -22), y: (OY + tipY) / 2 + 5, textAnchor: vx >= 0 ? 'start' : 'end', fill: 'var(--green)', fontSize: 16, fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, opacity: 0.9, text: vy + 'ĵ' }, dynGroup);
     }
 
     /* unit vector */
     if (showUnit && mag > 0.1) {
-      el('line', { x1: OX, y1: OY, x2: unitTipX, y2: unitTipY, stroke: 'var(--magenta)', strokeWidth: 3, markerEnd: 'url(#ah-magenta)', opacity: 0.7 }, dynGroup);
-      el('text', { x: unitTipX + (ux >= 0 ? 10 : -10), y: unitTipY - 10, textAnchor: ux >= 0 ? 'start' : 'end', fill: 'var(--magenta)', fontSize: 11, fontFamily: "'JetBrains Mono', monospace", opacity: 0.8, text: 'û' }, dynGroup);
+      el('line', { x1: OX, y1: OY, x2: unitTipX, y2: unitTipY, stroke: 'var(--magenta)', strokeWidth: 4, markerEnd: 'url(#ah-magenta)', opacity: 0.7 }, dynGroup);
+      el('text', { x: unitTipX + (ux >= 0 ? 14 : -14), y: unitTipY - 12, textAnchor: ux >= 0 ? 'start' : 'end', fill: 'var(--magenta)', fontSize: 14, fontFamily: "'JetBrains Mono', monospace", opacity: 0.8, text: 'û' }, dynGroup);
     }
 
     /* main vector */
-    el('line', { x1: OX, y1: OY, x2: tipX, y2: tipY, stroke: 'var(--cyan)', strokeWidth: 3, markerEnd: 'url(#ah-cyan)' }, dynGroup);
+    el('line', { x1: OX, y1: OY, x2: tipX, y2: tipY, stroke: 'var(--cyan)', strokeWidth: 4.5, markerEnd: 'url(#ah-cyan)' }, dynGroup);
 
     /* angle arc */
     if (mag > 0.1) {
-      const r = 25;
+      const r = 35;
       const endArcX = OX + r * Math.cos(-angle * Math.PI / 180);
       const endArcY = OY + r * Math.sin(-angle * Math.PI / 180);
       const large = Math.abs(angle) > 180 ? 1 : 0;
       const sweep = angle >= 0 ? 0 : 1;
-      el('path', { d: 'M ' + (OX + r) + ' ' + OY + ' A ' + r + ' ' + r + ' 0 ' + large + ' ' + sweep + ' ' + endArcX + ' ' + endArcY, fill: 'none', stroke: 'var(--orange)', strokeWidth: 1.5, opacity: 0.5 }, dynGroup);
-      const labelR = 36;
-      el('text', { x: OX + labelR * Math.cos(-angle * Math.PI / 360), y: OY + labelR * Math.sin(-angle * Math.PI / 360) + 4, textAnchor: 'middle', fill: 'var(--orange)', fontSize: 11, fontFamily: "'JetBrains Mono', monospace", opacity: 0.7, text: angle.toFixed(0) + '°' }, dynGroup);
+      el('path', { d: 'M ' + (OX + r) + ' ' + OY + ' A ' + r + ' ' + r + ' 0 ' + large + ' ' + sweep + ' ' + endArcX + ' ' + endArcY, fill: 'none', stroke: 'var(--orange)', strokeWidth: 2, opacity: 0.6 }, dynGroup);
+      const labelR = 50;
+      el('text', { x: OX + labelR * Math.cos(-angle * Math.PI / 360), y: OY + labelR * Math.sin(-angle * Math.PI / 360) + 5, textAnchor: 'middle', fill: 'var(--orange)', fontSize: 14, fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, opacity: 0.8, text: angle.toFixed(0) + '°' }, dynGroup);
     }
 
     /* drag handle */
-    el('circle', { cx: tipX, cy: tipY, r: dragging ? 14 : 10, fill: dragging ? 'rgba(0,229,255,0.25)' : 'rgba(0,229,255,0.12)', stroke: 'var(--cyan)', strokeWidth: 2, style: 'cursor:grab' }, dynGroup);
-    el('circle', { cx: tipX, cy: tipY, r: 3, fill: 'var(--cyan)', pointerEvents: 'none' }, dynGroup);
+    el('circle', { cx: tipX, cy: tipY, r: dragging ? 18 : 14, fill: dragging ? 'rgba(0,229,255,0.25)' : 'rgba(0,229,255,0.12)', stroke: 'var(--cyan)', strokeWidth: 2.5, style: 'cursor:grab' }, dynGroup);
+    el('circle', { cx: tipX, cy: tipY, r: 4, fill: 'var(--cyan)', pointerEvents: 'none' }, dynGroup);
 
     /* origin dot */
-    el('circle', { cx: OX, cy: OY, r: 4, fill: 'rgba(255,255,255,0.4)', stroke: 'rgba(255,255,255,0.2)', strokeWidth: 1 }, dynGroup);
+    el('circle', { cx: OX, cy: OY, r: 5, fill: 'rgba(255,255,255,0.4)', stroke: 'rgba(255,255,255,0.2)', strokeWidth: 1.5 }, dynGroup);
 
     /* ── info panel ── */
     document.getElementById('infoVec').textContent = 'v = ⟨' + vx + ', ' + vy + '⟩';
