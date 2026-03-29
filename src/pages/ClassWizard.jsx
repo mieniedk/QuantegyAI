@@ -124,7 +124,9 @@ const ClassWizard = () => {
 
     if (selectedGames.length > 0) {
       const existingAssignments = getAssignments();
-      const assignGradeId = classType === 'texes' ? (isTexesEc6 ? 'grade-ec6' : isTexesMath48 ? 'grade4-8' : 'algebra') : gradeLevel;
+      const assignGradeId = classType === 'texes'
+        ? (isTexesEc6 ? 'grade-ec6' : isTexesMath48 ? 'grade4-8' : 'algebra')
+        : (gradeLevel === 'discrete' ? 'algebra' : gradeLevel);
       const newAssignments = selectedGames.map((gameId, idx) => {
         const game = GAMES_CATALOG.find((g) => g.id === gameId);
         if (!game) return null;

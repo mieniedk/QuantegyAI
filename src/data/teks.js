@@ -17,6 +17,7 @@ export const TEKS_GRADES = [
   { id: 'grade10', label: 'Grade 10', subject: 'Mathematics', subjectId: 'math' },
   { id: 'grade11', label: 'Grade 11', subject: 'Mathematics', subjectId: 'math' },
   { id: 'algebra', label: 'Algebra I', subject: 'Mathematics', subjectId: 'math' },
+  { id: 'discrete', label: 'Discrete Mathematics', subject: 'Mathematics', subjectId: 'math' },
 ];
 
 export const TEKS_STANDARDS = {
@@ -514,6 +515,29 @@ export const TEKS_STANDARDS = {
     { id: '2A.9A', description: 'Write the equation of a circle given its center and radius and graph the circle' },
     { id: '2A.10A', description: 'Add, subtract, and multiply complex numbers' },
     { id: '2A.11A', description: 'Apply the fundamental theorem of algebra to identify the number of roots of a polynomial function' },
+  ],
+  discrete: [
+    // Logic, sets, and proof
+    { id: 'D.1A', description: 'Evaluate and compare propositions using truth values and logical operators (¬, ∧, ∨, →, ↔)' },
+    { id: 'D.1B', description: 'Construct and interpret truth tables for compound statements and arguments' },
+    { id: 'D.1C', description: 'Use quantifiers, negation, and equivalent statements to reason about mathematical claims' },
+    { id: 'D.1D', description: 'Use direct proof, contrapositive, contradiction, and counterexample to justify statements' },
+    { id: 'D.1E', description: 'Represent and analyze sets using roster notation, set-builder notation, and Venn diagrams' },
+    // Counting and discrete probability
+    { id: 'D.2A', description: 'Apply the fundamental counting principle to multi-step counting problems' },
+    { id: 'D.2B', description: 'Compute and interpret permutations and combinations in context' },
+    { id: 'D.2C', description: 'Model sample spaces and compute probabilities for compound events' },
+    { id: 'D.2D', description: 'Use expected value and simulation to analyze discrete random processes' },
+    // Graph theory and networks
+    { id: 'D.3A', description: 'Model relationships with graphs, including directed and weighted graphs' },
+    { id: 'D.3B', description: 'Determine paths, circuits, connectedness, and components in graphs' },
+    { id: 'D.3C', description: 'Apply Euler and Hamilton ideas to solve route and traversal problems' },
+    { id: 'D.3D', description: 'Use shortest-path and minimum-spanning-tree strategies in network contexts' },
+    // Algorithms, recursion, and number theory
+    { id: 'D.4A', description: 'Design and trace algorithms using sequence, selection, and iteration' },
+    { id: 'D.4B', description: 'Analyze recursive definitions and arithmetic/geometric recurrences' },
+    { id: 'D.4C', description: 'Use modular arithmetic, divisibility, and greatest common divisor in problem solving' },
+    { id: 'D.4D', description: 'Explain how prime factorization and modular arithmetic support simple cryptographic systems' },
   ],
 };
 // TExES EC-6: combined standards from grades 1–6 for certification exam prep

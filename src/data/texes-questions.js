@@ -345,7 +345,7 @@ export const TEXES_QUESTIONS = [
   { id: 'tc09', comp: 'comp001', type: 'mc', difficulty: 2,
     q: 'Express the complex number with modulus 2 and argument π/3 in rectangular form.',
     choices: ['1 + i√(3)', '√(3) + i', '2 + 2i', '1 + i'], answer: '1 + i√(3)',
-    explanation: '2(cos π/3 + i sin π/3) = 2(1/2 + i(√(3))/2) = 1 + i√(3).' },
+    explanation: '2(cos π/3 + i sin π/3) = 2(1/2 + i√3/2) = 1 + i√3.' },
   { id: 'tc10', comp: 'comp001', type: 'mc', difficulty: 2,
     q: 'If z = 1 + i, what is z²?',
     choices: ['2i', '2', '-2i', '1 + 2i'], answer: '2i',
@@ -1083,7 +1083,7 @@ export const TEXES_QUESTIONS = [
   // ═══════════════════════════════════════════════
   { id: 'tg01', comp: 'comp002', type: 'mc', difficulty: 1,
     q: 'What is sin(30°)?',
-    choices: ['1/2', '(√(2))/2', '(√(3))/2', '1'], answer: '1/2',
+    choices: ['1/2', '√2/2', '√3/2', '1'], answer: '1/2',
     explanation: 'sin(30°) = 1/2 is a standard unit circle value.' },
   { id: 'tg02', comp: 'comp002', type: 'mc', difficulty: 1,
     q: 'What is the period of y = sin(x)?',
@@ -1111,7 +1111,7 @@ export const TEXES_QUESTIONS = [
     explanation: 'tan θ · cos θ = (sin θ / cos θ) · cos θ = sin θ.' },
   { id: 'tg08', comp: 'comp002', type: 'mc', difficulty: 2,
     q: 'What is cos(π/3)?',
-    choices: ['1/2', '(√(3))/2', '(√(2))/2', '0'], answer: '1/2',
+    choices: ['1/2', '√3/2', '√2/2', '0'], answer: '1/2',
     explanation: 'cos(60°) = cos(π/3) = 1/2.' },
   { id: 'tg09', comp: 'comp002', type: 'mc', difficulty: 2,
     q: 'The function y = sin(x − π/4) is the graph of y = sin(x) shifted:',
@@ -1119,7 +1119,7 @@ export const TEXES_QUESTIONS = [
     explanation: 'y = sin(x − c) shifts the graph right by c units.' },
   { id: 'tg10', comp: 'comp002', type: 'mc', difficulty: 2,
     q: 'If sin⁻¹(x) = π/6, what is x?',
-    choices: ['1/2', '(√(3))/2', '(√(2))/2', '1'], answer: '1/2',
+    choices: ['1/2', '√3/2', '√2/2', '1'], answer: '1/2',
     explanation: 'sin(π/6) = 1/2, so sin⁻¹(1/2) = π/6, meaning x = 1/2.' },
 
   // ═══════════════════════════════════════════════

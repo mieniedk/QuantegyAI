@@ -1000,15 +1000,24 @@ export const GAMES_CATALOG = [
 ];
 
 // Get games filtered by grade
-export const getGamesByGrade = (gradeId) =>
-  GAMES_CATALOG.filter((g) => g.grades.includes(gradeId));
+export const getGamesByGrade = (gradeId) => {
+  const targetGrade = gradeId === 'discrete' ? 'algebra' : gradeId;
+  return GAMES_CATALOG.filter((g) => g.grades.includes(targetGrade));
+};
 
 // Get games that match specific TEKS standards
 export const getGamesByTeks = (teksIds) =>
-  GAMES_CATALOG.filter((g) => {
-    const allTeks = Object.values(g.teksByGrade).flat();
-    return teksIds.some((id) => allTeks.includes(id));
-  });
+  {
+    const matched = GAMES_CATALOG.filter((g) => {
+      const allTeks = Object.values(g.teksByGrade).flat();
+      return teksIds.some((id) => allTeks.includes(id));
+    });
+    // Discrete Math currently reuses Algebra game set while dedicated D.* mappings grow.
+    if (matched.length === 0 && Array.isArray(teksIds) && teksIds.length > 0 && teksIds.every((id) => String(id).startsWith('D.'))) {
+      return getGamesByGrade('discrete');
+    }
+    return matched;
+  };
 
 // Get TEKS for a specific game and grade
 export const getGameTeks = (gameId, gradeId) => {
