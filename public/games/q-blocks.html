@@ -14,6 +14,7 @@
 *{margin:0;padding:0;box-sizing:border-box;user-select:none;-webkit-user-select:none;touch-action:manipulation;}
 html,body{position:fixed;width:100%;height:100%;overflow:hidden;background:linear-gradient(135deg,#0a0a1a 0%,#0d1b2a 50%,#0a0a1a 100%);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:#e0e0e0;}
 .screen{display:none;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;max-width:520px;margin:0 auto;padding:16px;position:absolute;top:0;left:50%;transform:translateX(-50%);overflow-y:auto;-webkit-overflow-scrolling:touch;}
+#game.screen{max-width:780px;}
 .screen.active{display:flex;}
 
 /* Username Screen */
@@ -77,6 +78,14 @@ html,body{position:fixed;width:100%;height:100%;overflow:hidden;background:linea
 #game.screen.active{display:flex;flex-direction:column;}
 /* When game is active, menu (Play, Leaderboard) must be completely hidden */
 body:has(#game.screen.active) #menu{display:none!important;visibility:hidden!important;pointer-events:none!important;}
+/* Wide layout: board center, controls on right side */
+.game-body{display:flex;flex-direction:column;flex:1;width:100%;min-height:0;overflow:hidden;}
+@media(min-width:640px){
+  .game-body{flex-direction:row;align-items:stretch;}
+  .game-body .board-wrap{flex:1;min-width:0;}
+  .game-body .controls{flex-direction:column;width:auto;padding:12px 10px;gap:10px;justify-content:center;align-self:center;}
+  .game-body .controls .cbtn{max-width:none;width:52px;height:52px;aspect-ratio:auto;font-size:1.3em;}
+}
 .top-bar{display:flex;align-items:center;justify-content:space-between;width:100%;padding:6px 10px;background:rgba(0,0,0,.3);border-bottom:1px solid rgba(0,245,255,.1);flex-shrink:0;gap:8px;flex-wrap:wrap;}
 .top-bar .domain-area{font-size:.7em;font-weight:700;color:#94a3b8;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;}
 .top-bar .domain-area .domain-label{color:#00f5ff;}
@@ -95,7 +104,7 @@ body:has(#game.screen.active) #menu{display:none!important;visibility:hidden!imp
 .top-bar .score-area .val{color:#00f5ff;font-weight:700;}
 .top-bar .tbtn{width:44px;height:44px;border:1px solid rgba(0,245,255,.2);border-radius:8px;background:rgba(0,245,255,.06);color:#00f5ff;font-size:.9em;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .top-bar .tbtns{display:flex;gap:6px;}
-.board-wrap{flex:1;min-height:42vh;max-height:78vh;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;overflow:hidden;padding:4px 4px 12px 4px;position:relative;}
+.board-wrap{flex:1;min-height:42vh;max-height:88vh;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;overflow:hidden;padding:4px 4px 12px 4px;position:relative;}
 #board-box{position:relative;border:2px solid rgba(0,245,255,.3);border-radius:8px;background:rgba(0,0,0,.5);overflow:hidden;flex-shrink:1;touch-action:none;box-shadow:0 0 30px rgba(0,245,255,.08),inset 0 0 40px rgba(0,0,0,.3);}
 #board{display:grid;grid-template-columns:repeat(8,1fr);width:100%;height:100%;}
 #board .cell{aspect-ratio:1;border:1px solid rgba(0,245,255,.06);transition:background .05s;}
@@ -428,18 +437,20 @@ if(location.hash==='#play'){location.hash='';setTimeout(function(){window.__qbSt
     <button type="button" class="skip-btn" id="skipBtn" title="Skip this question">Skip</button>
     <div class="math-bonus" id="mathBonus"></div>
   </div>
-  <div class="board-wrap">
-    <div id="board-box">
-      <div id="board"></div>
+  <div class="game-body">
+    <div class="board-wrap">
+      <div id="board-box">
+        <div id="board"></div>
+      </div>
+      <div id="clearCelebration"><div class="clear-text"></div></div>
     </div>
-    <div id="clearCelebration"><div class="clear-text"></div></div>
-  </div>
-  <div class="controls">
-    <button class="cbtn" id="cLeft" aria-label="Move left">&#9664;</button>
-    <button class="cbtn" id="cRotate" aria-label="Rotate">&#8635;</button>
-    <button class="cbtn" id="cDown" aria-label="Move down">&#9660;</button>
-    <button class="cbtn" id="cDrop" aria-label="Hard drop">&#9199;</button>
-    <button class="cbtn" id="cRight" aria-label="Move right">&#9654;</button>
+    <div class="controls">
+      <button class="cbtn" id="cLeft" aria-label="Move left">&#9664;</button>
+      <button class="cbtn" id="cRotate" aria-label="Rotate">&#8635;</button>
+      <button class="cbtn" id="cDown" aria-label="Move down">&#9660;</button>
+      <button class="cbtn" id="cDrop" aria-label="Hard drop">&#9199;</button>
+      <button class="cbtn" id="cRight" aria-label="Move right">&#9654;</button>
+    </div>
   </div>
 </div>
 
@@ -2006,13 +2017,17 @@ function sizeBoard(){
   const controls=document.querySelector('.controls');
   const contBar=document.querySelector('.loop-continue-float');
   const wh=window.innerHeight;
+  const ww=window.innerWidth;
+  const isWide=ww>=640;
   const barH=(contBar&&contBar.style.display!=='none')?contBar.offsetHeight:0;
-  const usedH=(topBar?topBar.offsetHeight:0)+(qPanel?qPanel.offsetHeight:0)+(controls?controls.offsetHeight:0)+barH+16;
+  const ctrlH=isWide?0:(controls?controls.offsetHeight:0);
+  const usedH=(topBar?topBar.offsetHeight:0)+(qPanel?qPanel.offsetHeight:0)+ctrlH+barH+16;
   const availH=wh-usedH;
-  const availW=Math.min(520,window.innerWidth)-16;
+  const sideCtrlW=isWide?80:0;
+  const availW=Math.min(780,ww)-sideCtrlW-16;
   const cellFromW=Math.floor(availW/W);
   const cellFromH=Math.floor((availH-16)/H);
-  const cellSize=Math.min(cellFromW,cellFromH,46);
+  const cellSize=Math.min(cellFromW,cellFromH,56);
   const bw=cellSize*W,bh=cellSize*H;
   const box=$('board-box');
   box.style.width=bw+'px';
