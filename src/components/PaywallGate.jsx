@@ -6,6 +6,7 @@ import {
 import {
   studentSignup, studentLogin, isStudentLoggedIn, getStudentInfo,
   hasExamAccess, createStudentCheckout,
+  reAuthenticateWithServer,
 } from '../utils/studentAuth';
 
 const EXAM_LABELS = {
@@ -71,6 +72,10 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
   const [busyLong, setBusyLong] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [couponError, setCouponError] = useState('');
+  const [isOffline, setIsOffline] = useState(false);
+  const [retrying, setRetrying] = useState(false);
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
 
   const examLabel = EXAM_LABELS[examId] || examId;
   const isMobile = viewportWidth < MOBILE_BP;
@@ -123,16 +128,21 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
       }
       if (!result.success) { setError(result.error || 'Something went wrong.'); return; }
 
-      // Local/demo account — skip server-side access check & checkout, go straight to pricing.
+      setAuthEmail(email.trim());
+      setAuthPassword(password);
+
       if (result.local) {
+        setIsOffline(true);
         setMode('pricing');
         return;
       }
 
       if (autoCheckoutPlanId) {
         const checkoutResult = await createStudentCheckout(examId, autoCheckoutPlanId);
-        if (checkoutResult?.demo) {
-          onUnlocked?.();
+        if (checkoutResult?.offline) {
+          setIsOffline(true);
+          setMode('pricing');
+          setError(checkoutResult.error || 'Payment server is starting up. Please retry in a moment.');
           return;
         }
         if (!checkoutResult?.success) {
@@ -169,9 +179,27 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
     setBusy(true);
     setError('');
     try {
+      if (isOffline && authEmail && authPassword) {
+        setRetrying(true);
+        const reAuth = await reAuthenticateWithServer(authEmail, authPassword);
+        setRetrying(false);
+        if (reAuth?.success) {
+          setIsOffline(false);
+          const checkoutResult = await createStudentCheckout(examId, planId);
+          if (!checkoutResult?.success) {
+            setError(checkoutResult?.error || 'Could not start checkout.');
+          }
+          setBusy(false);
+          return;
+        }
+        setError('Payment server is still waking up. Render free-tier servers can take up to 60 seconds on the first visit — please wait a moment and tap "Retry" again.');
+        setBusy(false);
+        return;
+      }
       const result = await createStudentCheckout(examId, planId);
-      if (result?.demo) {
-        onUnlocked?.();
+      if (result?.offline) {
+        setIsOffline(true);
+        setError(result.error || 'Payment server is starting up. Please retry in a moment.');
       } else if (!result?.success) {
         setError(result?.error || 'Could not start checkout.');
       }
@@ -179,7 +207,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
       setError(err.message || 'Network error.');
     }
     setBusy(false);
-  }, [examId, onUnlocked]);
+  }, [examId, isOffline, authEmail, authPassword]);
 
   const handleCoupon = useCallback(() => {
     setCouponError('');
@@ -385,6 +413,24 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
               </p>
             )}
 
+            {isOffline && (
+              <div style={{
+                ...CARD,
+                marginBottom: 20,
+                background: '#fffbeb',
+                border: `1.5px solid ${COLOR.amberBorder}`,
+                textAlign: 'center',
+              }}>
+                <p style={{ ...BODY, fontWeight: 700, color: COLOR.amber, marginBottom: 6 }}>
+                  Payment server is starting up
+                </p>
+                <p style={{ fontSize: 13, color: COLOR.textSecondary, lineHeight: 1.5, marginBottom: 0 }}>
+                  Our server sleeps when inactive and can take up to 60 seconds to wake up.
+                  Tap a plan below to retry the connection, or use a coupon code.
+                </p>
+              </div>
+            )}
+
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: 12, marginBottom: 24 }}>
               {PLANS.map((plan) => (
                 <div
@@ -422,7 +468,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
                       fontSize: 14,
                     }}
                   >
-                    {busy ? '...' : 'Start Now'}
+                    {busy && retrying ? 'Connecting...' : busy ? '...' : isOffline ? 'Retry & Pay' : 'Start Now'}
                   </button>
                 </div>
               ))}

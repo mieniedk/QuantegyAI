@@ -1664,9 +1664,15 @@ export default function PracticeLoop() {
   /** Bumps when navigating tiles so quiz pools re-read weak/flagged data for spaced review */
   const [reviewPoolEpoch, setReviewPoolEpoch] = useState(0);
   const [revisitSeed, setRevisitSeed] = useState(0);
+  const [microConceptSeed] = useState(() => Math.floor(Math.random() * 997));
+  const conceptVariantIndex = tilesCompleted + revisitSeed + microConceptSeed;
+  const conceptSessionScopeKey = useMemo(
+    () => [examId || '', comp || '', currentStd || '', singleTeks || ''].join('|'),
+    [examId, comp, currentStd, singleTeks],
+  );
   const microConcept = useMemo(
-    () => getMicroConcept(examId, comp, singleTeks, currentStd, tilesCompleted + revisitSeed),
-    [examId, comp, singleTeks, currentStd, tilesCompleted, revisitSeed],
+    () => getMicroConcept(examId, comp, singleTeks, currentStd, conceptVariantIndex),
+    [examId, comp, singleTeks, currentStd, conceptVariantIndex],
   );
   /** Re-render flag buttons after toggling localStorage */
   const [flaggedVersion, setFlaggedVersion] = useState(0);
@@ -2894,52 +2900,79 @@ export default function PracticeLoop() {
   const useGeometricRefreshActivity = comp === 'comp005' || currentStd === 'c018';
   const conceptRefreshConcept = useMemo(() => {
     const normalizeConceptText = (v) => String(v || '').replace(/\s+/g, ' ').trim().toLowerCase();
-    const seen = new Set([
+    const currentTileSeen = new Set([
       normalizeConceptText(microConcept?.conceptText),
       normalizeConceptText(reminderText),
     ].filter(Boolean));
-
-    // Also avoid texts already surfaced earlier in this same loop session.
-    const maxSeenIndex = Math.max(0, tilesCompleted + revisitSeed + 2);
-    for (let vi = 0; vi <= maxSeenIndex; vi++) {
-      const prior = getMicroConcept(examId, comp, singleTeks, currentStd, vi);
-      const priorKey = normalizeConceptText(prior?.conceptText);
-      if (priorKey) seen.add(priorKey);
-    }
-
-    let alt = null;
-    // Try several variant offsets so recap content stays fresh within the same loop.
-    for (let step = 1; step <= 10; step++) {
-      const candidate = getMicroConcept(examId, comp, singleTeks, currentStd, tilesCompleted + revisitSeed + step);
-      const textKey = normalizeConceptText(candidate?.conceptText);
-      if (candidate?.conceptText && !seen.has(textKey)) {
-        alt = candidate;
-        break;
+    const conceptSessionStoreKey = `loop-concept-seen:${conceptSessionScopeKey}`;
+    let usedAcrossSession = new Set();
+    try {
+      const raw = window.sessionStorage.getItem(conceptSessionStoreKey);
+      const parsed = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(parsed)) {
+        usedAcrossSession = new Set(parsed.map(normalizeConceptText).filter(Boolean));
       }
+    } catch {
+      usedAcrossSession = new Set();
     }
 
-    if (!microConcept) return alt;
-    if (!alt) {
-      const nonDuplicateFallbackText = microConcept?.misconception
-        ? `Watch out focus: ${microConcept.misconception}`
-        : (microConcept?.workedExample
-          ? `Worked-example focus: ${microConcept.workedExample}`
-          : (reminderText || microConcept?.title || conceptTitle || 'Quick recap'));
-      return {
+    const candidates = [];
+    const pushCandidate = (candidate) => {
+      const textKey = normalizeConceptText(candidate?.conceptText);
+      if (!textKey || currentTileSeen.has(textKey)) return;
+      if (candidates.some((c) => normalizeConceptText(c?.conceptText) === textKey)) return;
+      candidates.push(candidate);
+    };
+
+    // Gather many variants so we can rotate without repeats for the full session scope.
+    for (let step = 1; step <= 36; step++) {
+      pushCandidate(getMicroConcept(examId, comp, singleTeks, currentStd, conceptVariantIndex + step));
+    }
+
+    if (!microConcept) return null;
+
+    const conceptSentence = String(microConcept?.conceptText || '')
+      .split('.')
+      .map((s) => s.trim())
+      .filter(Boolean)[0];
+    const fallbackCandidates = [
+      microConcept?.misconception ? {
         ...microConcept,
         title: microConcept?.title ? `${microConcept.title} - New Angle` : conceptTitle,
-        conceptText: nonDuplicateFallbackText,
+        conceptText: `Watch out focus: ${microConcept.misconception}`,
         illustrationHtml: undefined,
-      };
-    }
-    if (alt.conceptText && alt.conceptText !== microConcept.conceptText) return alt;
+      } : null,
+      microConcept?.workedExample ? {
+        ...microConcept,
+        title: microConcept?.title ? `${microConcept.title} - New Angle` : conceptTitle,
+        conceptText: `Worked-example focus: ${microConcept.workedExample}`,
+        illustrationHtml: undefined,
+      } : null,
+      conceptSentence ? {
+        ...microConcept,
+        title: microConcept?.title ? `${microConcept.title} - New Angle` : conceptTitle,
+        conceptText: `Key idea focus: ${conceptSentence}.`,
+        illustrationHtml: undefined,
+      } : null,
+      reminderText ? {
+        ...microConcept,
+        title: microConcept?.title ? `${microConcept.title} - New Angle` : conceptTitle,
+        conceptText: `Quick connection: ${reminderText}`,
+        illustrationHtml: undefined,
+      } : null,
+    ].filter(Boolean);
+    fallbackCandidates.forEach(pushCandidate);
+
+    // Pick the first candidate not used yet in this session scope.
+    const fresh = candidates.find((candidate) => !usedAcrossSession.has(normalizeConceptText(candidate?.conceptText)));
+    if (fresh) return fresh;
+
+    // If all candidates were used already, reset session cycle and start fresh.
+    try { window.sessionStorage.removeItem(conceptSessionStoreKey); } catch {}
+    if (candidates.length) return candidates[0];
 
     // Last-resort fallback so recap is not a duplicate of the prior concept tile.
-    const fallbackText = microConcept?.misconception
-      ? `Watch out focus: ${microConcept.misconception}`
-      : (microConcept?.workedExample
-        ? `Worked-example focus: ${microConcept.workedExample}`
-        : (reminderText || microConcept.conceptText || ''));
+    const fallbackText = reminderText || microConcept.conceptText || 'Quick recap';
 
     return {
       ...microConcept,
@@ -2947,7 +2980,25 @@ export default function PracticeLoop() {
       conceptText: fallbackText,
       illustrationHtml: undefined,
     };
-  }, [examId, comp, singleTeks, currentStd, tilesCompleted, revisitSeed, microConcept, reminderText, conceptTitle]);
+  }, [examId, comp, singleTeks, currentStd, conceptVariantIndex, microConcept, reminderText, conceptTitle, conceptSessionScopeKey]);
+
+  useEffect(() => {
+    if (phase !== 'concept-refresh' && !(phase === 'video2' && !hasUniqueDeepDiveLecture && !showNumberSetsActivity)) return;
+    const text = String(conceptRefreshConcept?.conceptText || '').trim();
+    if (!text) return;
+    const key = `loop-concept-seen:${conceptSessionScopeKey}`;
+    const normalizeConceptText = (v) => String(v || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    try {
+      const raw = window.sessionStorage.getItem(key);
+      const parsed = raw ? JSON.parse(raw) : [];
+      const current = Array.isArray(parsed) ? parsed : [];
+      const normalized = normalizeConceptText(text);
+      const normalizedSet = new Set(current.map(normalizeConceptText));
+      if (!normalizedSet.has(normalized)) {
+        window.sessionStorage.setItem(key, JSON.stringify([...current, text]));
+      }
+    } catch {}
+  }, [phase, conceptRefreshConcept, conceptSessionScopeKey, hasUniqueDeepDiveLecture, showNumberSetsActivity]);
 
   const buildReturnUrl = (returnPhase) => {
     const base = `/practice-loop?teks=${encodeURIComponent(teks)}&label=${encodeURIComponent(label)}&grade=${encodeURIComponent(grade)}&phase=${returnPhase}`;

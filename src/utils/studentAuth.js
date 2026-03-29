@@ -273,7 +273,11 @@ export async function createStudentCheckout(examId, planType = 'student_exam_one
   const token = localStorage.getItem(TOKEN_KEY);
   const decoded = token ? decodeJwt(token) : null;
   if (decoded?.local) {
-    return { success: true, demo: true };
+    return {
+      success: false,
+      offline: true,
+      error: 'Our payment server is waking up — this can take up to 60 seconds on the first visit. Please tap "Retry" in a moment.',
+    };
   }
   const origin = window.location.origin;
   const data = await fetchJsonWithTimeout(
@@ -289,6 +293,77 @@ export async function createStudentCheckout(examId, planType = 'student_exam_one
     window.location.href = data.url;
   }
   return data;
+}
+
+/**
+ * Re-attempt login against the real API server. If successful, replaces the
+ * local demo token with a real one. Returns true if the reconnect succeeded.
+ */
+export async function retryServerConnection() {
+  const token = localStorage.getItem(TOKEN_KEY);
+  const decoded = token ? decodeJwt(token) : null;
+  if (!decoded?.local) return true;
+
+  const baseCandidates = getApiBaseCandidates(ACTIVE_API_BASE);
+  const remotes = remoteBasesFromCandidates(baseCandidates);
+
+  for (const base of remotes) {
+    try {
+      await wakeRemoteApiBase(base, 8000);
+      const res = await fetchJsonWithTimeout(
+        `${base}/api/health`,
+        { method: 'GET' },
+        10000,
+      );
+      if (res?.success || res?.status === 'ok' || res?.ok) {
+        setActiveApiBase(base);
+        return true;
+      }
+    } catch { /* try next */ }
+  }
+  return false;
+}
+
+/**
+ * Re-login with stored credentials against the real server, replacing the
+ * local token with a real one. Returns the login result or null on failure.
+ */
+export async function reAuthenticateWithServer(email, password) {
+  const baseCandidates = getApiBaseCandidates(ACTIVE_API_BASE);
+  for (const base of baseCandidates) {
+    const data = await fetchJsonWithTimeout(
+      `${base}/api/auth/student/login`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: email, password }),
+      },
+      12000,
+    );
+    if (data?.success && data.token) {
+      setActiveApiBase(base);
+      localStorage.setItem(TOKEN_KEY, data.token);
+      return data;
+    }
+    if (!data?.success && isTimedOutError(data?.error)) {
+      await wakeRemoteApiBase(base, WAKE_RETRY_MS);
+      const retry = await fetchJsonWithTimeout(
+        `${base}/api/auth/student/login`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: email, password }),
+        },
+        12000,
+      );
+      if (retry?.success && retry.token) {
+        setActiveApiBase(base);
+        localStorage.setItem(TOKEN_KEY, retry.token);
+        return retry;
+      }
+    }
+  }
+  return null;
 }
 
 export async function pushProgress(key, payload) {

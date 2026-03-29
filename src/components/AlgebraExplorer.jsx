@@ -312,6 +312,294 @@ function FunctionTransform({ onComplete, continueLabel, badgeLabel, embedded }) 
   );
 }
 
+const MACHINE_RULES = [
+  { display: 'y = 2x + 1', fn: (x) => 2 * x + 1, coach: 'Double x, then add 1.' },
+  { display: 'y = x² − 3', fn: (x) => (x * x) - 3, coach: 'Square first, then subtract 3.' },
+  { display: 'y = |x − 2| + 1', fn: (x) => Math.abs(x - 2) + 1, coach: 'Shift right by 2 inside absolute value.' },
+  { display: 'y = -x + 4', fn: (x) => -x + 4, coach: 'Flip then shift up.' },
+  { display: 'y = 3(x − 1)', fn: (x) => 3 * (x - 1), coach: 'Shift right 1, then multiply by 3.' },
+];
+
+function FunctionMachine({ onComplete, continueLabel, badgeLabel, embedded }) {
+  const totalRounds = 3;
+  const [roundIdx, setRoundIdx] = useState(0);
+  const [inputValue, setInputValue] = useState('0');
+  const [guessValue, setGuessValue] = useState('');
+  const [machineState, setMachineState] = useState('idle'); // idle | running | done
+  const [lastOutput, setLastOutput] = useState(null);
+  const [checked, setChecked] = useState(false);
+  const [score, setScore] = useState(0);
+  const [soundOn, setSoundOn] = useState(false);
+  const audioCtxRef = useRef(null);
+
+  const task = useMemo(() => {
+    const rule = MACHINE_RULES[rand(0, MACHINE_RULES.length - 1)];
+    const seedInput = rand(-6, 6);
+    return { rule, seedInput, seedOutput: roundTo(rule.fn(seedInput), 2) };
+  }, [roundIdx]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    setInputValue(String(task.seedInput));
+    setGuessValue('');
+    setMachineState('idle');
+    setLastOutput(null);
+    setChecked(false);
+  }, [task]);
+
+  const numericInput = Number(inputValue);
+  const isInputValid = Number.isFinite(numericInput);
+  const expectedOutput = isInputValid ? roundTo(task.rule.fn(numericInput), 2) : null;
+  const canCheck = machineState === 'done' && guessValue.trim().length > 0 && expectedOutput !== null;
+  const isCorrect = canCheck && Number(guessValue) === expectedOutput;
+
+  const playCue = useCallback((frequency, duration = 0.08, type = 'sine') => {
+    if (!soundOn || typeof window === 'undefined') return;
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!audioCtxRef.current) audioCtxRef.current = new AudioCtx();
+      const ctx = audioCtxRef.current;
+      if (ctx.state === 'suspended') ctx.resume();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.value = frequency;
+      gain.gain.value = 0.0001;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      const now = ctx.currentTime;
+      gain.gain.exponentialRampToValueAtTime(0.06, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      osc.start(now);
+      osc.stop(now + duration + 0.02);
+    } catch {
+      // Audio is optional; ignore unsupported contexts.
+    }
+  }, [soundOn]);
+
+  useEffect(() => () => {
+    try { audioCtxRef.current?.close?.(); } catch {}
+  }, []);
+
+  const runMachine = useCallback(() => {
+    if (!isInputValid) return;
+    setChecked(false);
+    setMachineState('running');
+    playCue(460, 0.07, 'square');
+    window.setTimeout(() => {
+      setLastOutput(expectedOutput);
+      setMachineState('done');
+      playCue(740, 0.09, 'triangle');
+    }, 700);
+  }, [isInputValid, expectedOutput, playCue]);
+
+  const onCheck = useCallback(() => {
+    if (!canCheck) return;
+    setChecked(true);
+    if (isCorrect) {
+      setScore((s) => s + 1);
+      playCue(880, 0.08, 'sine');
+      window.setTimeout(() => playCue(1040, 0.08, 'sine'), 90);
+    } else {
+      playCue(220, 0.12, 'sawtooth');
+    }
+  }, [canCheck, isCorrect, playCue]);
+
+  if (roundIdx >= totalRounds) {
+    return (
+      <div style={embedded ? {} : CARD}>
+        {!embedded && <div style={{ ...BADGE, background: `${COLOR.purple}14`, color: COLOR.purple }}>{badgeLabel}</div>}
+        <p style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 800, color: COLOR.text }}>
+          Function Machine: {score}/{totalRounds} correct
+        </p>
+        <QBotBubble
+          message={score >= 2
+            ? 'Great work translating rules into outputs. This is function reasoning in action.'
+            : 'Nice attempt. Keep applying operations in the exact order shown by the rule.'}
+          mood={score >= 2 ? 'celebrate' : 'encourage'}
+        />
+        <button type="button" onClick={onComplete} style={BTN_PRIMARY}>{continueLabel}</button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={embedded ? {} : CARD}>
+      {!embedded && <div style={{ ...BADGE, background: `${COLOR.purple}14`, color: COLOR.purple }}>{badgeLabel}</div>}
+      <p style={{ margin: '0 0 4px', fontSize: 11, color: COLOR.textMuted, fontWeight: 700 }}>Task {roundIdx + 1} of {totalRounds}</p>
+      <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 800, color: COLOR.text }}>
+        Function Machine: {task.rule.display}
+      </p>
+      <p style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 700, color: COLOR.text }}>
+        Objective: Enter x, run the machine, and predict the output y.
+      </p>
+      <p style={{ margin: '0 0 8px', fontSize: 13, color: COLOR.textSecondary }}>
+        Touch friendly controls: tap + / − to change input quickly, then tap Run Machine.
+      </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: COLOR.textSecondary }}>
+          Status: {machineState === 'running' ? 'Machine running...' : machineState === 'done' ? 'Output ready' : 'Ready'}
+        </span>
+        <button
+          type="button"
+          onClick={() => setSoundOn((v) => !v)}
+          style={{
+            borderRadius: 999,
+            border: `1px solid ${soundOn ? '#86efac' : COLOR.border}`,
+            background: soundOn ? '#ecfdf5' : '#fff',
+            color: soundOn ? '#166534' : COLOR.textSecondary,
+            fontSize: 11,
+            fontWeight: 800,
+            padding: '5px 10px',
+            cursor: 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          Sound: {soundOn ? 'On' : 'Off'}
+        </button>
+      </div>
+
+      <QBotBubble
+        message={checked
+          ? (isCorrect
+            ? 'Correct output. You processed the rule correctly.'
+            : `${task.rule.coach} For x = ${inputValue}, y = ${expectedOutput}.`)
+          : task.rule.coach}
+        mood={checked ? (isCorrect ? 'celebrate' : 'think') : 'wave'}
+      />
+
+      <div style={{ marginBottom: 12, borderRadius: 14, border: `1px solid ${COLOR.border}`, background: '#f8fafc', padding: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1fr', gap: 10, alignItems: 'center' }}>
+          <div style={{ borderRadius: 10, background: '#eff6ff', border: '1px solid #bfdbfe', padding: 10, textAlign: 'center' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#1d4ed8', marginBottom: 4 }}>INPUT x</div>
+            <div style={{ fontSize: 24, fontWeight: 800, color: COLOR.blue }}>{inputValue}</div>
+          </div>
+          <div style={{ borderRadius: 12, border: '1px solid #0f172a', background: 'linear-gradient(180deg,#1f2937,#111827)', padding: 8 }}>
+            <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#cbd5e1', textAlign: 'center', marginBottom: 6 }}>
+              Function Machine
+            </div>
+            <div style={{ position: 'relative', height: 42, borderRadius: 999, border: '1px solid #334155', overflow: 'hidden', background: '#0f172a' }}>
+              <div style={{
+                position: 'absolute',
+                inset: 0,
+                backgroundImage: 'repeating-linear-gradient(90deg,rgba(148,163,184,0.24) 0px, rgba(148,163,184,0.24) 10px, rgba(30,41,59,0.4) 10px, rgba(30,41,59,0.4) 20px)',
+                transform: machineState === 'running' ? 'translateX(-18px)' : 'translateX(0)',
+                transition: machineState === 'running' ? 'transform 0.7s linear' : 'transform 0.2s ease',
+              }}
+              />
+              <div style={{
+                position: 'absolute',
+                top: 9,
+                left: machineState === 'running' ? '74%' : '6%',
+                width: 24,
+                height: 24,
+                borderRadius: 6,
+                background: 'linear-gradient(135deg,#60a5fa,#2563eb)',
+                border: '1px solid #bfdbfe',
+                boxShadow: '0 0 0 2px rgba(30,64,175,0.2)',
+                transition: 'left 0.65s cubic-bezier(.22,.8,.28,1)',
+              }}
+              />
+            </div>
+            <div style={{ marginTop: 6, fontSize: 11, fontWeight: 700, color: '#cbd5e1', textAlign: 'center' }}>
+              {machineState === 'running' ? 'Processing input...' : machineState === 'done' ? 'Output generated' : 'Tap Run Machine'}
+            </div>
+          </div>
+          <div style={{ borderRadius: 10, background: '#f3e8ff', border: '1px solid #ddd6fe', padding: 10, textAlign: 'center' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#6d28d9', marginBottom: 4 }}>OUTPUT y</div>
+            <div style={{ fontSize: 24, fontWeight: 800, color: COLOR.purple }}>
+              {machineState === 'done' ? String(lastOutput) : '?'}
+            </div>
+          </div>
+        </div>
+        <div style={{ marginTop: 8, borderRadius: 10, background: '#ffffff', border: `1px solid ${COLOR.border}`, padding: '8px 10px', textAlign: 'center' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.textSecondary, marginBottom: 2 }}>Machine rule</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: COLOR.text }}>{task.rule.display}</div>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gap: 10, marginBottom: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 8, alignItems: 'center' }}>
+          <button
+            type="button"
+            aria-label="Decrease input value"
+            onClick={() => setInputValue((v) => String((Number(v || 0) - 1)))}
+            style={{ ...BTN_PRIMARY, width: 46, minHeight: 42, padding: 0 }}
+          >
+            −
+          </button>
+          <input
+            type="number"
+            inputMode="numeric"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            style={{ border: `1px solid ${COLOR.border}`, borderRadius: 10, padding: '10px 12px', fontSize: 16, fontWeight: 700, textAlign: 'center' }}
+            aria-label="Input x value"
+          />
+          <button
+            type="button"
+            aria-label="Increase input value"
+            onClick={() => setInputValue((v) => String((Number(v || 0) + 1)))}
+            style={{ ...BTN_PRIMARY, width: 46, minHeight: 42, padding: 0 }}
+          >
+            +
+          </button>
+        </div>
+
+        <button
+          type="button"
+          onClick={runMachine}
+          disabled={!isInputValid || machineState === 'running'}
+          style={{ ...BTN_PRIMARY, background: 'linear-gradient(135deg,#0ea5e9,#2563eb)', opacity: (!isInputValid || machineState === 'running') ? 0.65 : 1 }}
+        >
+          {machineState === 'running' ? 'Running...' : 'Run Machine'}
+        </button>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8, alignItems: 'center' }}>
+          <input
+            type="number"
+            inputMode="numeric"
+            value={guessValue}
+            onChange={(e) => setGuessValue(e.target.value)}
+            placeholder="Predict output y"
+            style={{ border: `1px solid ${COLOR.border}`, borderRadius: 10, padding: '10px 12px', fontSize: 14, fontWeight: 700 }}
+            aria-label="Predicted output y value"
+          />
+          <button
+            type="button"
+            onClick={onCheck}
+            disabled={!canCheck}
+            style={{ ...BTN_PRIMARY, opacity: canCheck ? 1 : 0.55, cursor: canCheck ? 'pointer' : 'not-allowed' }}
+          >
+            Check
+          </button>
+        </div>
+      </div>
+
+      {checked && (
+        <div style={{ margin: '0 0 12px', padding: '10px 14px', borderRadius: 12, background: isCorrect ? COLOR.greenLight : '#fef2f2', border: `1px solid ${isCorrect ? COLOR.greenBorder : '#fca5a5'}`, textAlign: 'center' }}>
+          <p aria-live="polite" style={{ margin: 0, fontSize: 14, fontWeight: 700, color: isCorrect ? COLOR.green : '#ef4444' }}>
+            {isCorrect ? '✓ Correct output.' : `✗ Not yet. Correct output is ${expectedOutput}.`}
+          </p>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <button
+          type="button"
+          onClick={() => setRoundIdx((r) => r + 1)}
+          style={{ ...BTN_PRIMARY, background: 'linear-gradient(135deg,#d97706,#b45309)', flex: '0 0 auto' }}
+        >
+          Next Task
+        </button>
+        <button type="button" onClick={() => setRoundIdx(totalRounds)} style={{ ...BTN_PRIMARY, flex: '1 1 auto' }}>
+          {continueLabel}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    MODE 1 — Quadratic Explorer
    Drag the vertex (h, k) and one extra point to define a parabola.
@@ -708,7 +996,8 @@ const MODES = ['function-transform', 'quadratic', 'trig-circle', 'sequence-patte
 export default function AlgebraExplorer({ activityIndex = 0, mode, onComplete, continueLabel = 'Continue', badgeLabel = 'Interactive activity', embedded = false }) {
   const resolvedMode = mode || MODES[activityIndex % MODES.length];
   if (resolvedMode === 'sequence-patterns') return <SequencePatterns onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
-  if (resolvedMode === 'function-transform') return <FunctionTransform onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+  if (resolvedMode === 'function-transform') return <FunctionMachine onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+  if (resolvedMode === 'function-transform-legacy') return <FunctionTransform onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (resolvedMode === 'quadratic') return <QuadraticExplorer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   return <TrigCircle onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
 }
