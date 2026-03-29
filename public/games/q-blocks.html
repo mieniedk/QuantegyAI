@@ -2195,6 +2195,9 @@ function init(){
       } else {
         window.location.href = practiceReturnUrl;
       }
+    } else if (window.parent && window.parent !== window) {
+      // In iframe with no returnUrl: tell parent we're done, don't navigate the iframe
+      try { window.parent.postMessage({ type: 'qblocksDone' }, '*'); } catch(e) {}
     } else {
       window.location.href = '/practice-loop';
     }
@@ -2246,6 +2249,10 @@ function init(){
   }
   $('hsDone').addEventListener('click',function(){
     $('highscore-popup').classList.remove('active');
+    if (inIframe) {
+      showGameOver();
+      return;
+    }
     if (practiceReturnUrl || fromLoop) {
       navigateBack();
       return;

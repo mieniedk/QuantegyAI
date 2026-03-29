@@ -55,8 +55,9 @@ const QBlocks = () => {
   const compParam = searchParams.get('comp') || '';
   const currentStdParam = searchParams.get('currentStd') || searchParams.get('std') || '';
   const examIdParam = searchParams.get('examId') || '';
+  const rawReturnUrl = searchParams.get('returnUrl') || '';
   const { returnUrl: gameReturnUrl, goBack } = useGameReturn();
-  const returnUrl = sanitizeReturnUrl(gameReturnUrl);
+  const returnUrl = sanitizeReturnUrl(gameReturnUrl) || sanitizeReturnUrl(rawReturnUrl);
 
   // Redirect to raw game in same window — avoids iframe issues with PLAY button
   useEffect(() => {
@@ -67,7 +68,8 @@ const QBlocks = () => {
     if (compParam) p.set('comp', compParam);
     if (currentStdParam) p.set('currentStd', currentStdParam);
     if (examIdParam) p.set('examId', examIdParam);
-    if (returnUrl) p.set('returnUrl', returnUrl);
+    const passThruReturn = rawReturnUrl || returnUrl;
+    if (passThruReturn) p.set('returnUrl', passThruReturn);
     if (studentId) p.set('sid', studentId);
     if (classId) p.set('cid', classId);
     p.set('from', 'loop');
@@ -75,7 +77,7 @@ const QBlocks = () => {
     if (!window.location.pathname.endsWith('.html')) {
       window.location.replace(gameUrl);
     }
-  }, [gradeParam, teksParam, labelParam, compParam, currentStdParam, examIdParam, returnUrl, studentId, classId]);
+  }, [gradeParam, teksParam, labelParam, compParam, currentStdParam, examIdParam, returnUrl, rawReturnUrl, studentId, classId]);
 
   useEffect(() => {
     const handleMessage = (event) => {
