@@ -15,6 +15,7 @@ const Home = () => {
   const featuredExams = [
     { to: '/texes-prep?exam=math712', label: 'TExES Math 7-12', desc: 'Domains, adaptive practice, games & full practice exams.', gradient: `linear-gradient(135deg, ${COLOR.blue}, #1d4ed8)`, border: COLOR.blueBorder },
     { to: '/texes-prep?exam=math48', label: 'TExES Math 4-8', desc: 'All 6 domains with games, drills & mastery flows.', gradient: `linear-gradient(135deg, ${COLOR.purple}, #5b21b6)`, border: '#a78bfa' },
+    { to: '/texes-prep?exam=linearAlgebra', label: 'Linear Algebra', desc: 'Vectors, matrices, transforms, eigenvalues, SVD & more.', gradient: 'linear-gradient(135deg, #059669, #047857)', border: '#34d399' },
   ];
 
   const certificationCards = [
