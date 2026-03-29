@@ -122,7 +122,13 @@ function decodeJwt(token) {
   } catch { return null; }
 }
 
-export async function studentSignup({ email, password, displayName, timeoutMs = SIGNUP_TIMEOUT_MS }) {
+export async function studentSignup({
+  email,
+  password,
+  displayName,
+  timeoutMs = SIGNUP_TIMEOUT_MS,
+  allowLocalFallback = true,
+}) {
   const payload = { username: email, password, displayName: displayName || email.split('@')[0] };
   const baseCandidates = getApiBaseCandidates(ACTIVE_API_BASE);
   const remotes = remoteBasesFromCandidates(baseCandidates);
@@ -171,13 +177,20 @@ export async function studentSignup({ email, password, displayName, timeoutMs = 
     if (data && !data.success) lastResult = data;
   }
 
-  // All servers unreachable — create a local account so the user can keep going.
+  // Optional local fallback for non-paywall flows.
+  if (!allowLocalFallback) {
+    return {
+      success: false,
+      offline: true,
+      error: 'Cannot reach the payment/auth server right now. Please wait a moment and retry.',
+    };
+  }
   const token = createLocalDemoToken(email, displayName || email.split('@')[0]);
   localStorage.setItem(TOKEN_KEY, token);
   return { success: true, token, local: true };
 }
 
-export async function studentLogin({ email, password }) {
+export async function studentLogin({ email, password, allowLocalFallback = true }) {
   const payload = { username: email, password };
   const baseCandidates = getApiBaseCandidates(ACTIVE_API_BASE);
   const remotes = remoteBasesFromCandidates(baseCandidates);
@@ -225,7 +238,14 @@ export async function studentLogin({ email, password }) {
     if (data && !data.success) lastResult = data;
   }
 
-  // All servers unreachable — create a local account so the user can keep going.
+  // Optional local fallback for non-paywall flows.
+  if (!allowLocalFallback) {
+    return {
+      success: false,
+      offline: true,
+      error: 'Cannot reach the payment/auth server right now. Please wait a moment and retry.',
+    };
+  }
   const token = createLocalDemoToken(email, email.split('@')[0]);
   localStorage.setItem(TOKEN_KEY, token);
   return { success: true, token, local: true };
@@ -276,7 +296,7 @@ export async function createStudentCheckout(examId, planType = 'student_exam_one
     return {
       success: false,
       offline: true,
-      error: 'Our payment server is waking up — this can take up to 60 seconds on the first visit. Please tap "Retry" in a moment.',
+      error: 'Payment server is not ready yet. Please retry in a moment.',
     };
   }
   const origin = window.location.origin;

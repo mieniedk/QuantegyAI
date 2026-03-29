@@ -51,6 +51,10 @@ const ClassWizard = () => {
 
   const standards = getStandardsByGrade(gradeLevel);
   const availableGames = getGamesByGrade(gradeLevel);
+  const staarGrades = useMemo(
+    () => TEKS_GRADES.filter((g) => !['grade-ec6', 'grade4-8', 'grade7-12'].includes(g.id)),
+    [],
+  );
   // STAAR: games aligned to selected TEKS
   const staarAlignedGames = selectedTeks.length > 0
     ? availableGames.filter((g) => {
@@ -277,7 +281,7 @@ const ClassWizard = () => {
                 This determines which TEKS standards and games are available.
               </p>
               <div style={{ display: 'grid', gap: 10 }}>
-                {TEKS_GRADES.map((g) => (
+                {staarGrades.map((g) => (
                   <button
                     key={g.id}
                     type="button"
@@ -290,7 +294,10 @@ const ClassWizard = () => {
                       transition: 'all 0.15s',
                     }}
                   >
-                    <span style={{ display: 'block' }}>{g.label}</span>
+                    <span style={{ display: 'block' }}>
+                      {g.label}
+                      {g.id === 'discrete' && <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 800, color: '#7c3aed' }}>NEW</span>}
+                    </span>
                     <span style={{ display: 'block', fontSize: 13, color: '#64748b', fontWeight: 400, marginTop: 2 }}>
                       {g.subject} &bull; TEKS aligned
                     </span>

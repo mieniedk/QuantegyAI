@@ -660,10 +660,10 @@ function updateScopeDebugLabels(){
   });
 }
 
-const useMath712CompBank=(examIdParam==='math712'||gradeParam==='grade7-12'||gradeParam==='algebra')&&/^comp00[1-6]$/.test(scopedCompId);
 const useMath712StdBank=(examIdParam==='math712'||gradeParam==='grade7-12'||gradeParam==='algebra')&&/^c0(0[1-9]|1[0-9]|21)$/.test(scopedStdId);
-const useMath48CompBank=(examIdParam==='math48'||gradeParam==='grade4-8')&&/^comp48_[1-6]$/.test(scopedCompId);
 const useMath48StdBank=(examIdParam==='math48'||gradeParam==='grade4-8')&&/^m48_c0(0[1-9]|1[0-8])$/.test(scopedStdId);
+const useMath712CompBank=(examIdParam==='math712'||gradeParam==='grade7-12'||gradeParam==='algebra')&&!useMath712StdBank&&/^comp00[1-6]$/.test(scopedCompId);
+const useMath48CompBank=(examIdParam==='math48'||gradeParam==='grade4-8')&&!useMath48StdBank&&/^comp48_[1-6]$/.test(scopedCompId);
 const activeQBlocksScope=(function(){
   if(useMath48StdBank)return{mode:'standard',label:'STD '+scopedStdId.toUpperCase(),css:'scope-standard'};
   if(useMath48CompBank)return{mode:'competency',label:'COMP '+scopedCompId.toUpperCase(),css:'scope-competency'};
@@ -1248,7 +1248,14 @@ function buildStdQuestion(diff){
   const scopeKey=getScopeKey('std',scopedStdId,diff);
   const fromPool=buildChoiceFromPool(pool,diff,'standard',scopeKey);
   if(fromPool)return fromPool;
-  return buildGeneratedScopedQuestion('standard',scopedStdId,diff,'standard',scopeKey);
+  const generated=buildGeneratedScopedQuestion('standard',scopedStdId,diff,'standard',scopeKey);
+  if(generated)return generated;
+  // Never drift to a broader scope when a standard is active; recycle this standard pool.
+  if(pool.length){
+    delete USED_POOL_QUESTIONS[scopeKey];
+    return buildChoiceFromPool(pool,diff,'standard',scopeKey);
+  }
+  return null;
 }
 
 function buildCompQuestion(diff){
@@ -1257,7 +1264,13 @@ function buildCompQuestion(diff){
   const scopeKey=getScopeKey('comp',scopedCompId,diff);
   const fromPool=buildChoiceFromPool(pool,diff,'competency',scopeKey);
   if(fromPool)return fromPool;
-  return buildGeneratedScopedQuestion('competency',scopedCompId,diff,'competency',scopeKey);
+  const generated=buildGeneratedScopedQuestion('competency',scopedCompId,diff,'competency',scopeKey);
+  if(generated)return generated;
+  if(pool.length){
+    delete USED_POOL_QUESTIONS[scopeKey];
+    return buildChoiceFromPool(pool,diff,'competency',scopeKey);
+  }
+  return null;
 }
 
 function buildStdQuestion48(diff){
@@ -1266,7 +1279,13 @@ function buildStdQuestion48(diff){
   const scopeKey=getScopeKey('std48',scopedStdId,diff);
   const fromPool=buildChoiceFromPool(pool,diff,'standard',scopeKey);
   if(fromPool)return fromPool;
-  return buildGeneratedScopedQuestion('standard',scopedStdId,diff,'standard',scopeKey);
+  const generated=buildGeneratedScopedQuestion('standard',scopedStdId,diff,'standard',scopeKey);
+  if(generated)return generated;
+  if(pool.length){
+    delete USED_POOL_QUESTIONS[scopeKey];
+    return buildChoiceFromPool(pool,diff,'standard',scopeKey);
+  }
+  return null;
 }
 
 function buildCompQuestion48(diff){
@@ -1275,7 +1294,13 @@ function buildCompQuestion48(diff){
   const scopeKey=getScopeKey('comp48',scopedCompId,diff);
   const fromPool=buildChoiceFromPool(pool,diff,'competency',scopeKey);
   if(fromPool)return fromPool;
-  return buildGeneratedScopedQuestion('competency',scopedCompId,diff,'competency',scopeKey);
+  const generated=buildGeneratedScopedQuestion('competency',scopedCompId,diff,'competency',scopeKey);
+  if(generated)return generated;
+  if(pool.length){
+    delete USED_POOL_QUESTIONS[scopeKey];
+    return buildChoiceFromPool(pool,diff,'competency',scopeKey);
+  }
+  return null;
 }
 
 // ─── Firebase ───

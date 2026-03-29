@@ -6,6 +6,7 @@ import {
 import {
   studentSignup, studentLogin, isStudentLoggedIn, getStudentInfo,
   hasExamAccess, createStudentCheckout,
+  retryServerConnection,
   reAuthenticateWithServer,
 } from '../utils/studentAuth';
 
@@ -35,6 +36,8 @@ const PLANS = [
 ];
 /** Billing/subscription check after login — allow for API cold start. */
 const ACCESS_TIMEOUT_MS = 35000;
+const WAKE_RETRY_TOTAL_MS = 70000;
+const WAKE_RETRY_STEP_MS = 5000;
 
 const INPUT_STYLE = {
   width: '100%',
@@ -76,6 +79,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
   const [retrying, setRetrying] = useState(false);
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
+  const [wakeStatus, setWakeStatus] = useState('');
 
   const examLabel = EXAM_LABELS[examId] || examId;
   const isMobile = viewportWidth < MOBILE_BP;
@@ -111,6 +115,41 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
     return () => clearTimeout(timer);
   }, [busy]);
 
+  const sleep = useCallback((ms) => new Promise((resolve) => setTimeout(resolve, ms)), []);
+
+  const recoverServerAndCheckout = useCallback(async (planId) => {
+    const started = Date.now();
+    let attempt = 0;
+    let lastError = '';
+    while (Date.now() - started < WAKE_RETRY_TOTAL_MS) {
+      attempt += 1;
+      setWakeStatus(`Connecting payment server... (${attempt})`);
+      const online = await retryServerConnection();
+      if (online && authEmail && authPassword) {
+        const reAuth = await reAuthenticateWithServer(authEmail, authPassword);
+        if (reAuth?.success) {
+          setIsOffline(false);
+          const checkoutResult = await createStudentCheckout(examId, planId);
+          if (checkoutResult?.success) return { success: true };
+          if (checkoutResult?.offline) {
+            lastError = checkoutResult?.error || 'Payment server not ready yet.';
+          } else {
+            return { success: false, error: checkoutResult?.error || 'Could not start checkout.' };
+          }
+        } else {
+          lastError = reAuth?.error || 'Could not re-authenticate with payment server.';
+        }
+      } else {
+        lastError = 'Payment server is still starting.';
+      }
+      await sleep(WAKE_RETRY_STEP_MS);
+    }
+    return {
+      success: false,
+      error: lastError || 'Payment server is still starting. Please wait a bit and try again.',
+    };
+  }, [authEmail, authPassword, examId, sleep]);
+
   const runAuthFlow = useCallback(async ({ autoCheckoutPlanId = '' } = {}) => {
     setError('');
     if (!email.trim() || !password.trim()) { setError('Email and password are required.'); return; }
@@ -118,13 +157,18 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
     setBusy(true);
     try {
       const args = mode === 'signup'
-        ? { email: email.trim(), password, displayName: displayName.trim() || email.split('@')[0] }
-        : { email: email.trim(), password };
+        ? {
+          email: email.trim(),
+          password,
+          displayName: displayName.trim() || email.split('@')[0],
+          allowLocalFallback: false,
+        }
+        : { email: email.trim(), password, allowLocalFallback: false };
       let result = mode === 'signup'
         ? await studentSignup(args)
         : await studentLogin(args);
       if (!result?.success && mode === 'signup' && isAccountExistsError(result?.error)) {
-        result = await studentLogin({ email: email.trim(), password });
+        result = await studentLogin({ email: email.trim(), password, allowLocalFallback: false });
       }
       if (!result.success) { setError(result.error || 'Something went wrong.'); return; }
 
@@ -142,7 +186,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
         if (checkoutResult?.offline) {
           setIsOffline(true);
           setMode('pricing');
-          setError(checkoutResult.error || 'Payment server is starting up. Please retry in a moment.');
+          setError(checkoutResult.error || 'Payment server is starting. We will retry automatically when you tap a plan.');
           return;
         }
         if (!checkoutResult?.success) {
@@ -178,21 +222,14 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
   const handleCheckout = useCallback(async (planId) => {
     setBusy(true);
     setError('');
+    setWakeStatus('');
     try {
       if (isOffline && authEmail && authPassword) {
         setRetrying(true);
-        const reAuth = await reAuthenticateWithServer(authEmail, authPassword);
+        const recovered = await recoverServerAndCheckout(planId);
         setRetrying(false);
-        if (reAuth?.success) {
-          setIsOffline(false);
-          const checkoutResult = await createStudentCheckout(examId, planId);
-          if (!checkoutResult?.success) {
-            setError(checkoutResult?.error || 'Could not start checkout.');
-          }
-          setBusy(false);
-          return;
-        }
-        setError('Payment server is still waking up. Render free-tier servers can take up to 60 seconds on the first visit — please wait a moment and tap "Retry" again.');
+        setWakeStatus('');
+        if (!recovered?.success) setError(recovered?.error || 'Could not connect to payment server yet.');
         setBusy(false);
         return;
       }
@@ -207,7 +244,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
       setError(err.message || 'Network error.');
     }
     setBusy(false);
-  }, [examId, isOffline, authEmail, authPassword]);
+  }, [examId, isOffline, authEmail, authPassword, recoverServerAndCheckout]);
 
   const handleCoupon = useCallback(() => {
     setCouponError('');
@@ -305,7 +342,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
               )}
               {busy && busyLong && (
                 <p style={{ color: COLOR.textSecondary, fontSize: 12, lineHeight: 1.45, marginBottom: 12 }}>
-                  Still working… if this keeps happening, retry once and check that the backend is running (`npm run start`).
+                  Still working… this usually means the payment backend is still starting. Please wait a bit longer.
                 </p>
               )}
 
@@ -422,13 +459,17 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
                 textAlign: 'center',
               }}>
                 <p style={{ ...BODY, fontWeight: 700, color: COLOR.amber, marginBottom: 6 }}>
-                  Payment server is starting up
+                  Payment server is starting
                 </p>
                 <p style={{ fontSize: 13, color: COLOR.textSecondary, lineHeight: 1.5, marginBottom: 0 }}>
-                  Our server sleeps when inactive and can take up to 60 seconds to wake up.
-                  Tap a plan below to retry the connection, or use a coupon code.
+                  The backend is not ready yet. Tap a plan to trigger automatic reconnect and checkout.
                 </p>
               </div>
+            )}
+            {retrying && wakeStatus && (
+              <p style={{ textAlign: 'center', color: COLOR.textSecondary, fontSize: 12, marginTop: -4, marginBottom: 10 }}>
+                {wakeStatus}
+              </p>
             )}
 
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: 12, marginBottom: 24 }}>
