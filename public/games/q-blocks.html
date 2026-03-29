@@ -280,6 +280,15 @@ body:has(#game.screen.active) #menu{display:none!important;visibility:hidden!imp
 @keyframes qPulse{0%,100%{color:#e0e0e0;text-shadow:none}50%{color:#00f5ff;text-shadow:0 0 12px rgba(0,245,255,.5)}}
 @keyframes lockedPulse{0%,100%{opacity:.4}50%{opacity:.7}}
 @keyframes bonusPop{0%{transform:translateY(4px) scale(.8);opacity:0}50%{transform:translateY(-2px) scale(1.1)}100%{transform:translateY(0) scale(1);opacity:1}}
+
+/* Math notation */
+.mq-sup{font-size:.72em;vertical-align:super;line-height:0;font-weight:700;}
+.mq-sqrt{white-space:nowrap;}
+.mq-sqrt::before{content:'√';font-size:1.1em;}
+.mq-vin{border-top:1.5px solid currentColor;padding:0 2px 0 1px;margin-left:1px;}
+.mq-frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;font-size:.78em;line-height:1.15;margin:0 2px;}
+.mq-frac-num{border-bottom:1.2px solid currentColor;padding:0 2px 1px;}
+.mq-frac-den{padding:1px 2px 0;}
 </style>
 </head>
 <body>
@@ -609,24 +618,24 @@ const activeQBlocksScope=(function(){
 })();
 
 const QBLOCKS_STD_BANK={
-  c001:{easy:[{q:'Evaluate: |−8| + 1',ans:9}],medium:[{q:'Compute: 2^4 / 2^2',ans:4}],hard:[{q:'Find gcd(84,30)',ans:6}]},
-  c002:{easy:[{q:'Evaluate i^2',ans:-1}],medium:[{q:'Compute (2+3i)(2−3i)',ans:13}],hard:[{q:'Magnitude |3+4i|',ans:5}]},
+  c001:{easy:[{q:'Evaluate: |−8| + 1',ans:9}],medium:[{q:'Compute: 2⁴ ÷ 2²',ans:4}],hard:[{q:'Find gcd(84,30)',ans:6}]},
+  c002:{easy:[{q:'Evaluate i²',ans:-1}],medium:[{q:'Compute (2 + 3i)(2 − 3i)',ans:13}],hard:[{q:'Magnitude |3 + 4i|',ans:5}]},
   c003:{easy:[{q:'Compute lcm(6,8)',ans:24}],medium:[{q:'Compute gcd(48,18)',ans:6}],hard:[{q:'How many positive factors does 36 have?',ans:9}]},
   c004:{easy:[{q:'Arithmetic: 4,7,10,... term 6',ans:19}],medium:[{q:'Geometric: 3,6,12,... term 5',ans:48}],hard:[{q:'Sum of first 5 terms of arithmetic 2,5,8,...',ans:40}]},
-  c005:{easy:[{q:'Evaluate f(x)=2x+3 at x=4',ans:11}],medium:[{q:'If f(x)=x^2, g(x)=x+1, find (f∘g)(2)',ans:9}],hard:[{q:'If f(x)=3x−6, solve f(x)=0 for x',ans:2}]},
-  c006:{easy:[{q:'Solve: x^2−9=0. Positive root?',ans:3}],medium:[{q:'Slope through (1,2) and (5,10)',ans:2}],hard:[{q:'For x^2−5x+6=0, sum of roots',ans:5}]},
-  c007:{easy:[{q:'Evaluate sqrt(81)',ans:9}],medium:[{q:'Solve: x^2−4=0. Positive root?',ans:2}],hard:[{q:'Vertical asymptote of f(x)=1/(x−3)',ans:3}]},
-  c008:{easy:[{q:'Solve: 2^x=32',ans:5}],medium:[{q:'Evaluate log10(1000)',ans:3}],hard:[{q:'If 3^(x)=81, find x',ans:4}]},
+  c005:{easy:[{q:'Evaluate f(x) = 2x + 3 at x = 4',ans:11}],medium:[{q:'If f(x) = x², g(x) = x + 1, find (f∘g)(2)',ans:9}],hard:[{q:'If f(x) = 3x − 6, solve f(x) = 0 for x',ans:2}]},
+  c006:{easy:[{q:'Solve: x² − 9 = 0. Positive root?',ans:3}],medium:[{q:'Slope through (1,2) and (5,10)',ans:2}],hard:[{q:'For x² − 5x + 6 = 0, sum of roots',ans:5}]},
+  c007:{easy:[{q:'Evaluate √81',ans:9}],medium:[{q:'Solve: x² − 4 = 0. Positive root?',ans:2}],hard:[{q:'Vertical asymptote of f(x) = 1/(x − 3)',ans:3}]},
+  c008:{easy:[{q:'Solve: 2ˣ = 32',ans:5}],medium:[{q:'Evaluate log₁₀(1000)',ans:3}],hard:[{q:'If 3ˣ = 81, find x',ans:4}]},
   c009:{easy:[{q:'sin(30°) as decimal hundredths',ans:50}],medium:[{q:'If right triangle has sides 3,4,5, value of sin(theta) opposite 3 (hundredths)',ans:60}],hard:[{q:'cos(60°) as decimal hundredths',ans:50}]},
-  c010:{easy:[{q:'Derivative of x^2 at x=3',ans:6}],medium:[{q:'Derivative of x^3 at x=2',ans:12}],hard:[{q:'Integral of 2x from 0 to 3',ans:9}]},
-  c011:{easy:[{q:'Area of circle radius 3 using pi≈3.14 (nearest whole)',ans:28}],medium:[{q:'Volume of cylinder r=2, h=5 using pi≈3.14 (nearest whole)',ans:63}],hard:[{q:'Surface area of cube side 6',ans:216}]},
+  c010:{easy:[{q:'Derivative of x² at x = 3',ans:6}],medium:[{q:'Derivative of x³ at x = 2',ans:12}],hard:[{q:'Integral of 2x from 0 to 3',ans:9}]},
+  c011:{easy:[{q:'Area of circle radius 3 using π ≈ 3.14 (nearest whole)',ans:28}],medium:[{q:'Volume of cylinder r = 2, h = 5 using π ≈ 3.14 (nearest whole)',ans:63}],hard:[{q:'Surface area of cube side 6',ans:216}]},
   c012:{easy:[{q:'Sum of supplementary angles',ans:180}],medium:[{q:'Triangle angle sum in Euclidean plane',ans:180}],hard:[{q:'How many points determine a line?',ans:2}]},
   c013:{easy:[{q:'Interior angle sum of hexagon',ans:720}],medium:[{q:'Inscribed angle intercepts 80° arc. Angle measure?',ans:40}],hard:[{q:'Regular octagon interior angle',ans:135}]},
   c014:{easy:[{q:'Distance from (0,0) to (6,8)',ans:10}],medium:[{q:'Midpoint x-coordinate of (2,5) and (8,1)',ans:5}],hard:[{q:'Dot product of <3,4> and <4,−3>',ans:0}]},
   c015:{easy:[{q:'Mean of 5,7,9',ans:7}],medium:[{q:'Range of 3,8,12,19',ans:16}],hard:[{q:'Median of 2,4,6,8,10,12',ans:7}]},
   c016:{easy:[{q:'Probability of drawing heart from 52-card deck denominator',ans:4}],medium:[{q:'Compute C(6,2)',ans:15}],hard:[{q:'If P(A)=0.4 and P(B)=0.5 independent, P(A and B) as percent',ans:20}]},
   c017:{easy:[{q:'95% z critical value rounded hundredths',ans:196}],medium:[{q:'Sample mean 50, sigma 10, n=25. Standard error',ans:2}],hard:[{q:'Type I error probability symbol alpha=0.05 as percent',ans:5}]},
-  c018:{easy:[{q:'Counterexamples needed to disprove universal claim',ans:1}],medium:[{q:'If n=9, compute n^2+n',ans:90}],hard:[{q:'Work backward: number doubled plus 5 gives 29. Original?',ans:12}]},
+  c018:{easy:[{q:'Counterexamples needed to disprove universal claim',ans:1}],medium:[{q:'If n = 9, compute n² + n',ans:90}],hard:[{q:'Work backward: number doubled plus 5 gives 29. Original?',ans:12}]},
   c019:{easy:[{q:'Slope of line through (0,2) and (3,11)',ans:3}],medium:[{q:'Translate "at most 7" as inequality upper bound value',ans:7}],hard:[{q:'If y=3x+2, y-intercept value',ans:2}]},
   c020:{easy:[{q:'Wait time of 3–5 seconds midpoint',ans:4}],medium:[{q:'If 12 students in group and 3 groups, total students',ans:36}],hard:[{q:'Exit ticket has 3 items and class average 2 correct. Percent',ans:67}]},
   c021:{easy:[{q:'Student got 8 of 10. Percent score',ans:80}],medium:[{q:'Item missed by 9 of 30 students. Miss percent',ans:30}],hard:[{q:'Rubric weights 40 and 60, scores 70 and 80. Weighted score',ans:76}]},
@@ -635,22 +644,22 @@ const QBLOCKS_STD_BANK={
 const QBLOCKS_COMP_BANK={
   comp001:{
     easy:[
-      {q:'Evaluate: 3^2 + 4',ans:13},
+      {q:'Evaluate: 3² + 4',ans:13},
       {q:'Which integer is the additive inverse of 7? Enter the value.',ans:-7},
       {q:'Compute: |−9| + 2',ans:11},
-      {q:'Simplify: 2^3 + 1',ans:9},
+      {q:'Simplify: 2³ + 1',ans:9},
     ],
     medium:[
-      {q:'Compute: 7^(−1) denominator value (7^(−1)=1/n). Enter n.',ans:7},
+      {q:'Compute: 7⁻¹ denominator value (7⁻¹ = 1/n). Enter n.',ans:7},
       {q:'How many integers are between −2 and 3 (exclusive)?',ans:4},
-      {q:'Evaluate: (−3)^2 + (−2)',ans:7},
+      {q:'Evaluate: (−3)² + (−2)',ans:7},
       {q:'Convert 0.75 to a fraction denominator when simplified to 3/n. Enter n.',ans:4},
     ],
     hard:[
-      {q:'Compute: (2^5) / (2^2)',ans:8},
-      {q:'Evaluate: (−4)^2 − 3^2',ans:7},
-      {q:'If a^0=1 for a!=0, evaluate 19^0 + 6',ans:7},
-      {q:'Compute: sqrt(196) + 1',ans:15},
+      {q:'Compute: 2⁵ ÷ 2²',ans:8},
+      {q:'Evaluate: (−4)² − 3²',ans:7},
+      {q:'If a⁰ = 1 for a ≠ 0, evaluate 19⁰ + 6',ans:7},
+      {q:'Compute: √196 + 1',ans:15},
     ],
   },
   comp002:{
@@ -664,13 +673,13 @@ const QBLOCKS_COMP_BANK={
       {q:'Solve: 3x − 4 = 20',ans:8},
       {q:'For y=4x−7, find y when x=3',ans:5},
       {q:'Solve system: x+y=10 and x−y=2. Find x.',ans:6},
-      {q:'Quadratic x^2−9=0 has positive root?',ans:3},
+      {q:'Quadratic x² − 9 = 0 has positive root?',ans:3},
     ],
     hard:[
-      {q:'Solve: 2(x−3)=18',ans:12},
-      {q:'If f(x)=x^2−2x, find f(5)',ans:15},
+      {q:'Solve: 2(x − 3) = 18',ans:12},
+      {q:'If f(x) = x² − 2x, find f(5)',ans:15},
       {q:'Geometric sequence 3,6,12,... find term 5',ans:48},
-      {q:'Solve: x^2−5x+6=0. Larger root?',ans:3},
+      {q:'Solve: x² − 5x + 6 = 0. Larger root?',ans:3},
     ],
   },
   comp003:{
@@ -687,7 +696,7 @@ const QBLOCKS_COMP_BANK={
       {q:'Interior angle sum of pentagon',ans:540},
     ],
     hard:[
-      {q:'Cylinder volume with r=3, h=4 (use pi≈3.14, nearest whole)',ans:113},
+      {q:'Cylinder volume with r = 3, h = 4 (use π ≈ 3.14, nearest whole)',ans:113},
       {q:'Distance between (0,0) and (9,12)',ans:15},
       {q:'A scale factor 3 changes area by factor?',ans:9},
       {q:'Surface area of cube side 5',ans:150},
@@ -727,8 +736,8 @@ const QBLOCKS_COMP_BANK={
       {q:'In ratio table, 6 maps to 15. Value for 2 maps to?',ans:5},
     ],
     hard:[
-      {q:'If f(n)=n^2+n and n=12, compute f(n)',ans:156},
-      {q:'Direct proof check: if x=4 then x^2=?',ans:16},
+      {q:'If f(n) = n² + n and n = 12, compute f(n)',ans:156},
+      {q:'Direct proof check: if x = 4 then x² = ?',ans:16},
       {q:'Equivalent statements count: statement and contrapositive -> total valid pair size?',ans:2},
       {q:'A model predicts 48, observed 53. Residual observed−predicted?',ans:5},
     ],
@@ -1200,14 +1209,14 @@ function mkQ(){
     if(scopedStd){
       currentQuestion=scopedStd;
       var stdQEl=$('qText');
-      if(stdQEl)stdQEl.textContent=scopedStd.q;
+      if(stdQEl)stdQEl.innerHTML=mathRender(scopedStd.q);
       const stdBtns=[$('ansA'),$('ansB')];
       if(Math.random()<.5){
-        stdBtns[0].textContent=scopedStd.ans;stdBtns[0].dataset.correct='1';
-        stdBtns[1].textContent=scopedStd.wrong;stdBtns[1].dataset.correct='0';
+        stdBtns[0].innerHTML=mathRender(scopedStd.ans);stdBtns[0].dataset.correct='1';
+        stdBtns[1].innerHTML=mathRender(scopedStd.wrong);stdBtns[1].dataset.correct='0';
       }else{
-        stdBtns[1].textContent=scopedStd.ans;stdBtns[1].dataset.correct='1';
-        stdBtns[0].textContent=scopedStd.wrong;stdBtns[0].dataset.correct='0';
+        stdBtns[1].innerHTML=mathRender(scopedStd.ans);stdBtns[1].dataset.correct='1';
+        stdBtns[0].innerHTML=mathRender(scopedStd.wrong);stdBtns[0].dataset.correct='0';
       }
       stdBtns.forEach(function(btn){btn.classList.remove('correct-flash','wrong-flash');btn.disabled=false;});
       var stdMb=$('mathBonus');
@@ -1222,14 +1231,14 @@ function mkQ(){
     if(scoped){
       currentQuestion=scoped;
       var scopedQEl=$('qText');
-      if(scopedQEl)scopedQEl.textContent=scoped.q;
+      if(scopedQEl)scopedQEl.innerHTML=mathRender(scoped.q);
       const scopedBtns=[$('ansA'),$('ansB')];
       if(Math.random()<.5){
-        scopedBtns[0].textContent=scoped.ans;scopedBtns[0].dataset.correct='1';
-        scopedBtns[1].textContent=scoped.wrong;scopedBtns[1].dataset.correct='0';
+        scopedBtns[0].innerHTML=mathRender(scoped.ans);scopedBtns[0].dataset.correct='1';
+        scopedBtns[1].innerHTML=mathRender(scoped.wrong);scopedBtns[1].dataset.correct='0';
       }else{
-        scopedBtns[1].textContent=scoped.ans;scopedBtns[1].dataset.correct='1';
-        scopedBtns[0].textContent=scoped.wrong;scopedBtns[0].dataset.correct='0';
+        scopedBtns[1].innerHTML=mathRender(scoped.ans);scopedBtns[1].dataset.correct='1';
+        scopedBtns[0].innerHTML=mathRender(scoped.wrong);scopedBtns[0].dataset.correct='0';
       }
       scopedBtns.forEach(function(btn){btn.classList.remove('correct-flash','wrong-flash');btn.disabled=false;});
       var scopedMb=$('mathBonus');
@@ -1280,10 +1289,10 @@ function mkQ(){
     qText='Solve to drop: '+a+' '+op+' '+b+' = ?';
   }
   var qEl=$('qText');
-  if(qEl){ if(isEquation) qEl.textContent=currentQuestion.q+' → x = ?'; else qEl.textContent=qText; }
+  if(qEl){ if(isEquation) qEl.innerHTML=mathRender(currentQuestion.q+' → x = ?'); else qEl.innerHTML=mathRender(qText); }
   const btns=[$('ansA'),$('ansB')];
-  if(Math.random()<.5){btns[0].textContent=currentQuestion.ans;btns[0].dataset.correct='1';btns[1].textContent=currentQuestion.wrong;btns[1].dataset.correct='0';}
-  else{btns[1].textContent=currentQuestion.ans;btns[1].dataset.correct='1';btns[0].textContent=currentQuestion.wrong;btns[0].dataset.correct='0';}
+  if(Math.random()<.5){btns[0].innerHTML=mathRender(currentQuestion.ans);btns[0].dataset.correct='1';btns[1].innerHTML=mathRender(currentQuestion.wrong);btns[1].dataset.correct='0';}
+  else{btns[1].innerHTML=mathRender(currentQuestion.ans);btns[1].dataset.correct='1';btns[0].innerHTML=mathRender(currentQuestion.wrong);btns[0].dataset.correct='0';}
   btns.forEach(b=>{b.classList.remove('correct-flash','wrong-flash');b.disabled=false;});
   const mb=$('mathBonus');
   mb.classList.remove('show');
@@ -1555,11 +1564,10 @@ function generateExplanation(w){
       steps.push('Subtract '+con+' from both sides: <span class="math-hl">x = '+rhs+' - '+con+' = <b>'+correct+'</b></span>');
       takeaway='To solve x + a = b, subtract a from both sides.';
     }else{
-      steps.push('The question: <span class="math-hl">'+escHtml(w.q)+'</span>');
+      steps.push('The question: <span class="math-hl">'+mathRender(w.q)+'</span>');
       steps.push('The correct answer is <b>'+correct+'</b>.');
       takeaway='Work through the equation step-by-step, isolating the variable.';
     }
-    // Diagnose the wrong answer
     if(given!==correct){
       var diff=given-correct;
       if(m2&&given===Number(m2[3])){
@@ -1571,7 +1579,7 @@ function generateExplanation(w){
       }
     }
   }else if(type==='standard'||type==='competency'){
-    steps.push('The question: <span class="math-hl">'+escHtml(w.fullQ||w.q)+'</span>');
+    steps.push('The question: <span class="math-hl">'+mathRender(w.fullQ||w.q)+'</span>');
     steps.push('The correct answer is <b>'+correct+'</b>, but you answered <span style="color:#ff4466">'+given+'</span>.');
     var offBy=Math.abs(given-correct);
     if(offBy===1){
@@ -1644,6 +1652,21 @@ function generateExplanation(w){
 
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
+function mathRender(raw){
+  var s=String(raw);
+  s=s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  s=s.replace(/sqrt\(([^)]+)\)/g,'<span class="mq-sqrt"><span class="mq-vin">$1</span></span>');
+  s=s.replace(/√\(([^)]+)\)/g,'<span class="mq-sqrt"><span class="mq-vin">$1</span></span>');
+  s=s.replace(/√(\d+)/g,'<span class="mq-sqrt"><span class="mq-vin">$1</span></span>');
+  s=s.replace(/(\w)\^(\([^)]+\))/g,function(_,base,exp){return base+'<sup class="mq-sup">'+exp.slice(1,-1)+'</sup>';});
+  s=s.replace(/(\w)\^(\d+)/g,'$1<sup class="mq-sup">$2</sup>');
+  s=s.replace(/(\w)\^(-\d+)/g,'$1<sup class="mq-sup">$2</sup>');
+  s=s.replace(/\bpi\b/g,'π');
+  s=s.replace(/(\d+)π\/(\d+)/g,'<span class="mq-frac"><span class="mq-frac-num">$1π</span><span class="mq-frac-den">$2</span></span>');
+  s=s.replace(/!=\s*0/g,'≠ 0');
+  return s;
+}
+
 function showReviewScreen(){
   var cards=$('reviewCards');cards.innerHTML='';
   var n=wrongAnswers.length;
@@ -1655,7 +1678,7 @@ function showReviewScreen(){
     var html='<div class="rv-card">';
     html+='<div class="rv-card-head">';
     html+='<span class="rv-num">'+(i+1)+'</span>';
-    html+='<span class="rv-q">'+escHtml(w.q)+' = ?</span>';
+    html+='<span class="rv-q">'+mathRender(w.q)+'</span>';
     html+='<span class="rv-diff '+diffClass+'">'+diffLabel+'</span>';
     html+='</div>';
     html+='<div class="rv-card-body">';

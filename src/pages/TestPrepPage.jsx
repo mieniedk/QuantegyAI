@@ -77,22 +77,31 @@ const linkBtn = {
   padding: 0,
 };
 
-/** Render text with exponent notation (2^(5x), x^2) as proper superscripts. */
+/** Render text with exponent notation, radicals, and other math symbols as proper React elements. */
 function formatMathText(text) {
   if (text == null || typeof text !== 'string') return text;
+  let s = text.replace(/\bpi\b/g, 'π').replace(/!=\s*0/g, '≠ 0');
   const parts = [];
-  const re = /(\d+|\w)\^\(([^)]+)\)|(\d+|\w)\^(\d+|\w)/g;
+  const re = /sqrt\(([^)]+)\)|√\(([^)]+)\)|√(\d+)|(\d+|\w)\^\(([^)]+)\)|(\d+|\w)\^(-?\d+|\w)/g;
   let lastIdx = 0;
   let key = 0;
   let m;
-  while ((m = re.exec(text)) !== null) {
-    if (m.index > lastIdx) parts.push(text.slice(lastIdx, m.index));
-    const base = m[1] ?? m[3];
-    const exp = m[2] ?? m[4];
-    parts.push(base, React.createElement('sup', { key: `e${key++}` }, exp));
+  while ((m = re.exec(s)) !== null) {
+    if (m.index > lastIdx) parts.push(s.slice(lastIdx, m.index));
+    if (m[1] != null || m[2] != null || m[3] != null) {
+      const radicand = m[1] ?? m[2] ?? m[3];
+      parts.push(React.createElement('span', { key: `r${key}`, style: { whiteSpace: 'nowrap' } },
+        '√',
+        React.createElement('span', { key: `rv${key++}`, style: { borderTop: '1.5px solid currentColor', padding: '0 2px 0 1px', marginLeft: 1 } }, radicand)
+      ));
+    } else {
+      const base = m[4] ?? m[6];
+      const exp = m[5] ?? m[7];
+      parts.push(base, React.createElement('sup', { key: `e${key++}`, style: { fontSize: '0.72em', verticalAlign: 'super', lineHeight: 0 } }, exp));
+    }
     lastIdx = re.lastIndex;
   }
-  if (lastIdx < text.length) parts.push(text.slice(lastIdx));
+  if (lastIdx < s.length) parts.push(s.slice(lastIdx));
   return parts.length > 0 ? parts : text;
 }
 
