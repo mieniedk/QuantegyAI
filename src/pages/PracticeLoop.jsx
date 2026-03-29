@@ -4455,7 +4455,7 @@ export default function PracticeLoop() {
           </>
         )}
 
-        {phaseRawIdx < 0 && phase !== 'mastery-check' && (
+        {phaseRawIdx < 0 && phase !== 'mastery-check' && phase !== 'paywall' && phase !== 'micro-teach' && !phase.startsWith('activity-') && (
           <PhaseCard>
             <PhaseHeader badgeColor={COLOR.red} badgeLabel="Unknown step" description="This step is not recognised. Returning to the beginning of the loop." />
             <button
