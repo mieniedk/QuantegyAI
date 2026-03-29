@@ -57,7 +57,6 @@ export default function useGameReturn() {
   const returnUrl = useMemo(() => {
     if (isEmbedded) return '';
     const candidate = fromParams || fromStorage || buildFallback();
-    // Prevent "double-continue" loops by skipping game tiles on return.
     return normalizeLoopReturnUrl(candidate);
   }, [isEmbedded, fromParams, fromStorage, teksParam, gradeParam, labelParam, compParam, stdParam, examParam, explicitReturnPhase]);
 
@@ -72,5 +71,5 @@ export default function useGameReturn() {
     else navigate('/games');
   };
 
-  return { returnUrl, goBack };
+  return { returnUrl, goBack, isEmbedded };
 }

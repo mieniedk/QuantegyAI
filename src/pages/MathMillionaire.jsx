@@ -432,7 +432,7 @@ const MathMillionaire = () => {
   const sid = searchParams.get('sid');
   const aid = searchParams.get('aid');
   const cid = searchParams.get('cid');
-  const { returnUrl, goBack } = useGameReturn();
+  const { returnUrl, goBack, isEmbedded } = useGameReturn();
 
   const [questions, setQuestions] = useState(() => pickQuestions(compFilter, { strictScope }));
   const [currentQ, setCurrentQ] = useState(0);
@@ -689,9 +689,9 @@ const MathMillionaire = () => {
           <button onClick={resetGame} style={btnStyle('#22c55e')}>Play Again</button>
           {returnUrl ? (
             <button type="button" onClick={goBack} style={btnStyle('#6366f1')}>Continue Loop</button>
-          ) : (
+          ) : !isEmbedded ? (
             <Link to="/games" style={{ ...btnStyle('#6366f1'), textDecoration: 'none' }}>Back to Games</Link>
-          )}
+          ) : null}
         </div>
         {returnUrl && <LoopContinueButton onClick={goBack} />}
       </div>
@@ -705,7 +705,7 @@ const MathMillionaire = () => {
           No competency-aligned Millionaire question set is available for this loop step yet.
         </div>
         <div style={{ marginTop: 12 }}>
-          {returnUrl ? <button type="button" onClick={goBack} style={btnStyle('#22c55e')}>Continue</button> : <Link to="/games">Back to Games</Link>}
+          {returnUrl ? <button type="button" onClick={goBack} style={btnStyle('#22c55e')}>Continue</button> : !isEmbedded ? <Link to="/games">Back to Games</Link> : null}
         </div>
       </div>
     );
@@ -786,7 +786,7 @@ const MathMillionaire = () => {
             )}
             <button onClick={resetGame} style={btnStyle(returnUrl ? '#6366f1' : '#22c55e')}>Play Again</button>
             <button onClick={() => setShowReview(true)} style={btnStyle('#8b5cf6')}>Review Solutions</button>
-            {!returnUrl && (
+            {!returnUrl && !isEmbedded && (
               <Link to="/games" style={{ ...btnStyle('#475569'), textDecoration: 'none', display: 'block' }}>Back to Games</Link>
             )}
           </div>
@@ -813,9 +813,9 @@ const MathMillionaire = () => {
       }}>
         {returnUrl ? (
           <button type="button" onClick={goBack} style={{ background: 'none', border: 'none', color: '#34d399', fontWeight: 700, fontSize: 13, cursor: 'pointer', padding: 0 }}>← Continue</button>
-        ) : (
+        ) : !isEmbedded ? (
           <Link to="/games" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>← Games</Link>
-        )}
+        ) : <span />}
         <div style={{ fontSize: 14, fontWeight: 900, letterSpacing: 1.5, color: '#fbbf24' }}>
           MATH MILLIONAIRE
         </div>

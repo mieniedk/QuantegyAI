@@ -133,7 +133,7 @@ const MathSprint = () => {
   const conceptParam = searchParams.get('concept') || '';
   const gradeParam = searchParams.get('grade') || '';
   const mode = searchParams.get('mode') || ''; // 'remedial' = easier to teach; 'adaptive' = slightly harder
-  const { returnUrl: gameReturnUrl, goBack } = useGameReturn();
+  const { returnUrl: gameReturnUrl, goBack, isEmbedded } = useGameReturn();
   const returnUrl = sanitizeReturnUrl(gameReturnUrl);
 
   // Resolve student identity: URL params first, then fall back to saved session
@@ -243,9 +243,11 @@ const MathSprint = () => {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         borderBottom: '1px solid rgba(107,184,255,0.15)', boxSizing: 'border-box',
       }}>
+        {!isEmbedded && (
         <Link to="/games" style={{ color: '#6BB8FF', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>
           {'\u2190'} Back
         </Link>
+        )}
         <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.5px' }}>
           {teks ? `Focused: TEKS ${teks}` : 'TEKS-Aligned Math Sprint'}
         </span>
@@ -336,6 +338,7 @@ const MathSprint = () => {
                 <span style={{ fontSize: 16 }}>📝</span> Review Answers
               </button>
             )}
+            {!isEmbedded && (
             <Link to="/games" style={{
               padding: '10px 20px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
               background: 'rgba(255,255,255,0.1)', color: '#94a3b8',
@@ -344,6 +347,7 @@ const MathSprint = () => {
             }}>
               Back
             </Link>
+            )}
           </>
         )}
       </div>

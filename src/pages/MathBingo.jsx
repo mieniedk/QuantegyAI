@@ -618,7 +618,7 @@ const MathBingo = () => {
   const sid = searchParams.get('sid');
   const aid = searchParams.get('aid');
   const cid = searchParams.get('cid');
-  const { returnUrl, goBack } = useGameReturn();
+  const { returnUrl, goBack, isEmbedded } = useGameReturn();
 
   const [{ card: initCard, deck: initDeck }] = useState(() => buildGame(teksFilter, { compId: compFilter, currentStd, strictScope }));
   const [deck, setDeck] = useState(initDeck);
@@ -656,7 +656,7 @@ const MathBingo = () => {
           No competency-aligned Bingo deck is available for this loop step yet.
         </div>
         <div style={{ marginTop: 12 }}>
-          {returnUrl ? <LoopContinueButton onClick={goBack} /> : <Link to="/games">Back to Games</Link>}
+          {returnUrl ? <LoopContinueButton onClick={goBack} /> : !isEmbedded ? <Link to="/games">Back to Games</Link> : null}
         </div>
       </div>
     );
@@ -791,7 +791,7 @@ const MathBingo = () => {
         />
         <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 16 }}>
           <button onClick={resetGame} style={btnStyle('#22c55e')}>Play Again</button>
-          <Link to="/games" style={{ ...btnStyle('#6366f1'), textDecoration: 'none' }}>Back to Games</Link>
+          {!isEmbedded && <Link to="/games" style={{ ...btnStyle('#6366f1'), textDecoration: 'none' }}>Back to Games</Link>}
         </div>
       </div>
     );
@@ -813,9 +813,9 @@ const MathBingo = () => {
       }}>
         {returnUrl ? (
           <button type="button" onClick={goBack} style={{ background: 'none', border: 'none', color: '#34d399', fontWeight: 700, fontSize: 14, cursor: 'pointer', padding: 0 }}>← Continue</button>
-        ) : (
+        ) : !isEmbedded ? (
           <Link to="/games" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>← Games</Link>
-        )}
+        ) : <span />}
         <div style={{ fontSize: 20, fontWeight: 900, letterSpacing: 2, color: '#fbbf24' }}>
           MATH BINGO
         </div>
@@ -1083,7 +1083,7 @@ const MathBingo = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <button onClick={resetGame} style={btnStyle('#22c55e')}>Play Again</button>
               <button onClick={() => setShowReview(true)} style={btnStyle('#6366f1')}>Review Solutions</button>
-              <Link to="/games" style={{ ...btnStyle('#475569'), textDecoration: 'none', display: 'block' }}>Back to Games</Link>
+              {!isEmbedded && <Link to="/games" style={{ ...btnStyle('#475569'), textDecoration: 'none', display: 'block' }}>Back to Games</Link>}
             </div>
           </div>
         </div>

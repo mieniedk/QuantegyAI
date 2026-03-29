@@ -870,6 +870,8 @@ function GamePhase({ gameLabel, scopeBadge, description, gameUrl, gameName, onSk
   const basePath = (gameUrl || '').split('?')[0];
   const isVerified = VERIFIED_GAME_PATHS.has(basePath);
   const [frameHeight, setFrameHeight] = useState(560);
+  const skipRef = useRef(onSkip);
+  skipRef.current = onSkip;
 
   useEffect(() => {
     const computeHeight = () => {
@@ -886,6 +888,18 @@ function GamePhase({ gameLabel, scopeBadge, description, gameUrl, gameName, onSk
     computeHeight();
     window.addEventListener('resize', computeHeight);
     return () => window.removeEventListener('resize', computeHeight);
+  }, []);
+
+  useEffect(() => {
+    const handleGameMsg = (e) => {
+      if (!e.data || typeof e.data !== 'object') return;
+      const { type } = e.data;
+      if (type === 'qblocksDone' || type === 'qblocksNavigate' || type === 'gameDone') {
+        skipRef.current?.();
+      }
+    };
+    window.addEventListener('message', handleGameMsg);
+    return () => window.removeEventListener('message', handleGameMsg);
   }, []);
 
   return (

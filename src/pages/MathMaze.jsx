@@ -129,7 +129,7 @@ const MathMaze = () => {
   const sid = searchParams.get('sid');
   const aid = searchParams.get('aid');
   const cid = searchParams.get('cid');
-  const { returnUrl, goBack } = useGameReturn();
+  const { returnUrl, goBack, isEmbedded } = useGameReturn();
 
   const [level, setLevel] = useState(1);
   const [maze, setMaze] = useState(null);
@@ -410,7 +410,7 @@ const MathMaze = () => {
           onPlayAgain={resetGame}
           continueUrl={returnUrl || undefined}
           continueLabel="Continue"
-          onBack={() => navigate('/games')}
+          onBack={isEmbedded ? undefined : () => navigate('/games')}
           backLabel="Back"
         />
       </div>
@@ -439,7 +439,7 @@ const MathMaze = () => {
             )}
             <button onClick={resetGame} style={btn(returnUrl ? '#6366f1' : '#22c55e')}>Play Again</button>
             <button onClick={() => setShowReview(true)} style={btn('#6366f1')}>Review Answers</button>
-            <Link to="/games" style={{ ...btn('#475569'), textDecoration: 'none', display: 'block' }}>Back</Link>
+            {!isEmbedded && <Link to="/games" style={{ ...btn('#475569'), textDecoration: 'none', display: 'block' }}>Back</Link>}
           </div>
         </div>
       </div>
@@ -457,8 +457,10 @@ const MathMaze = () => {
           <button type="button" onClick={goBack} style={{ background: 'none', border: 'none', color: '#34d399', fontWeight: 600, fontSize: 12, cursor: 'pointer', padding: 0 }}>
             ← Continue
           </button>
-        ) : (
+        ) : !isEmbedded ? (
           <Link to="/games" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: 12, fontWeight: 600 }}>← Games</Link>
+        ) : (
+          <span />
         )}
         <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1, color: '#22c55e' }}>🗺️ MAZE RUNNER</div>
         <div style={{ display: 'flex', gap: 12, fontSize: 12 }}>

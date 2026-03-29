@@ -304,7 +304,7 @@ const QBotBubble = ({ msg }) => (
 
 const AlgebraSprint = () => {
   const [searchParams] = useSearchParams();
-  const { returnUrl, goBack } = useGameReturn();
+  const { returnUrl, goBack, isEmbedded } = useGameReturn();
   const [mode, setMode] = useState(null);       // topic id
   const [sprintSize, setSprintSize] = useState(5);
   const [questions, setQuestions] = useState([]);
@@ -412,8 +412,10 @@ const AlgebraSprint = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         {returnUrl ? (
           <button type="button" onClick={goBack} style={{ background: 'none', border: 'none', color: '#34d399', fontWeight: 700, fontSize: 13, cursor: 'pointer', padding: 0 }}>← Continue</button>
-        ) : (
+        ) : !isEmbedded ? (
           <Link to="/games" style={{ color: '#007bff', textDecoration: 'none', fontSize: 13 }}>← Games</Link>
+        ) : (
+          <span />
         )}
         {mode && !gameOver && (
           <div style={{ display: 'flex', gap: 12, fontSize: 12, fontWeight: 600, color: '#475569' }}>

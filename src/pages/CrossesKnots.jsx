@@ -258,7 +258,7 @@ const CrossesKnots = () => {
   const [showHowTo, setShowHowTo] = useState(false);
   const boardRef = useRef(null);
 
-  const { returnUrl, goBack } = useGameReturn();
+  const { returnUrl, goBack, isEmbedded } = useGameReturn();
   const diff = difficulty ? DIFFICULTY[difficulty] : DIFFICULTY.medium;
   const TOTAL_ROUNDS = diff.rounds;
 
@@ -489,8 +489,10 @@ const CrossesKnots = () => {
           <div style={{ textAlign: 'center', marginTop: 20 }}>
             {returnUrl ? (
               <button type="button" onClick={goBack} style={{ background: 'none', border: 'none', color: '#34d399', fontWeight: 700, fontSize: 13, cursor: 'pointer', padding: 0 }}>← Continue</button>
-            ) : (
+            ) : !isEmbedded ? (
               <Link to="/games" style={{ color: '#64748b', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>← Back to Games</Link>
+            ) : (
+              <span />
             )}
           </div>
         </div>
@@ -507,7 +509,7 @@ const CrossesKnots = () => {
         <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
           <button onClick={replayDifficulty} style={btn(diff.color)}>Play Again ({diff.label})</button>
           <button onClick={resetGame} style={btn('#6366f1')}>Change Difficulty</button>
-          <Link to="/games" style={{ ...btn('#475569'), textDecoration: 'none' }}>Back to Games</Link>
+          {!isEmbedded && <Link to="/games" style={{ ...btn('#475569'), textDecoration: 'none' }}>Back to Games</Link>}
         </div>
         {returnUrl && <LoopContinueButton onClick={goBack} />}
       </div>
@@ -541,7 +543,7 @@ const CrossesKnots = () => {
             <button onClick={replayDifficulty} style={btn(diff.color)}>Play Again ({diff.label})</button>
             <button onClick={resetGame} style={btn('#6366f1')}>Change Difficulty</button>
             <button onClick={() => setShowReview(true)} style={btn('#475569')}>Review Rounds</button>
-            <Link to="/games" style={{ ...btn('#334155'), textDecoration: 'none', display: 'block' }}>Back to Games</Link>
+            {!isEmbedded && <Link to="/games" style={{ ...btn('#334155'), textDecoration: 'none', display: 'block' }}>Back to Games</Link>}
           </div>
         </div>
         {returnUrl && <LoopContinueButton onClick={goBack} />}
@@ -558,8 +560,10 @@ const CrossesKnots = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 14px', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         {returnUrl ? (
           <button type="button" onClick={goBack} style={{ background: 'none', border: 'none', color: '#34d399', fontWeight: 700, fontSize: 13, cursor: 'pointer', padding: 0 }}>← Continue</button>
-        ) : (
+        ) : !isEmbedded ? (
           <Link to="/games" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: 12, fontWeight: 600 }}>← Games</Link>
+        ) : (
+          <span />
         )}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1, color: '#a855f7' }}>✖ CROSSES & KNOTS ○</div>

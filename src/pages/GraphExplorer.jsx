@@ -341,7 +341,7 @@ export default function GraphExplorer() {
   const [searchParams] = useSearchParams();
   const assignmentId = searchParams.get('assignmentId');
   const classId = searchParams.get('classId');
-  const { returnUrl, goBack } = useGameReturn();
+  const { returnUrl, goBack, isEmbedded } = useGameReturn();
 
   const [difficulty, setDifficulty] = useState(null);
   const [diff, setDiff] = useState(null);
@@ -462,7 +462,7 @@ export default function GraphExplorer() {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)',
         }}>
-          <Link to="/games" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>{'\u2190'} Back</Link>
+          {!isEmbedded && <Link to="/games" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>{'\u2190'} Back</Link>}
           <div style={{ fontSize: 15, fontWeight: 900, color: '#fff' }}>{'\uD83D\uDCCA'} Graph Explorer</div>
           <div style={{ width: 50 }} />
         </div>
@@ -579,7 +579,7 @@ export default function GraphExplorer() {
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)',
       }}>
-        <Link to="/games" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>{'\u2190'} Back</Link>
+        {!isEmbedded && <Link to="/games" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>{'\u2190'} Back</Link>}
         <div style={{ fontSize: 15, fontWeight: 900, color: '#fff' }}>{'\uD83D\uDCCA'} Graph Explorer</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600 }}>{diff.emoji} {diff.label}</span>

@@ -79,7 +79,7 @@ const EquationBalance = () => {
   const sid = searchParams.get('sid');
   const aid = searchParams.get('aid');
   const cid = searchParams.get('cid');
-  const { returnUrl, goBack } = useGameReturn();
+  const { returnUrl, goBack, isEmbedded } = useGameReturn();
 
   const [round, setRound] = useState(0);
   const [puzzle, setPuzzle] = useState(() => generatePuzzle(1));
@@ -183,7 +183,7 @@ const EquationBalance = () => {
           onPlayAgain={resetGame}
           continueUrl={returnUrl || undefined}
           continueLabel="Continue"
-          onBack={() => navigate('/games')}
+          onBack={isEmbedded ? undefined : () => navigate('/games')}
           backLabel="Back"
         />
       </div>
@@ -203,7 +203,7 @@ const EquationBalance = () => {
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)',
       }}>
-        <Link to="/games" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>{'\u2190'} Back</Link>
+        {!isEmbedded && <Link to="/games" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>{'\u2190'} Back</Link>}
         <div style={{ fontSize: 15, fontWeight: 900, letterSpacing: 1.5, color: '#8b5cf6' }}>{'\u2696\uFE0F'} EQUATION BALANCE</div>
         <div style={{ textAlign: 'right' }}><div style={{ fontSize: 16, fontWeight: 900, color: '#8b5cf6' }}>{score}</div><div style={{ fontSize: 9, color: '#94a3b8' }}>Score</div></div>
       </div>
@@ -231,7 +231,7 @@ const EquationBalance = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <button onClick={resetGame} style={btnS('#6366f1')}>Play Again</button>
                 <button onClick={() => setShowReview(true)} style={btnS('#6366f1')}>Review Answers</button>
-                {!returnUrl && <Link to="/games" style={{ ...btnS('#475569'), textDecoration: 'none', display: 'block' }}>Back</Link>}
+                {!returnUrl && !isEmbedded && <Link to="/games" style={{ ...btnS('#475569'), textDecoration: 'none', display: 'block' }}>Back</Link>}
               </div>
             </div>
           </div>

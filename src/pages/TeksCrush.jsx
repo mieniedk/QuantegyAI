@@ -552,7 +552,7 @@ const TeksCrush = () => {
   const [viewportWidth, setViewportWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1024));
   const [showCoachDetails, setShowCoachDetails] = useState(() => (typeof window !== 'undefined' ? window.innerWidth > 700 : true));
 
-  const { returnUrl, goBack } = useGameReturn();
+  const { returnUrl, goBack, isEmbedded } = useGameReturn();
   const boardRef = useRef(board);
   boardRef.current = board;
   const poolRef = useRef(pool);
@@ -899,7 +899,7 @@ const TeksCrush = () => {
           No competency-aligned TEKS Crush content is available for this loop step yet.
         </div>
         <div style={{ marginTop: 12 }}>
-          {returnUrl ? <LoopContinueButton onClick={goBack} /> : <Link to="/games">Back to Games</Link>}
+          {returnUrl ? <LoopContinueButton onClick={goBack} /> : !isEmbedded ? <Link to="/games">Back to Games</Link> : null}
         </div>
       </div>
     );
@@ -919,7 +919,7 @@ const TeksCrush = () => {
           <button onClick={resetGame} style={btn('#22c55e')}>Play Again</button>
           {returnUrl
             ? <button onClick={goBack} style={btn('#6366f1')}>Continue Loop</button>
-            : <Link to="/games" style={{ ...btn('#6366f1'), textDecoration: 'none' }}>Back to Games</Link>}
+            : !isEmbedded ? <Link to="/games" style={{ ...btn('#6366f1'), textDecoration: 'none' }}>Back to Games</Link> : null}
         </div>
         {returnUrl && <LoopContinueButton onClick={goBack} />}
       </div>
@@ -971,7 +971,7 @@ const TeksCrush = () => {
       }}>
         {returnUrl
           ? <button type="button" onClick={goBack} style={{ background: 'none', border: 'none', color: '#34d399', fontWeight: 700, fontSize: 13, cursor: 'pointer', padding: 0 }}>← Continue</button>
-          : <Link to="/games" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>← Games</Link>}
+          : !isEmbedded ? <Link to="/games" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>← Games</Link> : <span />}
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: 16, fontWeight: 800, letterSpacing: 1 }}>TEKS Crush</div>
           {teksLabel && <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 1 }}>{teksLabel}</div>}
@@ -1622,7 +1622,7 @@ const TeksCrush = () => {
               {returnUrl && <button onClick={goBack} style={btn('#22c55e')}>Continue Practicing</button>}
               <button onClick={resetGame} style={btn(returnUrl ? '#6366f1' : '#22c55e')}>Play Again</button>
               <button onClick={() => setShowReview(true)} style={btn('#8b5cf6')}>Review Matches</button>
-              {!returnUrl && <Link to="/games" style={{ ...btn('#475569'), textDecoration: 'none', display: 'block' }}>Back to Games</Link>}
+              {!returnUrl && !isEmbedded && <Link to="/games" style={{ ...btn('#475569'), textDecoration: 'none', display: 'block' }}>Back to Games</Link>}
             </div>
           </div>
         </div>
