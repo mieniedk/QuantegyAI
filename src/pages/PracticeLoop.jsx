@@ -2730,7 +2730,7 @@ export default function PracticeLoop() {
       comp006: new Set([...HARDCODED_GAMES, 'qbot-shop']),
     };
     // Games extended with content for a competency — placed first in rotation.
-    const COMP_GAME_PREFER = strictMath712StdScope
+    const COMP_GAME_PREFER = strictStdScope
       ? {
           comp001: ['q-blocks', 'math-bingo', 'math-match'],
           comp002: ['q-blocks', 'math-bingo', 'math-match'],
