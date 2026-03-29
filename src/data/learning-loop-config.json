@@ -8,10 +8,10 @@
     "competencies": "*"
   },
   "adaptiveScope": {
-    "examIds": ["math712"],
+    "examIds": ["math712", "math48"],
     "requireCompetency": true,
     "requireStandard": true,
-    "description": "Adaptive Learning Loop is enforced for every Math 7-12 competency standard."
+    "description": "Adaptive Learning Loop is enforced for every Math 7-12 and Math 4-8 competency standard."
   },
   "sequence": [
     {

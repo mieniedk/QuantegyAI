@@ -173,7 +173,7 @@ const STANDARD_MAP = {
   ta09:'c021',ta10:'c021',ta11:'c021',ta12:'c021',ta13:'c021',ta14:'c021',
 };
 
-export function getStandardForQuestion(qId) { return STANDARD_MAP[qId] || null; }
+export function getStandardForQuestion(qId) { return STANDARD_MAP[qId] || STANDARD_MAP_48[qId] || null; }
 
 export function getStandardsForComp(examId, compId) {
   const domains = getDomainsForExam(examId) || [];
@@ -2632,22 +2632,76 @@ export const TEXES_QUESTIONS_BILINGUAL_SPANISH = [
 export const TEXES_DOMAINS_48 = [
   { id: 'comp48_1', name: 'Number Concepts', desc: 'Number systems, operations, number theory (grades 4–8).', weight: 0.16, games: ['math-match', 'math-sprint', 'q-blocks', 'fraction-pizza', 'fraction-frenzy', 'number-line-ninja'],
     video: 'https://www.youtube.com/embed/Bz4RUgka_Ew',
-    videos: ['https://www.youtube.com/embed/Bz4RUgka_Ew', 'https://www.youtube.com/embed/BpBh8gvMifs', 'https://www.youtube.com/embed/CLWpkv6ccpA'] },
+    videos: ['https://www.youtube.com/embed/Bz4RUgka_Ew', 'https://www.youtube.com/embed/BpBh8gvMifs', 'https://www.youtube.com/embed/CLWpkv6ccpA'],
+    standards: [
+      { id: 'm48_c001', name: 'Competency 001 — Number Systems & Place Value',
+        desc: 'Place value through billions/thousandths, comparing/ordering whole numbers, decimals, fractions; number line; rational numbers; real number subsets for 4-8.' },
+      { id: 'm48_c002', name: 'Competency 002 — Operations & Computational Fluency',
+        desc: 'Four operations with whole numbers, fractions, decimals; order of operations; estimation; mental math strategies; algorithms.' },
+      { id: 'm48_c003', name: 'Competency 003 — Number Theory & Proportional Reasoning',
+        desc: 'Factors, multiples, primes, GCF, LCM; ratios, rates, proportions; percent; conversions between fractions/decimals/percents.' },
+    ],
+  },
   { id: 'comp48_2', name: 'Patterns and Algebra', desc: 'Patterns, functions, algebraic reasoning (grades 4–8).', weight: 0.21, games: ['math-sprint', 'equation-balance', 'math-maze', 'q-blocks', 'math-match'],
     video: 'https://www.youtube.com/embed/NybHckSEQBI',
-    videos: ['https://www.youtube.com/embed/NybHckSEQBI', 'https://www.youtube.com/embed/bAerID24QJ0', 'https://www.youtube.com/embed/LzYJVsvqS50'] },
+    videos: ['https://www.youtube.com/embed/NybHckSEQBI', 'https://www.youtube.com/embed/bAerID24QJ0', 'https://www.youtube.com/embed/LzYJVsvqS50'],
+    standards: [
+      { id: 'm48_c004', name: 'Competency 004 — Patterns & Algebraic Thinking',
+        desc: 'Arithmetic/geometric sequences; input-output tables; recognizing/extending patterns; writing rules.' },
+      { id: 'm48_c005', name: 'Competency 005 — Expressions, Equations & Inequalities',
+        desc: 'Translating verbal to symbolic; simplifying expressions; solving one/two-step equations and inequalities; distributive property.' },
+      { id: 'm48_c006', name: 'Competency 006 — Linear Functions & Relations',
+        desc: 'Slope, y-intercept; graphing linear equations; systems of linear equations (8th grade); function concept; proportional vs non-proportional relationships.' },
+    ],
+  },
   { id: 'comp48_3', name: 'Geometry and Measurement', desc: 'Geometric properties, measurement (grades 4–8).', weight: 0.21, games: ['shape-shifter', 'graph-explorer', 'number-line-ninja', 'time-traveler', 'math-sprint'],
     video: 'https://www.youtube.com/embed/V3dFHt9p5W4',
-    videos: ['https://www.youtube.com/embed/V3dFHt9p5W4', 'https://www.youtube.com/embed/AA6RfgP-AHU', 'https://www.youtube.com/embed/EINpkcphsPQ'] },
+    videos: ['https://www.youtube.com/embed/V3dFHt9p5W4', 'https://www.youtube.com/embed/AA6RfgP-AHU', 'https://www.youtube.com/embed/EINpkcphsPQ'],
+    standards: [
+      { id: 'm48_c007', name: 'Competency 007 — Geometric Properties & Relationships',
+        desc: 'Classifying angles, triangles, quadrilaterals; parallel/perpendicular lines; congruence and similarity; circles.' },
+      { id: 'm48_c008', name: 'Competency 008 — Measurement Concepts',
+        desc: 'Perimeter, area, surface area, volume; unit conversions (customary/metric); Pythagorean theorem; scale drawings.' },
+      { id: 'm48_c009', name: 'Competency 009 — Coordinate & Transformational Geometry',
+        desc: 'Coordinate plane; plotting/reading points; distance/midpoint (8th); reflections, rotations, translations, dilations; symmetry.' },
+    ],
+  },
   { id: 'comp48_4', name: 'Probability and Statistics', desc: 'Probability, statistics, data analysis (grades 4–8).', weight: 0.16, games: ['math-sprint', 'graph-explorer', 'math-jeopardy', 'math-millionaire'],
     video: 'https://www.youtube.com/embed/uAxyI_XfqXk',
-    videos: ['https://www.youtube.com/embed/uAxyI_XfqXk', 'https://www.youtube.com/embed/hgtMWR3TFnY', 'https://www.youtube.com/embed/S5_5KyCVjrU'] },
+    videos: ['https://www.youtube.com/embed/uAxyI_XfqXk', 'https://www.youtube.com/embed/hgtMWR3TFnY', 'https://www.youtube.com/embed/S5_5KyCVjrU'],
+    standards: [
+      { id: 'm48_c010', name: 'Competency 010 — Data Analysis & Displays',
+        desc: 'Mean, median, mode, range; bar graphs, line graphs, histograms, circle graphs, box plots, stem-and-leaf, scatter plots; interpreting data.' },
+      { id: 'm48_c011', name: 'Competency 011 — Probability',
+        desc: 'Experimental vs theoretical probability; sample spaces; independent/dependent events; compound events; tree diagrams; simulations.' },
+      { id: 'm48_c012', name: 'Competency 012 — Statistical Reasoning',
+        desc: 'Sampling methods; bias; making predictions from data; comparing data sets; variability (IQR, MAD); misleading graphs.' },
+    ],
+  },
   { id: 'comp48_5', name: 'Mathematical Processes and Perspectives', desc: 'Reasoning, problem solving, connections.', weight: 0.10, games: ['math-maze', 'q-blocks', 'crosses-knots', 'math-sprint'],
     video: 'https://www.youtube.com/embed/ZZQO3HGkFa8',
-    videos: ['https://www.youtube.com/embed/ZZQO3HGkFa8', 'https://www.youtube.com/embed/wblW_M_HVQ8', 'https://www.youtube.com/embed/VMEV__2wW3E'] },
+    videos: ['https://www.youtube.com/embed/ZZQO3HGkFa8', 'https://www.youtube.com/embed/wblW_M_HVQ8', 'https://www.youtube.com/embed/VMEV__2wW3E'],
+    standards: [
+      { id: 'm48_c013', name: 'Competency 013 — Problem Solving & Reasoning',
+        desc: 'Problem-solving strategies (draw diagram, work backward, guess-and-check); inductive/deductive reasoning; counterexamples; reasonableness.' },
+      { id: 'm48_c014', name: 'Competency 014 — Mathematical Connections',
+        desc: 'Cross-strand connections; real-world applications; multiple representations; math in other disciplines.' },
+      { id: 'm48_c015', name: 'Competency 015 — Communication & Mathematical Language',
+        desc: 'Mathematical vocabulary; explaining reasoning; precision; translating between verbal, numerical, algebraic, and graphical forms.' },
+    ],
+  },
   { id: 'comp48_6', name: 'Mathematical Learning, Instruction and Assessment', desc: 'Pedagogy, assessment, equity.', weight: 0.16, games: ['math-sprint', 'math-match', 'fraction-frenzy'],
     video: 'https://www.youtube.com/embed/jxA8MffVmPs',
-    videos: ['https://www.youtube.com/embed/jxA8MffVmPs', 'https://www.youtube.com/embed/tuVd355R-OQ', 'https://www.youtube.com/embed/2OU-pb7CCT0'] },
+    videos: ['https://www.youtube.com/embed/jxA8MffVmPs', 'https://www.youtube.com/embed/tuVd355R-OQ', 'https://www.youtube.com/embed/2OU-pb7CCT0'],
+    standards: [
+      { id: 'm48_c016', name: 'Competency 016 — How Students Learn Mathematics',
+        desc: 'Developmental stages; concrete-representational-abstract (CRA); manipulatives; research on common misconceptions; growth mindset; productive struggle.' },
+      { id: 'm48_c017', name: 'Competency 017 — Planning & Instructional Strategies',
+        desc: 'TEKS alignment; lesson design; differentiation; questioning strategies; technology integration; cooperative learning; ELL strategies.' },
+      { id: 'm48_c018', name: 'Competency 018 — Assessment',
+        desc: 'Formative vs summative; diagnostic assessment; error analysis; using assessment to guide instruction; rubrics; progress monitoring.' },
+    ],
+  },
 ];
 
 export const TEXES_QUESTIONS_48 = [
@@ -2713,6 +2767,56 @@ export const TEXES_QUESTIONS_48 = [
   { id: 't48_049', comp: 'comp48_6', type: 'mc', difficulty: 2, q: 'What is the main purpose of a number talk?', choices: ['To grade speed', 'To build fluency and flexible strategies through discussion', 'To replace instruction', 'To test only'], answer: 'To build fluency and flexible strategies through discussion', explanation: 'Number talks emphasize mental strategies and sharing reasoning.' },
   { id: 't48_050', comp: 'comp48_6', type: 'mc', difficulty: 2, q: 'Differentiation in math class should primarily address:', choices: ['Only readiness', 'Readiness, interest, and learning profile', 'Only interest', 'Slower pace for all'], answer: 'Readiness, interest, and learning profile', explanation: 'Differentiation considers what students need, what engages them, and how they learn best.' },
 ];
+
+const STANDARD_MAP_48 = {
+  // ── Domain I: Number Concepts (m48_c001–m48_c003) ──
+  // m48_c001 Number Systems & Place Value
+  t48_001:'m48_c001',t48_003:'m48_c001',t48_009:'m48_c001',t48_010:'m48_c001',
+  // m48_c002 Operations & Computational Fluency
+  t48_004:'m48_c002',t48_006:'m48_c002',t48_008:'m48_c002',
+  // m48_c003 Number Theory & Proportional Reasoning
+  t48_002:'m48_c003',t48_005:'m48_c003',t48_007:'m48_c003',
+
+  // ── Domain II: Patterns and Algebra (m48_c004–m48_c006) ──
+  // m48_c004 Patterns & Algebraic Thinking
+  t48_011:'m48_c004',t48_016:'m48_c004',t48_017:'m48_c004',
+  // m48_c005 Expressions, Equations & Inequalities
+  t48_012:'m48_c005',t48_013:'m48_c005',t48_015:'m48_c005',t48_018:'m48_c005',t48_019:'m48_c005',
+  // m48_c006 Linear Functions & Relations
+  t48_014:'m48_c006',t48_020:'m48_c006',
+
+  // ── Domain III: Geometry and Measurement (m48_c007–m48_c009) ──
+  // m48_c007 Geometric Properties & Relationships
+  t48_022:'m48_c007',t48_026:'m48_c007',t48_027:'m48_c007',
+  // m48_c008 Measurement Concepts
+  t48_021:'m48_c008',t48_023:'m48_c008',t48_024:'m48_c008',t48_025:'m48_c008',t48_028:'m48_c008',t48_029:'m48_c008',t48_030:'m48_c008',
+  // m48_c009 Coordinate & Transformational Geometry
+  // (no current questions — will populate as question bank grows)
+
+  // ── Domain IV: Probability and Statistics (m48_c010–m48_c012) ──
+  // m48_c010 Data Analysis & Displays
+  t48_032:'m48_c010',t48_036:'m48_c010',t48_038:'m48_c010',t48_039:'m48_c010',
+  // m48_c011 Probability
+  t48_031:'m48_c011',t48_034:'m48_c011',t48_037:'m48_c011',t48_040:'m48_c011',
+  // m48_c012 Statistical Reasoning
+  t48_033:'m48_c012',t48_035:'m48_c012',
+
+  // ── Domain V: Mathematical Processes (m48_c013–m48_c015) ──
+  // m48_c013 Problem Solving & Reasoning
+  t48_042:'m48_c013',t48_043:'m48_c013',
+  // m48_c014 Mathematical Connections
+  t48_045:'m48_c014',
+  // m48_c015 Communication & Mathematical Language
+  t48_041:'m48_c015',t48_044:'m48_c015',
+
+  // ── Domain VI: Learning, Instruction & Assessment (m48_c016–m48_c018) ──
+  // m48_c016 How Students Learn Mathematics
+  t48_047:'m48_c016',t48_049:'m48_c016',
+  // m48_c017 Planning & Instructional Strategies
+  t48_048:'m48_c017',t48_050:'m48_c017',
+  // m48_c018 Assessment
+  t48_046:'m48_c018',
+};
 
 // ═══════════════════════════════════════════════════════════════
 // TExES Core Subjects EC-6 (291) — Mathematics Section

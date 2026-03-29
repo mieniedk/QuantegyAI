@@ -606,11 +606,26 @@ function compFromStd(std){
   return'';
 }
 
-const scopedCompId=compParam||compFromStd(currentStdParam);
+function compFromStd48(std){
+  const s=String(std||'').toLowerCase();
+  if(/^m48_c00[1-3]$/.test(s))return'comp48_1';
+  if(/^m48_c00[4-6]$/.test(s))return'comp48_2';
+  if(/^m48_c00[7-9]$/.test(s))return'comp48_3';
+  if(/^m48_c01[0-2]$/.test(s))return'comp48_4';
+  if(/^m48_c01[3-5]$/.test(s))return'comp48_5';
+  if(/^m48_c01[6-8]$/.test(s))return'comp48_6';
+  return'';
+}
+
+const scopedCompId=compParam||compFromStd(currentStdParam)||compFromStd48(currentStdParam);
 const scopedStdId=currentStdParam;
 const useMath712CompBank=(examIdParam==='math712'||gradeParam==='grade7-12'||gradeParam==='algebra')&&/^comp00[1-6]$/.test(scopedCompId);
 const useMath712StdBank=(examIdParam==='math712'||gradeParam==='grade7-12'||gradeParam==='algebra')&&/^c0(0[1-9]|1[0-9]|21)$/.test(scopedStdId);
+const useMath48CompBank=(examIdParam==='math48'||gradeParam==='grade4-8')&&/^comp48_[1-6]$/.test(scopedCompId);
+const useMath48StdBank=(examIdParam==='math48'||gradeParam==='grade4-8')&&/^m48_c0(0[1-9]|1[0-8])$/.test(scopedStdId);
 const activeQBlocksScope=(function(){
+  if(useMath48StdBank)return{mode:'standard',label:'STD '+scopedStdId.toUpperCase(),css:'scope-standard'};
+  if(useMath48CompBank)return{mode:'competency',label:'COMP '+scopedCompId.toUpperCase(),css:'scope-competency'};
   if(useMath712StdBank)return{mode:'standard',label:'STD '+scopedStdId.toUpperCase(),css:'scope-standard'};
   if(useMath712CompBank)return{mode:'competency',label:'COMP '+scopedCompId.toUpperCase(),css:'scope-competency'};
   if(useEquationTopic)return{mode:'equation',label:'EQUATION',css:'scope-equation'};
@@ -764,6 +779,222 @@ const QBLOCKS_COMP_BANK={
   },
 };
 
+const QBLOCKS_STD_BANK_48={
+  m48_c001:{
+    easy:[{q:'What digit is in the tens place of 4,729?',ans:2},{q:'How many hundreds are in 3,500?',ans:35}],
+    medium:[{q:'Round 67.85 to the nearest whole number',ans:68},{q:'What is 0.75 × 100?',ans:75}],
+    hard:[{q:'How many thousandths are in 0.042? (whole number)',ans:42},{q:'Express ³⁄₈ as thousandths (× 1000)',ans:375}]
+  },
+  m48_c002:{
+    easy:[{q:'¹⁄₂ + ¹⁄₂ = ?',ans:1},{q:'3 + 5 × 2 = ?',ans:13}],
+    medium:[{q:'²⁄₃ of 24 = ?',ans:16},{q:'(8 + 4) ÷ 3 = ?',ans:4}],
+    hard:[{q:'0.6 × 50 = ?',ans:30},{q:'12 − 3 × 2 + 4 = ?',ans:10}]
+  },
+  m48_c003:{
+    easy:[{q:'GCF of 12 and 18',ans:6},{q:'What is 50% of 80?',ans:40}],
+    medium:[{q:'LCM of 4 and 6',ans:12},{q:'Ratio 3 : 5, total 40. Larger part?',ans:25}],
+    hard:[{q:'25% of what number is 15?',ans:60},{q:'GCF of 48 and 36',ans:12}]
+  },
+  m48_c004:{
+    easy:[{q:'Pattern: 2, 4, 6, 8, ___',ans:10},{q:'Pattern: 5, 10, 15, 20, ___',ans:25}],
+    medium:[{q:'Pattern: 3, 6, 12, 24, ___',ans:48},{q:'Start at 1, multiply by 3 each time. 4th term?',ans:27}],
+    hard:[{q:'Pattern: 1, 4, 9, 16, ___',ans:25},{q:'Arithmetic: first term 7, add 5 each time. 6th term?',ans:32}]
+  },
+  m48_c005:{
+    easy:[{q:'Solve: x + 7 = 15',ans:8},{q:'Solve: x − 3 = 12',ans:15}],
+    medium:[{q:'Solve: 3x = 24',ans:8},{q:'Evaluate 4(x + 2) when x = 3',ans:20}],
+    hard:[{q:'Solve: 2x + 5 = 19',ans:7},{q:'Solve: 5x − 8 = 27',ans:7}]
+  },
+  m48_c006:{
+    easy:[{q:'In y = 2x + 3, what is the y-intercept?',ans:3},{q:'Evaluate y = x + 5 when x = 4',ans:9}],
+    medium:[{q:'Slope between (1, 3) and (4, 9)',ans:2},{q:'y = −3x + 10. Evaluate at x = 2',ans:4}],
+    hard:[{q:'Line through (0, 4) and (2, 10). Slope?',ans:3},{q:'y = 4x − 7. Find x when y = 13',ans:5}]
+  },
+  m48_c007:{
+    easy:[{q:'How many degrees in a right angle?',ans:90},{q:'How many sides does a hexagon have?',ans:6}],
+    medium:[{q:'Triangle angles: 60° and 70°. Third angle?',ans:50},{q:'Each angle of an equilateral triangle?',ans:60}],
+    hard:[{q:'Interior angle sum of a pentagon',ans:540},{q:'Supplement of a 65° angle',ans:115}]
+  },
+  m48_c008:{
+    easy:[{q:'Perimeter of a square with side 9',ans:36},{q:'Area of a rectangle 6 × 4',ans:24}],
+    medium:[{q:'Area of a triangle: base 10, height 8',ans:40},{q:'Volume of a box 3 × 4 × 5',ans:60}],
+    hard:[{q:'Right triangle legs 6 and 8. Hypotenuse?',ans:10},{q:'Area of circle radius 5 (π ≈ 3.14, nearest whole)',ans:79}]
+  },
+  m48_c009:{
+    easy:[{q:'Distance from (0, 0) to (3, 0)',ans:3},{q:'Reflect (4, 2) over x-axis. New y-coordinate?',ans:-2}],
+    medium:[{q:'Distance from (0, 0) to (3, 4)',ans:5},{q:'Translate (2, 5) right 3. New x-coordinate?',ans:5}],
+    hard:[{q:'Distance from (1, 2) to (4, 6)',ans:5},{q:'Rotate (0, 3) 90° clockwise about origin. New x-coordinate?',ans:3}]
+  },
+  m48_c010:{
+    easy:[{q:'Mean of 4, 6, 8',ans:6},{q:'Range of 3, 7, 10, 15',ans:12}],
+    medium:[{q:'Median of 2, 5, 8, 11, 14',ans:8},{q:'Mode of 3, 5, 3, 7, 3, 9',ans:3}],
+    hard:[{q:'Mean of 12, 18, 22, 28, 30',ans:22},{q:'Range of 8, 15, 23, 31, 42',ans:34}]
+  },
+  m48_c011:{
+    easy:[{q:'Coin flip: how many possible outcomes?',ans:2},{q:'Bag has 3 red and 7 blue marbles. Total?',ans:10}],
+    medium:[{q:'Rolling a die, probability of even (percent)?',ans:50},{q:'Flip 2 coins: total outcomes?',ans:4}],
+    hard:[{q:'Roll 2 dice: total outcomes?',ans:36},{q:'3 shirts × 4 pants = how many outfits?',ans:12}]
+  },
+  m48_c012:{
+    easy:[{q:'Survey: 30 of 50 like pizza. Percent?',ans:60},{q:'Class of 25, 10 prefer math. How many do NOT?',ans:15}],
+    medium:[{q:'20% of 200 students prefer reading. How many?',ans:40},{q:'Sample: 8 defective in 40. Predict defective in 200.',ans:40}],
+    hard:[{q:'Poll: 35% of 100 approve. Predict approvals in 500.',ans:175},{q:'Sample: 12 of 60 chose A. Predict A in 300.',ans:60}]
+  },
+  m48_c013:{
+    easy:[{q:'24 stickers shared among 4 friends. Each gets?',ans:6},{q:'Recipe: 3 cups per batch × 4 batches = ?',ans:12}],
+    medium:[{q:'Train at 60 mph for 3 hours. Distance?',ans:180},{q:'3 items at $8 each minus $5 coupon. Total?',ans:19}],
+    hard:[{q:'Pool fills 15 gal/min. Minutes for 300 gallons?',ans:20},{q:'Revenue $450, Cost $275. Profit?',ans:175}]
+  },
+  m48_c014:{
+    easy:[{q:'5 notebooks at $3 each. Total cost?',ans:15},{q:'12 eggs per carton × 5 cartons = ?',ans:60}],
+    medium:[{q:'Room 12 ft × 10 ft. Area in sq ft?',ans:120},{q:'Gas is $4/gallon, budget $48. Gallons?',ans:12}],
+    hard:[{q:'8% sales tax on $50. Total with tax?',ans:54},{q:'$12/hour × 35 hours. Gross pay?',ans:420}]
+  },
+  m48_c015:{
+    easy:[{q:'How many sides does a quadrilateral have?',ans:4},{q:'Degrees in a straight angle?',ans:180}],
+    medium:[{q:'Reciprocal of 5 is 1/n. What is n?',ans:5},{q:'An isosceles triangle has how many equal sides?',ans:2}],
+    hard:[{q:'A prime number has exactly how many factors?',ans:2},{q:'|−17| = ?',ans:17}]
+  },
+  m48_c016:{
+    easy:[{q:'Base-10 blocks: 3 tens + 5 ones = ?',ans:35},{q:'Fraction bar: ²⁄₄ simplified. Denominator?',ans:2}],
+    medium:[{q:'Draw 3 groups of 4. Total shown?',ans:12},{q:'Number line 0–1 in 5 parts. Third mark as percent?',ans:60}],
+    hard:[{q:'Array: 4 rows of 7 tiles. Product?',ans:28},{q:'6 × 8 split into 6 × 5 + 6 × n. What is n?',ans:3}]
+  },
+  m48_c017:{
+    easy:[{q:'Lesson: 3 parts × 15 min each. Total minutes?',ans:45},{q:'Class 50 min, warm-up 10 min. Remaining?',ans:40}],
+    medium:[{q:'25 students in pairs (one left over). How many pairs?',ans:12},{q:'8 lessons in 4 weeks. Lessons per week?',ans:2}],
+    hard:[{q:'Bloom\'s Taxonomy has how many levels?',ans:6},{q:'3 activities × 5 objectives. Total combos?',ans:15}]
+  },
+  m48_c018:{
+    easy:[{q:'Quiz: 8 of 10 correct. Percent?',ans:80},{q:'Test: 20 items × 5 pts each. Max score?',ans:100}],
+    medium:[{q:'Class of 30: 24 proficient. Percent?',ans:80},{q:'Pre-test 55%, post-test 80%. Point gain?',ans:25}],
+    hard:[{q:'Weighted: HW 30% (90) + test 70% (80). Total?',ans:83},{q:'Item analysis: 6 of 24 missed. Difficulty index (% correct)?',ans:75}]
+  }
+};
+
+const QBLOCKS_COMP_BANK_48={
+  comp48_1:{
+    easy:[
+      {q:'What digit is in the hundreds place of 5,832?',ans:8},
+      {q:'¹⁄₂ + ¹⁄₄ = ? (as fourths, numerator only)',ans:3},
+      {q:'What is 25% of 60?',ans:15},
+      {q:'GCF of 8 and 12',ans:4}
+    ],
+    medium:[
+      {q:'Round 4.367 to the nearest tenth (× 10)',ans:44},
+      {q:'²⁄₅ of 35 = ?',ans:14},
+      {q:'LCM of 6 and 9',ans:18},
+      {q:'Express 0.4 as a simplified fraction. Denominator?',ans:5}
+    ],
+    hard:[
+      {q:'Express ⁵⁄₈ as thousandths (× 1000)',ans:625},
+      {q:'12 − 4 × 2 + 1 = ?',ans:5},
+      {q:'GCF of 56 and 42',ans:14},
+      {q:'What percent of 80 is 20?',ans:25}
+    ]
+  },
+  comp48_2:{
+    easy:[
+      {q:'Pattern: 3, 6, 9, 12, ___',ans:15},
+      {q:'Solve: x + 9 = 20',ans:11},
+      {q:'y = x + 7. Evaluate at x = 3',ans:10},
+      {q:'Next term: 10, 20, 30, ___',ans:40}
+    ],
+    medium:[
+      {q:'Sequence: 2, 6, 18, ___',ans:54},
+      {q:'Solve: 4x = 36',ans:9},
+      {q:'Slope between (0, 1) and (3, 7)',ans:2},
+      {q:'Evaluate 3(x + 4) when x = 2',ans:18}
+    ],
+    hard:[
+      {q:'Arithmetic: first term 5, add 4 each time. Term 8?',ans:33},
+      {q:'Solve: 3x − 7 = 14',ans:7},
+      {q:'y = −2x + 11 at x = 3',ans:5},
+      {q:'y = 5x − 3. Find x when y = 22',ans:5}
+    ]
+  },
+  comp48_3:{
+    easy:[
+      {q:'Degrees in a right angle?',ans:90},
+      {q:'Perimeter of a square with side 7',ans:28},
+      {q:'Distance from (0, 0) to (5, 0)',ans:5},
+      {q:'How many sides does an octagon have?',ans:8}
+    ],
+    medium:[
+      {q:'Triangle with angles 45° and 80°. Third angle?',ans:55},
+      {q:'Area of triangle: base 12, height 6',ans:36},
+      {q:'Distance from (0, 0) to (6, 8)',ans:10},
+      {q:'Translate (3, 4) up 5. New y-coordinate?',ans:9}
+    ],
+    hard:[
+      {q:'Interior angle sum of a hexagon',ans:720},
+      {q:'Right triangle legs 5 and 12. Hypotenuse?',ans:13},
+      {q:'Volume of a box 4 × 5 × 6',ans:120},
+      {q:'Reflect (3, −2) over x-axis. New y-coordinate?',ans:2}
+    ]
+  },
+  comp48_4:{
+    easy:[
+      {q:'Mean of 10, 20, 30',ans:20},
+      {q:'How many outcomes rolling one die?',ans:6},
+      {q:'16 of 40 like soccer. Percent?',ans:40},
+      {q:'Range of 5, 12, 18, 25',ans:20}
+    ],
+    medium:[
+      {q:'Median of 3, 7, 9, 11, 15',ans:9},
+      {q:'Flip 3 coins: total outcomes?',ans:8},
+      {q:'30% of 150 students play sports. How many?',ans:45},
+      {q:'Mode of 4, 7, 4, 9, 4, 2',ans:4}
+    ],
+    hard:[
+      {q:'Mean of 14, 18, 22, 26, 30',ans:22},
+      {q:'Roll 2 dice: total outcomes?',ans:36},
+      {q:'Sample: 15 of 50 chose A. Predict A in 200.',ans:60},
+      {q:'4 shirts × 5 pants = outfits?',ans:20}
+    ]
+  },
+  comp48_5:{
+    easy:[
+      {q:'36 stickers ÷ 6 friends = each gets?',ans:6},
+      {q:'8 packs × 5 pencils = total?',ans:40},
+      {q:'How many sides does a pentagon have?',ans:5},
+      {q:'Degrees in a full rotation?',ans:360}
+    ],
+    medium:[
+      {q:'Car at 55 mph for 4 hours. Distance?',ans:220},
+      {q:'Floor 15 ft × 12 ft. Area?',ans:180},
+      {q:'Reciprocal of 8 is 1/n. What is n?',ans:8},
+      {q:'|−25| = ?',ans:25}
+    ],
+    hard:[
+      {q:'Fill 400 gallons at 20 gal/min. Minutes?',ans:20},
+      {q:'Revenue $500, cost $320. Profit?',ans:180},
+      {q:'Sum of all factors of 12',ans:28},
+      {q:'Sum of first 4 primes (2+3+5+7)',ans:17}
+    ]
+  },
+  comp48_6:{
+    easy:[
+      {q:'Base-10: 2 hundreds + 4 tens + 3 ones = ?',ans:243},
+      {q:'7 of 10 correct. Percent?',ans:70},
+      {q:'45-min class, 8-min warm-up. Remaining?',ans:37},
+      {q:'25 items × 4 pts each. Max score?',ans:100}
+    ],
+    medium:[
+      {q:'Number line 0–1 in 4 parts. 2nd mark as percent?',ans:50},
+      {q:'Pre-test 40%, post-test 75%. Point gain?',ans:35},
+      {q:'30 students in pairs. How many pairs?',ans:15},
+      {q:'10 lessons over 5 weeks. Per week?',ans:2}
+    ],
+    hard:[
+      {q:'5 × 9 split into 5 × 4 + 5 × n. What is n?',ans:5},
+      {q:'Weighted: HW 40% (85) + test 60% (90). Total?',ans:88},
+      {q:'Bloom\'s Taxonomy has how many levels?',ans:6},
+      {q:'8 of 32 missed Q3. Difficulty index (% correct)?',ans:75}
+    ]
+  }
+};
+
 function buildChoiceFromPool(pool,diff,type){
   if(!pool||!pool.length)return null;
   const item=pool[Math.floor(Math.random()*pool.length)];
@@ -782,6 +1013,18 @@ function buildStdQuestion(diff){
 
 function buildCompQuestion(diff){
   const bank=QBLOCKS_COMP_BANK[scopedCompId];
+  const pool=(bank&&bank[diff])||[];
+  return buildChoiceFromPool(pool,diff,'competency');
+}
+
+function buildStdQuestion48(diff){
+  const bank=QBLOCKS_STD_BANK_48[scopedStdId];
+  const pool=(bank&&bank[diff])||[];
+  return buildChoiceFromPool(pool,diff,'standard');
+}
+
+function buildCompQuestion48(diff){
+  const bank=QBLOCKS_COMP_BANK_48[scopedCompId];
   const pool=(bank&&bank[diff])||[];
   return buildChoiceFromPool(pool,diff,'competency');
 }
@@ -1203,6 +1446,50 @@ function setSpeed(){
 // When teks/label indicate equations (e.g. from practice-loop quiz), include equation questions.
 function mkQ(){
   let a,b,op,ans,diff,qText,isEquation=false;
+  if(useMath48StdBank){
+    diff=level<=3?'easy':level<=6?'medium':'hard';
+    const std48=buildStdQuestion48(diff);
+    if(std48){
+      currentQuestion=std48;
+      var std48QEl=$('qText');
+      if(std48QEl)std48QEl.innerHTML=mathRender(std48.q);
+      const std48Btns=[$('ansA'),$('ansB')];
+      if(Math.random()<.5){
+        std48Btns[0].innerHTML=mathRender(std48.ans);std48Btns[0].dataset.correct='1';
+        std48Btns[1].innerHTML=mathRender(std48.wrong);std48Btns[1].dataset.correct='0';
+      }else{
+        std48Btns[1].innerHTML=mathRender(std48.ans);std48Btns[1].dataset.correct='1';
+        std48Btns[0].innerHTML=mathRender(std48.wrong);std48Btns[0].dataset.correct='0';
+      }
+      std48Btns.forEach(function(btn){btn.classList.remove('correct-flash','wrong-flash');btn.disabled=false;});
+      var std48Mb=$('mathBonus');
+      std48Mb.classList.remove('show');
+      std48Mb.textContent='';
+      return;
+    }
+  }
+  if(useMath48CompBank){
+    diff=level<=3?'easy':level<=6?'medium':'hard';
+    const comp48=buildCompQuestion48(diff);
+    if(comp48){
+      currentQuestion=comp48;
+      var comp48QEl=$('qText');
+      if(comp48QEl)comp48QEl.innerHTML=mathRender(comp48.q);
+      const comp48Btns=[$('ansA'),$('ansB')];
+      if(Math.random()<.5){
+        comp48Btns[0].innerHTML=mathRender(comp48.ans);comp48Btns[0].dataset.correct='1';
+        comp48Btns[1].innerHTML=mathRender(comp48.wrong);comp48Btns[1].dataset.correct='0';
+      }else{
+        comp48Btns[1].innerHTML=mathRender(comp48.ans);comp48Btns[1].dataset.correct='1';
+        comp48Btns[0].innerHTML=mathRender(comp48.wrong);comp48Btns[0].dataset.correct='0';
+      }
+      comp48Btns.forEach(function(btn){btn.classList.remove('correct-flash','wrong-flash');btn.disabled=false;});
+      var comp48Mb=$('mathBonus');
+      comp48Mb.classList.remove('show');
+      comp48Mb.textContent='';
+      return;
+    }
+  }
   if(useMath712StdBank){
     diff=level<=3?'easy':level<=6?'medium':'hard';
     const scopedStd=buildStdQuestion(diff);

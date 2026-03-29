@@ -1628,7 +1628,7 @@ export default function PracticeLoop() {
   );
   const examProgress = useMemo(() => {
     const hasStandards = (domains || []).some((d) => (d.standards || []).length > 0);
-    if (examId === 'math712' && hasStandards) {
+    if ((examId === 'math712' || examId === 'math48') && hasStandards) {
       return getStandardPathProgress(examId, domains);
     }
     return getExamProgress(examId, domains.map((d) => d.id));
@@ -2309,7 +2309,7 @@ export default function PracticeLoop() {
 
     if (learningGoals.focusCompId && comp === learningGoals.focusCompId) {
       core += ' This competency is in your focus list — extra reps here pay off for your goal.';
-    } else if (learningGoals.focusCompId && examId === 'math712') {
+    } else if (learningGoals.focusCompId && (examId === 'math712' || examId === 'math48')) {
       const fd = domains.find((d) => d.id === learningGoals.focusCompId);
       if (fd) core += ` When you finish here, consider extra time on your focus domain: ${fd.name}.`;
     }
@@ -2701,9 +2701,9 @@ export default function PracticeLoop() {
     let eligible = GAMES_CATALOG.filter(isOk);
     if (eligible.length === 0) return [COMPETENCY_EXPLORER];
 
-    const strictMath712StdScope = examId === 'math712' && !!currentStd;
+    const strictStdScope = (examId === 'math712' || examId === 'math48') && !!currentStd;
     const STRICT_SCOPED_GAME_IDS = new Set(['q-blocks', 'math-bingo', 'math-match']);
-    if (strictMath712StdScope) {
+    if (strictStdScope) {
       eligible = eligible.filter((g) => STRICT_SCOPED_GAME_IDS.has(g.id));
       if (eligible.length === 0) return [COMPETENCY_EXPLORER];
     }
@@ -2975,7 +2975,7 @@ export default function PracticeLoop() {
     }
     goToPhase(nextPhase);
   }, [isPaid, goToPhase, savePromptSessionKey]);
-  const showScopedGameDebug = examId === 'math712' && !!currentStd;
+  const showScopedGameDebug = (examId === 'math712' || examId === 'math48') && !!currentStd;
   const scopedGameDebugText = showScopedGameDebug
     ? `Scoped games for ${currentStd.toUpperCase()}: 1) ${gameDisplayName}  2) ${game2DisplayName}  3) ${game3DisplayName}  4) ${game4DisplayName}`
     : '';
@@ -4635,7 +4635,7 @@ export default function PracticeLoop() {
                     </button>
                   </div>
                 )}
-                {examId === 'math712' && (
+                {(examId === 'math712' || examId === 'math48') && (
                   <div style={{ marginBottom: 12 }}>
                     <button
                       type="button"
@@ -4699,13 +4699,13 @@ export default function PracticeLoop() {
                   onToggle={() => setRoadmapExpanded((v) => !v)}
                 />
 
-                {examId === 'math712' && (
+                {(examId === 'math712' || examId === 'math48') && (
                   <div style={{ marginBottom: 8, marginTop: 12, textAlign: 'center' }}>
                     <Link
-                      to="/math-712-learning-path"
+                      to={examId === 'math48' ? '/texes-prep?exam=math48' : '/math-712-learning-path'}
                       style={{ fontSize: 13, fontWeight: 700, color: COLOR.blue, textDecoration: 'none' }}
                     >
-                      ← Full learning path (all 21 competencies)
+                      {examId === 'math48' ? '← Full learning path (all 18 standards)' : '← Full learning path (all 21 competencies)'}
                     </Link>
                   </div>
                 )}

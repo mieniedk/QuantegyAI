@@ -369,17 +369,229 @@ export const MICRO_CONCEPTS = {
   // Math 4–8 (math48)
   // ═══════════════════════════════════════════════════════════════
 
-  'math48:comp001': {
+  // ── Domain-level fallbacks (comp48_1 – comp48_6) ──
+
+  'math48:comp48_1': {
     title: 'Number Concepts',
-    conceptText: 'Place value: digit value depends on position. Equivalent fractions: (a)/(b) = (c)/(d) ⟺ ad = bc. Decimals: 0.375 = (3)/(8). PEMDAS for order of operations. LCM: highest power of each prime factor; GCF: lowest power of each common prime factor. Negative numbers: −(−a) = a; rules for +, −, ×.',
-    workedExample: '(3)/(8) = (?)/(24). 8×3 = 24, so 3×3 = 9. Answer: (9)/(24).',
-    misconception: 'Larger denominator always means smaller fraction. Only true for same numerator; (1)/(3) > (1)/(4).',
+    conceptText: 'Place value: each digit\'s value depends on its position (ones, tens, hundreds, …). Equivalent fractions: (a)/(b) = (c)/(d) when a × d = b × c. Decimals: 0.375 = (3)/(8). Comparing fractions: find a common denominator or use cross-multiplication. Negative numbers on the number line extend left of zero. Rational numbers include all fractions and terminating or repeating decimals.',
+    workedExample: 'Compare (3)/(5) and (2)/(3). Cross-multiply: 3 × 3 = 9 and 5 × 2 = 10. Since 9 < 10, (3)/(5) < (2)/(3).',
+    misconception: 'A larger denominator means a smaller fraction only when the numerators are equal. For example, (1)/(3) > (1)/(4), but (3)/(4) > (2)/(3).',
   },
-  'math48:comp002': {
+  'math48:comp48_2': {
     title: 'Patterns and Algebra',
-    conceptText: 'Patterns: find the rule (add, multiply, or both). Variables: unknowns. Equations: isolate using inverse operations. Inequalities: <, >, ≤, ≥; multiply by negative flips the sign. Functions: input → output; tables, graphs, equations.',
-    workedExample: '3x + 7 = 22 → 3x = 15 → x = 5.',
-    misconception: 'Treating inequalities like equations when multiplying by negative — the inequality flips.',
+    conceptText: 'Patterns: find the rule (add, multiply, or both). Variables represent unknowns. Solve equations by using inverse operations to isolate the variable. Inequalities use <, >, ≤, ≥; multiplying or dividing by a negative number flips the inequality sign. Functions map each input to exactly one output — represented by tables, graphs, or equations.',
+    workedExample: '3x + 7 = 22. Subtract 7: 3x = 15. Divide by 3: x = 5. Check: 3(5) + 7 = 22 ✓.',
+    misconception: 'When you multiply or divide both sides of an inequality by a negative number, the direction of the inequality reverses.',
+  },
+  'math48:comp48_3': {
+    title: 'Geometry and Measurement',
+    conceptText: 'Classify shapes by sides, angles, and symmetry. Area formulas: rectangle A = l × w; triangle A = (1)/(2) × b × h; circle A = πr². Volume: rectangular prism V = l × w × h; cylinder V = πr²h. The Pythagorean theorem (a² + b² = c²) relates the sides of a right triangle. Transformations (slides, flips, turns) move figures without changing size or shape.',
+    workedExample: 'Find the area of a triangle with base 10 cm and height 6 cm. A = (1)/(2) × 10 × 6 = 30 cm².',
+    misconception: 'Perimeter measures the distance around a shape (in linear units), while area measures the space inside (in square units). They use different formulas and different units.',
+  },
+  'math48:comp48_4': {
+    title: 'Probability and Statistics',
+    conceptText: 'Probability measures how likely an event is: P(event) = favorable outcomes ÷ total outcomes, always between 0 and 1. Central tendency: mean = sum ÷ count; median = middle value; mode = most frequent. Data displays include bar graphs, line graphs, histograms, and box plots. Range = max − min measures spread.',
+    workedExample: 'Data set: 4, 7, 7, 9, 13. Mean = (4 + 7 + 7 + 9 + 13) ÷ 5 = 40 ÷ 5 = 8. Median = 7 (middle value). Mode = 7.',
+    misconception: 'The mean, median, and mode can all be different values. The mean is affected by outliers; the median is more resistant to extreme values.',
+  },
+  'math48:comp48_5': {
+    title: 'Mathematical Processes',
+    conceptText: 'Problem-solving steps: understand the problem, make a plan, carry out the plan, check your answer. Strategies: draw a picture, look for a pattern, work backwards, make a table, guess and check. Reasoning: inductive (observe patterns → make a conjecture) vs. deductive (apply known rules → reach a conclusion). A single counterexample disproves a conjecture.',
+    workedExample: 'Conjecture: "All odd numbers are prime." Counterexample: 9 = 3 × 3 is odd but not prime. The conjecture is false.',
+    misconception: 'Checking a few examples supports a conjecture but does not prove it. One counterexample is enough to disprove a claim.',
+  },
+  'math48:comp48_6': {
+    title: 'Learning, Instruction & Assessment',
+    conceptText: 'The CRA model (Concrete → Representational → Abstract) builds understanding from hands-on objects to pictures to symbols. Formative assessment (exit tickets, observations) guides daily instruction. Summative assessment (unit tests) measures mastery. Error analysis identifies whether mistakes are conceptual, procedural, or careless — each requires a different intervention.',
+    workedExample: 'A student writes (1)/(2) + (1)/(3) = (2)/(5). Error: adding numerators and denominators separately. Correct: common denominator → (3)/(6) + (2)/(6) = (5)/(6).',
+    misconception: 'Formative assessment happens during instruction to adjust teaching in real time, while summative assessment happens after instruction to measure overall learning.',
+  },
+
+  // ── Standard-level entries (m48_c001 – m48_c018) ──
+
+  'math48:m48_c001': {
+    title: 'Number Systems & Place Value',
+    conceptText: 'Place value: in 3,405.72, the 3 is in the thousands place (3,000), the 4 in hundreds (400), the 7 in tenths (0.7), and the 2 in hundredths (0.02). Comparing decimals: line up decimal points and compare digit by digit from left to right. Fractions, decimals, and percents are different forms of the same number. Every point on the number line corresponds to a number.',
+    workedExample: 'Order from least to greatest: 0.45, (3)/(8), 0.4. Convert: (3)/(8) = 0.375, and 0.4 = 0.400. So 0.375 < 0.400 < 0.450 → (3)/(8), 0.4, 0.45.',
+    misconception: 'A decimal with more digits is not necessarily larger. For example, 0.5 > 0.38 because 5 tenths > 3 tenths, even though 0.38 has more digits.',
+    variants: [
+      { conceptText: 'Rational numbers include positive and negative fractions, decimals, and integers. On the number line, negative numbers lie to the left of zero. Opposites are equidistant from zero on opposite sides: the opposite of 3 is −3. Absolute value |n| is the distance from zero, always non-negative. Integers: …, −3, −2, −1, 0, 1, 2, 3, … Whole numbers are the non-negative integers: 0, 1, 2, 3, …',
+        workedExample: 'Place −2.5, (3)/(4), and −1 on a number line. −2.5 is farthest left, then −1, then (3)/(4) (which is 0.75, to the right of 0). Order: −2.5 < −1 < (3)/(4).',
+        misconception: 'Absolute value gives distance from zero, not the sign of the number. |−7| = 7 and |7| = 7 — both are 7 units from zero.' },
+    ],
+  },
+  'math48:m48_c002': {
+    title: 'Operations & Computational Fluency',
+    conceptText: 'Four operations with whole numbers, fractions, and decimals. Order of operations (PEMDAS): Parentheses, Exponents, Multiplication/Division (left to right), Addition/Subtraction (left to right). Fraction operations: add/subtract → common denominator; multiply → numerator × numerator, denominator × denominator; divide → multiply by the reciprocal. Estimation: round to compatible numbers to check reasonableness.',
+    workedExample: 'Evaluate: 3 + 4 × 2² − (6 ÷ 3). Parentheses: 6 ÷ 3 = 2. Exponents: 2² = 4. Multiply: 4 × 4 = 16. Add/Subtract: 3 + 16 − 2 = 17.',
+    misconception: 'Multiplication and division have equal priority and are performed left to right — multiplication does not always come before division.',
+    variants: [
+      { conceptText: 'Adding fractions: (2)/(5) + (1)/(3) → common denominator 15 → (6)/(15) + (5)/(15) = (11)/(15). Subtracting mixed numbers: convert to improper fractions or regroup. Multiplying decimals: multiply as whole numbers, then count total decimal places. Dividing decimals: move the decimal in the divisor to make it a whole number, then move the dividend\'s decimal the same number of places.',
+        workedExample: '2.4 × 0.15: multiply 24 × 15 = 360. Count decimal places: 1 + 2 = 3. Place decimal: 0.360. Answer: 0.36.',
+        misconception: 'When multiplying decimals, the number of decimal places in the product equals the total number of decimal places in both factors.' },
+    ],
+  },
+  'math48:m48_c003': {
+    title: 'Number Theory & Proportional Reasoning',
+    conceptText: 'Prime numbers have exactly two factors (1 and themselves). Prime factorization: break a number into prime factors using a factor tree. GCF: product of the lowest power of each common prime factor. LCM: product of the highest power of each prime factor. Ratios compare two quantities. Proportions: (a)/(b) = (c)/(d) → cross-multiply to solve. Percent means "per hundred": 25% = (25)/(100) = 0.25.',
+    workedExample: 'Find GCF and LCM of 12 and 18. Factor: 12 = 2² × 3; 18 = 2 × 3². GCF = 2 × 3 = 6. LCM = 2² × 3² = 36.',
+    misconception: 'The number 1 is not prime because it has only one factor (itself). A prime number must have exactly two distinct factors.',
+    variants: [
+      { conceptText: 'Proportional reasoning: if 3 apples cost $1.50, find the cost of 7 apples. Set up: (3)/($1.50) = (7)/(x). Cross-multiply: 3x = $10.50, so x = $3.50. Unit rate: cost per one item ($0.50 per apple). Converting: fraction → decimal: divide numerator by denominator. Decimal → percent: multiply by 100. Percent → fraction: put over 100 and simplify.',
+        workedExample: 'Convert (3)/(8) to a percent. Divide: 3 ÷ 8 = 0.375. Multiply by 100: 37.5%.',
+        misconception: 'To find a percent of a number, convert the percent to a decimal first, then multiply. 30% of 60 = 0.30 × 60 = 18, not 30 × 60.' },
+    ],
+  },
+  'math48:m48_c004': {
+    title: 'Patterns & Algebraic Thinking',
+    conceptText: 'Arithmetic patterns add (or subtract) the same amount each time: 3, 7, 11, 15, … (add 4). Geometric patterns multiply (or divide) by the same factor: 2, 6, 18, 54, … (multiply by 3). Input-output tables show a rule that connects each input to its output. To find the rule, look at what operation(s) turn each input into the corresponding output.',
+    workedExample: 'Input-output table: (1→5), (2→8), (3→11), (4→14). Pattern: output = 3 × input + 2. Check: 3(1) + 2 = 5 ✓, 3(4) + 2 = 14 ✓.',
+    misconception: 'An arithmetic pattern has a constant difference between consecutive terms. A geometric pattern has a constant ratio (each term is multiplied by the same number).',
+    variants: [
+      { conceptText: 'Sequences can be described with a rule or recursively (each term depends on the previous). The nth term of an arithmetic sequence: aₙ = first term + (n − 1) × common difference. Look for patterns in shapes too: triangular numbers (1, 3, 6, 10, …) grow by +2, +3, +4, … Tile patterns that grow each step can model linear or quadratic relationships.',
+        workedExample: 'Arithmetic sequence: 5, 9, 13, 17, … Common difference = 4. The 10th term: a₁₀ = 5 + (10 − 1) × 4 = 5 + 36 = 41.',
+        misconception: 'Not every pattern with numbers is arithmetic or geometric. Some patterns add increasing amounts (like 1, 3, 6, 10, …) or follow other rules.' },
+    ],
+  },
+  'math48:m48_c005': {
+    title: 'Expressions, Equations & Inequalities',
+    conceptText: 'An expression contains numbers, variables, and operations but no equals sign: 3x + 7. An equation states that two expressions are equal: 3x + 7 = 22. Solve by using inverse operations to isolate the variable. Distributive property: a(b + c) = ab + ac. Combine like terms: 4x + 3x = 7x. Inequalities use <, >, ≤, ≥ and have a range of solutions.',
+    workedExample: 'Solve 2(x + 3) = 14. Distribute: 2x + 6 = 14. Subtract 6: 2x = 8. Divide by 2: x = 4.',
+    misconception: 'The distributive property applies to every term inside the parentheses: 3(x + 5) = 3x + 15, not 3x + 5.',
+    variants: [
+      { conceptText: 'Translating words to algebra: "5 more than a number" → n + 5; "twice a number decreased by 3" → 2n − 3; "a number divided by 4" → n ÷ 4. Two-step equations: undo addition/subtraction first, then multiplication/division. Checking solutions: substitute back into the original equation. Graphing inequalities on a number line: open circle for < or >, closed circle for ≤ or ≥.',
+        workedExample: '"Seven less than three times a number is 20." Translate: 3n − 7 = 20. Add 7: 3n = 27. Divide by 3: n = 9. Check: 3(9) − 7 = 20 ✓.',
+        misconception: '"Less than" reverses the order in an expression. "7 less than n" is n − 7, not 7 − n.' },
+    ],
+  },
+  'math48:m48_c006': {
+    title: 'Linear Functions & Relations',
+    conceptText: 'A linear function has a constant rate of change (slope). Slope = rise ÷ run = (y₂ − y₁) ÷ (x₂ − x₁). Slope-intercept form: y = mx + b, where m = slope and b = y-intercept. Proportional relationships pass through the origin (b = 0): y = kx. Non-proportional linear relationships have b ≠ 0.',
+    workedExample: 'Find the equation of the line through (1, 3) and (3, 7). Slope: (7 − 3) ÷ (3 − 1) = 4 ÷ 2 = 2. Use point (1, 3): 3 = 2(1) + b → b = 1. Equation: y = 2x + 1.',
+    misconception: 'A proportional relationship always passes through the origin (0, 0). If the y-intercept is not zero, the relationship is linear but not proportional.',
+    variants: [
+      { conceptText: 'Graphing y = mx + b: start at (0, b) on the y-axis, then use slope as rise/run to plot a second point. Positive slope → line goes up left to right. Negative slope → line goes down. Zero slope → horizontal line. Undefined slope → vertical line. Parallel lines have the same slope. Perpendicular lines have slopes that are negative reciprocals (m₁ × m₂ = −1).',
+        workedExample: 'Graph y = −(2)/(3)x + 4. Start at (0, 4). Slope = −(2)/(3): move right 3, down 2 to reach (3, 2). Draw the line through both points.',
+        misconception: 'Slope is a ratio (rise over run), not just "how steep it looks." A slope of (2)/(3) means for every 3 units right, the line rises 2 units.' },
+    ],
+  },
+  'math48:m48_c007': {
+    title: 'Geometric Properties & Relationships',
+    conceptText: 'Angles: acute (< 90°), right (= 90°), obtuse (> 90° and < 180°), straight (= 180°). Triangles: classified by sides (equilateral, isosceles, scalene) and angles (acute, right, obtuse). Quadrilaterals: parallelogram, rectangle, rhombus, square, trapezoid. Parallel lines never meet; perpendicular lines meet at 90°. Congruent figures have the same shape and size. Similar figures have the same shape but may differ in size.',
+    workedExample: 'A triangle has angles 50° and 60°. Find the third angle: 180° − 50° − 60° = 70°. Since all angles are less than 90°, it is an acute triangle.',
+    misconception: 'The angles in every triangle always sum to exactly 180°, regardless of the triangle\'s shape or size.',
+    variants: [
+      { conceptText: 'Similar figures have proportional sides and equal corresponding angles. Scale factor = ratio of corresponding sides. If two triangles have two pairs of equal angles (AA), they are similar. Congruent means identical in shape and size — all sides and angles match. A square is always a rectangle and a rhombus, but a rectangle is not always a square.',
+        workedExample: 'Triangles with sides 3, 4, 5 and 6, 8, 10. Ratios: 6 ÷ 3 = 2, 8 ÷ 4 = 2, 10 ÷ 5 = 2 — all equal, so the triangles are similar with scale factor 2.',
+        misconception: 'All squares are rectangles (four right angles), but not all rectangles are squares (a rectangle may have unequal side lengths).' },
+    ],
+  },
+  'math48:m48_c008': {
+    title: 'Measurement Concepts',
+    conceptText: 'Perimeter = distance around (sum of side lengths). Area formulas: rectangle A = l × w; triangle A = (1)/(2) × b × h; parallelogram A = b × h; trapezoid A = (1)/(2)(b₁ + b₂) × h; circle A = πr². Volume: rectangular prism V = l × w × h; cylinder V = πr²h. Unit conversions: 1 ft = 12 in; 1 km = 1,000 m; 1 gal = 4 qt. Pythagorean theorem: a² + b² = c² (right triangles only).',
+    workedExample: 'A right triangle has legs 6 cm and 8 cm. Find the hypotenuse: c² = 6² + 8² = 36 + 64 = 100. c = √100 = 10 cm.',
+    misconception: 'The Pythagorean theorem only applies to right triangles. Side c must be the hypotenuse — the side opposite the right angle.',
+    variants: [
+      { conceptText: 'Surface area = total area of all faces. Rectangular prism SA = 2(lw + lh + wh). Cylinder SA = 2πr² + 2πrh. To convert units, multiply by conversion factors: 5 ft × (12 in)/(1 ft) = 60 in. For area, square the conversion: 1 ft² = 144 in². For volume, cube it: 1 ft³ = 1,728 in³. Composite figures: break into simpler shapes, find each area, then add (or subtract for holes).',
+        workedExample: 'Surface area of a box 4 cm × 3 cm × 2 cm: SA = 2(4 × 3 + 4 × 2 + 3 × 2) = 2(12 + 8 + 6) = 2(26) = 52 cm².',
+        misconception: 'When converting area units, square the linear factor. Since 1 m = 100 cm, then 1 m² = 100² = 10,000 cm², not just 100 cm².' },
+    ],
+  },
+  'math48:m48_c009': {
+    title: 'Coordinate & Transformational Geometry',
+    conceptText: 'The coordinate plane has an x-axis (horizontal) and y-axis (vertical), meeting at the origin (0, 0). Points are written (x, y). Quadrants: I (+, +), II (−, +), III (−, −), IV (+, −). Translations slide a figure without rotating or flipping. Reflections flip across a line (mirror image). Rotations turn around a point. Dilations enlarge or shrink by a scale factor. Line symmetry: a figure can be folded along a line so both halves match.',
+    workedExample: 'Reflect point (3, −2) across the x-axis: the x-coordinate stays the same and the y-coordinate changes sign → (3, 2). Reflect across the y-axis: (−3, −2).',
+    misconception: 'Reflecting across the x-axis changes the sign of the y-coordinate (not x). Reflecting across the y-axis changes the sign of the x-coordinate.',
+    variants: [
+      { conceptText: 'Translation rule: (x, y) → (x + a, y + b) shifts right a and up b. Rotation 90° counterclockwise about the origin: (x, y) → (−y, x). Rotation 180°: (x, y) → (−x, −y). Dilation with scale factor k centered at the origin: (x, y) → (kx, ky). If k > 1 the figure enlarges; if 0 < k < 1 it shrinks. Dilations preserve shape (similar figures) but not size.',
+        workedExample: 'Translate triangle with vertices (1, 2), (4, 2), (1, 5) by the rule (x + 3, y − 1): new vertices → (4, 1), (7, 1), (4, 4).',
+        misconception: 'A dilation changes size but preserves shape — all angles stay the same, and sides remain proportional. The image is similar to the original, not congruent (unless scale factor = 1).' },
+    ],
+  },
+  'math48:m48_c010': {
+    title: 'Data Analysis & Displays',
+    conceptText: 'Mean = sum of values ÷ number of values. Median = middle value when data is ordered (average the two middle values if even count). Mode = most frequent value. Range = maximum − minimum. Bar graphs compare categories. Line graphs show change over time. Histograms show frequency within intervals. Box plots display the five-number summary: minimum, Q₁, median, Q₃, maximum.',
+    workedExample: 'Data: 12, 15, 15, 18, 20. Mean = 80 ÷ 5 = 16. Median = 15. Mode = 15. Range = 20 − 12 = 8.',
+    misconception: 'The mean is sensitive to outliers. Adding an extreme value (like 100 to this set) pulls the mean up significantly, but the median barely changes.',
+    variants: [
+      { conceptText: 'Box plots show spread and skew at a glance. Q₁ is the median of the lower half; Q₃ is the median of the upper half. IQR = Q₃ − Q₁ measures the middle 50% spread. Outliers: values below Q₁ − 1.5 × IQR or above Q₃ + 1.5 × IQR. Dot plots show individual data points. Stem-and-leaf plots preserve actual values while showing distribution shape.',
+        workedExample: 'Data: 2, 4, 5, 7, 8, 10, 12. Q₁ = 4, median = 7, Q₃ = 10, IQR = 6. Outlier fences: 4 − 9 = −5 and 10 + 9 = 19. No outliers in this set.',
+        misconception: 'A box plot does not show the mean — it shows the median (the line inside the box). The box represents the middle 50% of the data (from Q₁ to Q₃).' },
+    ],
+  },
+  'math48:m48_c011': {
+    title: 'Probability',
+    conceptText: 'Probability = favorable outcomes ÷ total outcomes. Always between 0 (impossible) and 1 (certain). Theoretical probability: based on equally likely outcomes. Experimental probability: based on actual trials. Sample space = list of all possible outcomes. Tree diagrams organize multi-step experiments. Compound events: use multiplication (AND) or addition (OR).',
+    workedExample: 'Roll a fair number cube. P(even) = 3 favorable (2, 4, 6) ÷ 6 total = (3)/(6) = (1)/(2). P(greater than 4) = (2)/(6) = (1)/(3).',
+    misconception: 'Probability of 0 means the event is impossible; probability of 1 means the event is certain. A probability cannot be negative or greater than 1.',
+    variants: [
+      { conceptText: 'Independent events: the outcome of one does not affect the other. P(A and B) = P(A) × P(B). Dependent events: the first outcome changes the possibilities for the second. P(A and B) = P(A) × P(B given A). Complement: P(not A) = 1 − P(A). "Or" events (mutually exclusive): P(A or B) = P(A) + P(B).',
+        workedExample: 'Bag has 3 red and 5 blue marbles. Draw two without replacement. P(both red) = (3)/(8) × (2)/(7) = (6)/(56) = (3)/(28).',
+        misconception: 'When drawing without replacement, probabilities change after each draw because the total number of items decreases. This makes the events dependent.' },
+    ],
+  },
+  'math48:m48_c012': {
+    title: 'Statistical Reasoning',
+    conceptText: 'A sample is a subset of a population. Random sampling gives every member an equal chance of being selected, reducing bias. Biased samples (like surveying only your friends) do not represent the population. Predictions from data: use trends, proportions, or averages to estimate. Variability measures: IQR (interquartile range) and MAD (mean absolute deviation) show how spread out data is.',
+    workedExample: 'MAD for 4, 6, 8, 10, 12: mean = 8. Absolute deviations: |4−8|=4, |6−8|=2, |8−8|=0, |10−8|=2, |12−8|=4. MAD = (4+2+0+2+4) ÷ 5 = 12 ÷ 5 = 2.4.',
+    misconception: 'A larger sample size generally gives more reliable predictions, but the sampling method matters more than size. A biased sample stays biased no matter how large it is.',
+    variants: [
+      { conceptText: 'Sampling methods: random (every member has equal chance), stratified (divide into groups, sample from each), convenience (easiest to reach — often biased), voluntary response (people choose to respond — often biased). Making predictions: if 12 out of 50 surveyed prefer vanilla, predict about 12 ÷ 50 = 24% of the full population prefers vanilla. Compare two data sets using their centers (mean/median) and their spreads (IQR/MAD).',
+        workedExample: 'Class A median = 78, IQR = 10. Class B median = 82, IQR = 20. Class B scored higher on average, but Class A was more consistent (smaller spread).',
+        misconception: 'Two data sets can have the same mean but very different spreads. Always look at both center and variability to fully compare distributions.' },
+    ],
+  },
+  'math48:m48_c013': {
+    title: 'Problem Solving & Reasoning',
+    conceptText: 'Polya\'s four steps: (1) Understand the problem, (2) Make a plan, (3) Carry out the plan, (4) Look back and check. Strategies: draw a diagram, make a table, look for a pattern, work backwards, guess-and-check, write an equation. Inductive reasoning: observe specific cases → form a general conjecture. Deductive reasoning: apply a known rule → reach a guaranteed conclusion. A counterexample disproves a conjecture.',
+    workedExample: 'Conjecture: "The sum of two odd numbers is always odd." Test: 3 + 5 = 8 (even). Counterexample found! The sum of two odd numbers is always even.',
+    misconception: 'Inductive reasoning (pattern-based) can suggest what is true, but only deductive reasoning (rule-based) can prove it with certainty.',
+  },
+  'math48:m48_c014': {
+    title: 'Mathematical Connections',
+    conceptText: 'Math connects across strands: fractions relate to division, area models connect multiplication to geometry, and proportional reasoning links ratios to graphs. Real-world applications: budgeting (operations), cooking (fractions), construction (measurement), sports statistics (data). Multiple representations: a relationship can be shown with words, a table, an equation, or a graph — all convey the same information in different ways.',
+    workedExample: 'A recipe uses (3)/(4) cup of flour for 12 cookies. For 36 cookies (3 batches): (3)/(4) × 3 = (9)/(4) = 2(1)/(4) cups. Fractions, multiplication, and real-world context connect.',
+    misconception: 'Math strands are not isolated topics. Algebra, geometry, data, and number sense constantly reinforce each other in real problems.',
+  },
+  'math48:m48_c015': {
+    title: 'Communication & Mathematical Language',
+    conceptText: 'Precise vocabulary matters: "equal," "equivalent," "congruent," and "similar" each have specific meanings. Translating between representations: verbal descriptions ↔ numerical expressions ↔ algebraic equations ↔ graphs/diagrams. Explaining reasoning: state your claim, provide evidence (computation or logic), and connect back to the problem. Justification shows why an answer is correct, not just what the answer is.',
+    workedExample: '"Is (2)/(4) equal to (1)/(2)?" Justify: (2)/(4) simplifies by dividing numerator and denominator by 2: (2 ÷ 2)/(4 ÷ 2) = (1)/(2). Yes, they are equivalent fractions.',
+    misconception: '"Equal" and "equivalent" have distinct uses in math. Two fractions are equivalent (same value, different form); two expressions are equal when they have the same value for all variable values.',
+  },
+  'math48:m48_c016': {
+    title: 'How Students Learn Mathematics',
+    conceptText: 'CRA model: Concrete (manipulatives like base-ten blocks, fraction tiles), Representational (drawings, diagrams, number lines), Abstract (symbols and equations). Students progress through developmental stages — younger learners need more concrete experience. Common misconceptions at grades 4–8: "multiplication always makes bigger," "you can\'t subtract a bigger number from a smaller one," "longer decimals are always larger."',
+    workedExample: 'Teaching fractions with CRA: Concrete — fold paper strips into halves, thirds, fourths. Representational — shade fraction bars on a worksheet. Abstract — compute (1)/(2) + (1)/(4) = (3)/(4) using symbols.',
+    misconception: 'Multiplication does not always make a number bigger. Multiplying by a fraction less than 1 makes the product smaller: 8 × (1)/(2) = 4.',
+    variants: [
+      { conceptText: 'Piaget\'s stages relevant to grades 4–8: concrete operational (ages ~7–11, logical thinking about concrete objects) and formal operational (ages ~11+, abstract and hypothetical thinking). Students in transition may handle some abstract ideas but still need concrete anchors. Productive struggle is valuable — students learn more when they work through challenges rather than being told procedures. Growth mindset: effort and strategies develop math ability.',
+        workedExample: 'A 5th grader struggles with −3 + 5. Concrete: use a number line, start at −3, jump right 5 → land on 2. Representational: draw the jumps. Abstract: −3 + 5 = 2.',
+        misconception: 'Students develop mathematical understanding at different rates, and concrete models remain helpful even for older students encountering new abstract concepts.' },
+    ],
+  },
+  'math48:m48_c017': {
+    title: 'Planning & Instructional Strategies',
+    conceptText: 'Lesson design should align to TEKS standards with a clear objective, engaging activity, and assessment. Differentiation: adjust content, process, or product based on student readiness. Scaffolding: provide temporary support (hints, graphic organizers, sentence stems) and gradually remove it. ELL strategies: visual aids, vocabulary walls, hands-on activities, bilingual glossaries. Technology: virtual manipulatives, graphing tools (Desmos), and practice software enhance learning.',
+    workedExample: 'Objective: "Students will solve two-step equations." Differentiation — struggling: use algebra tiles; on-level: solve symbolically; advanced: write and solve their own word problems. All groups share strategies at the end.',
+    misconception: 'Differentiation does not mean giving advanced students "more problems." It means providing appropriately challenging tasks that deepen understanding for every learner.',
+    variants: [
+      { conceptText: 'Manipulatives: base-ten blocks (place value), fraction tiles (fraction operations), algebra tiles (equations), geoboards (area/perimeter), pattern blocks (geometry). Using manipulatives is not just for younger students — they help build understanding of new concepts at any grade. Questioning strategies: factual ("What is…"), procedural ("How do you…"), conceptual ("Why does…"), metacognitive ("How do you know?"). Higher-order questions promote deeper thinking.',
+        workedExample: 'Teaching area of a parallelogram: students cut a triangle from one side of a paper parallelogram and slide it to the other side, forming a rectangle. They see that A = base × height.',
+        misconception: 'Effective instruction balances conceptual understanding with procedural fluency. Students need both to be flexible problem solvers.' },
+    ],
+  },
+  'math48:m48_c018': {
+    title: 'Assessment',
+    conceptText: 'Formative assessment: ongoing checks during instruction — exit tickets, thumbs up/down, whiteboard responses, questioning. Summative assessment: end-of-unit or end-of-course tests measuring mastery. Diagnostic assessment: given before a unit to identify prior knowledge and gaps. Error analysis: examine student work to determine if errors are conceptual (misunderstanding), procedural (wrong steps), or careless (attention slips). Use assessment data to reteach, regroup, or extend.',
+    workedExample: 'Student work: (3)/(4) − (1)/(2) = (2)/(2) = 1. Error analysis: the student subtracted numerators (3 − 1 = 2) and denominators (4 − 2 = 2) separately. Intervention: reteach common denominators — (3)/(4) − (2)/(4) = (1)/(4).',
+    misconception: 'Assessment is not just testing — it is a continuous process of gathering evidence about student learning to make informed instructional decisions.',
+    variants: [
+      { conceptText: 'Rubrics define criteria and performance levels (e.g., 4 = exceeds, 3 = meets, 2 = approaching, 1 = beginning). They make expectations clear and scoring consistent. Item analysis after a test: which questions had the highest error rate? What misconceptions do the wrong answers reveal? Data-driven instruction: use patterns in student performance to plan reteaching, small-group intervention, or enrichment. Portfolios show growth over time.',
+        workedExample: 'After a test, 70% of students missed the question on subtracting mixed numbers. The most common wrong answer suggests students forgot to regroup. Plan: reteach regrouping with fraction models before moving on.',
+        misconception: 'A single test score does not fully represent a student\'s understanding. Multiple forms of evidence (tests, observations, student work, discussions) provide a more complete picture.' },
+    ],
   },
 
   // ═══════════════════════════════════════════════════════════════
