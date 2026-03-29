@@ -353,6 +353,25 @@ export function speechifyForNarration(str) {
   s = s.replace(/\bsummative\b/gi, 'sum-uh-tiv');
   s = s.replace(/\bdiscriminant\b/gi, 'dis-crim-in-ant');
 
+  // Math symbol pronunciation
+  s = s.replace(/√/g, 'square root of ');
+  s = s.replace(/π/g, 'pi');
+  s = s.replace(/×/g, ' times ');
+  s = s.replace(/÷/g, ' divided by ');
+  s = s.replace(/≤/g, ' is less than or equal to ');
+  s = s.replace(/≥/g, ' is greater than or equal to ');
+  s = s.replace(/≠/g, ' is not equal to ');
+  s = s.replace(/→/g, ' implies ');
+  s = s.replace(/∫/g, 'the integral of ');
+  s = s.replace(/·/g, ' times ');
+  s = s.replace(/±/g, ' plus or minus ');
+  s = s.replace(/∞/g, 'infinity');
+  s = s.replace(/∑/g, 'the sum of ');
+  s = s.replace(/Σ/g, 'the sum of ');
+  s = s.replace(/∆/g, 'delta ');
+  s = s.replace(/θ/g, 'theta');
+  s = s.replace(/∘/g, ' composed with ');
+
   const superDigits = {
     '\u2070': '0', '\u00B9': '1', '\u00B2': '2', '\u00B3': '3', '\u2074': '4',
     '\u2075': '5', '\u2076': '6', '\u2077': '7', '\u2078': '8', '\u2079': '9',
