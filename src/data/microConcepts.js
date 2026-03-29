@@ -158,15 +158,15 @@ export const MICRO_CONCEPTS = {
   },
   'math712:c008': {
     title: 'Exponential & Logarithmic Functions',
-    conceptText: 'Exponential: f(x) = a·b^(x); a = initial value, b = growth factor (b > 1 growth, 0 < b < 1 decay). Transforms: y = a·b^(x−h) + k — shift h right, k up, vertical scale |a|, horizontal asymptote y = k. Logarithm: log_b(x) = y ⟺ b^(y) = x. Laws: log(ab) = log a + log b; log(a/b) = log a − log b; log(a^(n)) = n·log a. Change of base: log_b(x) = (ln x)/(ln b). Log transforms: y = a·log_b(x−h) + k — vertical asymptote x = h, domain x > h. Discrete compounding: A = P·(1 + r/n)^(nt). Continuous: A = P·e^(rt). Half-life (N = N₀·e^(kt), k < 0): (ln 2)/|k|.',
-    workedExample: 'Solve 3^(x) = 81: 81 = 3^(4), so x = 4. Or: x = log_3(81) = (ln 81)/(ln 3) = 4.',
+    conceptText: 'Exponential: f(x) = a·b^x; a = initial value, b = growth factor (b > 1 growth, 0 < b < 1 decay). Transforms: y = a·b^(x−h) + k — shift h right, k up, vertical scale |a|, horizontal asymptote y = k. Logarithm: log₍b₎(x) = y ⟺ b^y = x (with b > 0, b ≠ 1). Laws: log(ab) = log a + log b; log(a/b) = log a − log b; log(a^n) = n·log a. Change of base: log₍b₎(x) = (ln x)/(ln b). Log transforms: y = a·log₍b₎(x−h) + k — vertical asymptote x = h, domain x > h. Discrete compounding: A = P·(1 + r/n)^(nt). Continuous: A = P·e^(rt). Half-life (N = N₀·e^(kt), k < 0): (ln 2)/|k|.',
+    workedExample: 'Solve 3^x = 81: 81 = 3^4, so x = 4. Or: x = log₃(81) = (ln 81)/(ln 3) = 4.',
     misconception: 'The log of a sum has no simple rule: log(a+b) ≠ log a + log b. The product rule applies to multiplication: log(a·b) = log a + log b.',
     variants: [
-      { conceptText: 'Exponential growth/decay: N(t) = N₀·e^(kt). k > 0 growth, k < 0 decay. Doubling time: (ln 2)/k when k > 0. Half-life: (ln 2)/|k| when k < 0. Logarithmic scales: Richter (earthquakes), decibels (sound), pH (acidity). The graph of y = log_b(x) is the reflection of y = b^(x) about the line y = x. Domain of log: x > 0; range: all reals.',
+      { conceptText: 'Exponential growth/decay: N(t) = N₀·e^(kt). k > 0 growth, k < 0 decay. Doubling time: (ln 2)/k when k > 0. Half-life: (ln 2)/|k| when k < 0. Logarithmic scales: Richter (earthquakes), decibels (sound), pH (acidity). The graph of y = log₍b₎(x) is the reflection of y = b^x about the line y = x. Domain of log: x > 0; range: all reals.',
         workedExample: 'A population doubles every 5 years. k = (ln 2)/(5) ≈ 0.1386. After 15 years: N = N₀·e^(0.1386·15) = N₀·e^(2.079) ≈ 8N₀ (three doubling periods: 2^(3) = 8).',
         misconception: 'In exponential growth, the rate of change itself increases over time. What stays constant is the growth factor (the percentage increase per unit time), not the rate.' },
-      { conceptText: 'Solving exponential equations: same base → set exponents equal; different bases → take ln of both sides. Solving log equations: convert to exponential form, solve, check domain. Natural log: ln x = log_e(x). Properties: ln(e^(x)) = x and e^(ln(x)) = x. Inverse relationship: exponential and log undo each other. Applications: carbon dating, bacterial growth, Newton\'s cooling law.',
-        workedExample: 'Solve: log_2(x) + log_2(x−2) = 3. Combine: log_2(x(x−2)) = 3 → 2^(3) = x(x−2) → x²−2x = 8 → x²−2x−8 = 0 → (x−4)(x+2) = 0. x = 4 (x = −2 excluded: log of negative).',
+      { conceptText: 'Solving exponential equations: same base → set exponents equal; different bases → take ln of both sides. Solving log equations: convert to exponential form, solve, check domain. Natural log: ln x = log₍e₎(x). Properties: ln(e^x) = x and e^(ln(x)) = x. Inverse relationship: exponential and log undo each other. Applications: carbon dating, bacterial growth, Newton\'s cooling law.',
+        workedExample: 'Solve: log₂(x) + log₂(x−2) = 3. Combine: log₂(x(x−2)) = 3 → 2^3 = x(x−2) → x²−2x = 8 → x²−2x−8 = 0 → (x−4)(x+2) = 0. x = 4 (x = −2 excluded: log of negative).',
         misconception: 'ln(0) is undefined (it approaches −∞). The value that equals zero is ln(1) = 0, because e^(0) = 1.' },
     ],
   },
@@ -768,7 +768,7 @@ export const EXPONENT_RULES = [
 
 /**
  * Get micro-concept for the current learning scope.
- * Priority: TEKS-specific -> standard-specific -> competency-level.
+ * Priority: TEKS-specific → standard-specific → competency-level.
  * @param {number} [variantIndex=0] — rotate through variants (0 = base, 1+ = variants array)
  */
 export function getMicroConcept(examId, compId, teks, standardId, variantIndex = 0) {

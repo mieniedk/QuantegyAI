@@ -62,6 +62,12 @@ import { motionTransition } from '../utils/motion';
 import { showAppToast } from '../utils/appToast';
 
 const COMPETENCY_EXPLORER = { id: 'concept-explorer', name: 'Concept Explorer', path: '/concept-explorer' };
+const VIDEO_BACKUP_EMBEDS = [
+  'https://www.youtube.com/embed/CLWpkv6ccpA',
+  'https://www.youtube.com/embed/SP-YJe7Vldo',
+  'https://www.youtube.com/embed/MHeirBPOI6w',
+  'https://www.youtube.com/embed/EcVRXQKzZjo',
+];
 const FREE_TILE_LIMIT = 4;
 const SAVE_PROGRESS_TILE_THRESHOLD = 8;
 const QUIZ_PHASES = new Set([
@@ -2874,13 +2880,17 @@ export default function PracticeLoop() {
     pushUnique(introLecture?.video);
     pushUnique(deepDiveLecture?.video);
 
-    // Only allow broad domain fallbacks when no specific standard is selected.
-    if (!resolvedStdId) {
-      (compDomain?.videos || []).forEach(pushUnique);
-      pushUnique(compDomain?.video);
-      pushUnique(lecture?.video);
-      pushUnique('https://www.youtube.com/embed/CLWpkv6ccpA');
-    }
+    // Then pull from other standards in this competency to keep Video B relevant.
+    (compDomain?.standards || []).forEach((std) => {
+      if (!std?.id || std.id === resolvedStdId) return;
+      pushUnique(getLectureForComp(comp, std.id)?.video);
+    });
+
+    // Domain-level and generic fallbacks, used when a competency has sparse media.
+    (compDomain?.videos || []).forEach(pushUnique);
+    pushUnique(compDomain?.video);
+    pushUnique(lecture?.video);
+    VIDEO_BACKUP_EMBEDS.forEach(pushUnique);
 
     return {
       introVideoEmbed: uniqueEmbeds[0] || null,
@@ -4358,11 +4368,7 @@ export default function PracticeLoop() {
                   </div>
                 ) : showNumberSetsActivity ? (
                   <NumberSetsChallenge onContinue={() => goToPhase('check-quiz-7')} />
-                ) : (
-                  <div style={{ marginBottom: 16, padding: '12px 14px', borderRadius: 10, background: '#eef2ff', border: `1px solid ${COLOR.blue}55`, fontSize: 13, color: '#1e3a8a', lineHeight: 1.5 }}>
-                    No second unique video for this competency right now, so this tile gives you a different recap angle instead of repeating the same clip.
-                  </div>
-                )}
+                ) : null}
                 {!hasUniqueDeepDiveLecture && !showNumberSetsActivity && (
                   <div style={BODY} dangerouslySetInnerHTML={{ __html: sanitizeHtml(conceptToBulletHtml(conceptRefreshConcept?.conceptText || reminderText || '')) }} />
                 )}

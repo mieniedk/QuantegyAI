@@ -1095,11 +1095,13 @@ function buildChoiceFromPool(pool,diff,type,poolKey){
   if(!pool||!pool.length)return null;
   const item=selectUniqueFromPool(pool,poolKey);
   if(!item)return null;
+  const prompt=String(item.q||item.question||item.prompt||item.text||'').trim();
+  if(!prompt)return null;
   const ans=Number(item.ans);
   if(!Number.isFinite(ans))return null;
   const offsets=(diff==='hard'?[2,-2,3,-3,5,-5,7,-7]:[1,-1,2,-2,3,-3]).filter(function(d){return ans+d!==ans;});
   const wrong=ans+offsets[Math.floor(Math.random()*offsets.length)];
-  return {type:type,q:item.q,ans:ans,wrong:wrong,diff:diff};
+  return {type:type,q:prompt,ans:ans,wrong:wrong,diff:diff};
 }
 
 function getScopeKey(prefix,id,diff){
@@ -1140,9 +1142,11 @@ function makeWrongFromAnswer(ans,diff){
 }
 
 function makeQuestionObject(q,ans){
+  const prompt=String(q||'').trim();
+  if(!prompt)return null;
   const n=Number(ans);
   if(!Number.isFinite(n))return null;
-  return {q:q,ans:n};
+  return {q:prompt,ans:n};
 }
 
 function generateQuestionFromStd(std,diff){
@@ -1697,7 +1701,7 @@ function mkQ(){
     if(std48){
       currentQuestion=std48;
       var std48QEl=$('qText');
-      if(std48QEl)std48QEl.innerHTML=mathRender(std48.q);
+      if(std48QEl)std48QEl.innerHTML=mathRender(String(std48.q||std48.question||std48.prompt||'Solve to drop: choose the correct answer.'));
       const std48Btns=[$('ansA'),$('ansB')];
       if(Math.random()<.5){
         std48Btns[0].innerHTML=mathRender(std48.ans);std48Btns[0].dataset.correct='1';
@@ -1719,7 +1723,7 @@ function mkQ(){
     if(comp48){
       currentQuestion=comp48;
       var comp48QEl=$('qText');
-      if(comp48QEl)comp48QEl.innerHTML=mathRender(comp48.q);
+      if(comp48QEl)comp48QEl.innerHTML=mathRender(String(comp48.q||comp48.question||comp48.prompt||'Solve to drop: choose the correct answer.'));
       const comp48Btns=[$('ansA'),$('ansB')];
       if(Math.random()<.5){
         comp48Btns[0].innerHTML=mathRender(comp48.ans);comp48Btns[0].dataset.correct='1';
@@ -1741,7 +1745,7 @@ function mkQ(){
     if(scopedStd){
       currentQuestion=scopedStd;
       var stdQEl=$('qText');
-      if(stdQEl)stdQEl.innerHTML=mathRender(scopedStd.q);
+      if(stdQEl)stdQEl.innerHTML=mathRender(String(scopedStd.q||scopedStd.question||scopedStd.prompt||'Solve to drop: choose the correct answer.'));
       const stdBtns=[$('ansA'),$('ansB')];
       if(Math.random()<.5){
         stdBtns[0].innerHTML=mathRender(scopedStd.ans);stdBtns[0].dataset.correct='1';
@@ -1763,7 +1767,7 @@ function mkQ(){
     if(scoped){
       currentQuestion=scoped;
       var scopedQEl=$('qText');
-      if(scopedQEl)scopedQEl.innerHTML=mathRender(scoped.q);
+      if(scopedQEl)scopedQEl.innerHTML=mathRender(String(scoped.q||scoped.question||scoped.prompt||'Solve to drop: choose the correct answer.'));
       const scopedBtns=[$('ansA'),$('ansB')];
       if(Math.random()<.5){
         scopedBtns[0].innerHTML=mathRender(scoped.ans);scopedBtns[0].dataset.correct='1';
@@ -1835,7 +1839,11 @@ function mkQ(){
     currentQuestion={a,b,op,ans,wrong,diff};
   }
   var qEl=$('qText');
-  if(qEl){ if(isEquation) qEl.innerHTML=mathRender(currentQuestion.q+' → x = ?'); else qEl.innerHTML=mathRender(qText); }
+  if(qEl){
+    const safePrompt=String((currentQuestion&&currentQuestion.q)||qText||'Solve to drop: choose the correct answer.').trim();
+    if(isEquation) qEl.innerHTML=mathRender(safePrompt+' → x = ?');
+    else qEl.innerHTML=mathRender(safePrompt);
+  }
   const btns=[$('ansA'),$('ansB')];
   if(Math.random()<.5){btns[0].innerHTML=mathRender(currentQuestion.ans);btns[0].dataset.correct='1';btns[1].innerHTML=mathRender(currentQuestion.wrong);btns[1].dataset.correct='0';}
   else{btns[1].innerHTML=mathRender(currentQuestion.ans);btns[1].dataset.correct='1';btns[0].innerHTML=mathRender(currentQuestion.wrong);btns[0].dataset.correct='0';}
@@ -2202,6 +2210,12 @@ function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').
 function mathRender(raw){
   var s=String(raw);
   s=s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  var subMap={'0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉','a':'ₐ','e':'ₑ','h':'ₕ','i':'ᵢ','j':'ⱼ','k':'ₖ','l':'ₗ','m':'ₘ','n':'ₙ','o':'ₒ','p':'ₚ','r':'ᵣ','s':'ₛ','t':'ₜ','u':'ᵤ','v':'ᵥ','x':'ₓ'};
+  var subscript=function(base){return String(base||'').split('').map(function(ch){return subMap[ch]||subMap[ch.toLowerCase()]||ch;}).join('');};
+  s=s.replace(/\bsqrt\s*\(/gi,'√(');
+  s=s.replace(/\blog_([A-Za-z0-9]+)\s*\(/g,function(_,base){return 'log₍'+subscript(base)+'₎('});
+  s=s.replace(/\blog_([A-Za-z0-9]+)/g,function(_,base){return 'log₍'+subscript(base)+'₎';});
+  s=s.replace(/!=/g,'≠').replace(/<=/g,'≤').replace(/>=/g,'≥').replace(/->/g,'→');
   s=s.replace(/sqrt\(([^)]+)\)/g,'<span class="mq-sqrt"><span class="mq-vin">$1</span></span>');
   s=s.replace(/√\(([^)]+)\)/g,'<span class="mq-sqrt"><span class="mq-vin">$1</span></span>');
   s=s.replace(/√(\d+)/g,'<span class="mq-sqrt"><span class="mq-vin">$1</span></span>');

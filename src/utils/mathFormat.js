@@ -118,6 +118,40 @@ const RADICAL_CHAR = /[a-zA-Z0-9\u2080-\u2089\u2090-\u209C\u0300-\u036F]/;
 /* ── Unicode superscript digits used as nth-root index (², ³, etc.) ── */
 const SUPERSCRIPT_DIGITS = '\u00B2\u00B3\u2074\u2075\u2076\u2077\u2078\u2079';
 
+const SUBSCRIPT_MAP = {
+  '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄',
+  '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+  a: 'ₐ', e: 'ₑ', h: 'ₕ', i: 'ᵢ', j: 'ⱼ', k: 'ₖ',
+  l: 'ₗ', m: 'ₘ', n: 'ₙ', o: 'ₒ', p: 'ₚ', r: 'ᵣ',
+  s: 'ₛ', t: 'ₜ', u: 'ᵤ', v: 'ᵥ', x: 'ₓ',
+};
+
+function toSubscript(text) {
+  return String(text || '')
+    .split('')
+    .map((ch) => SUBSCRIPT_MAP[ch] || SUBSCRIPT_MAP[ch.toLowerCase()] || ch)
+    .join('');
+}
+
+function normalizeMathNotation(str) {
+  return String(str || '')
+    // Normalize common authored operators.
+    .replace(/!=/g, '≠')
+    .replace(/<=/g, '≤')
+    .replace(/>=/g, '≥')
+    .replace(/->/g, '→')
+    // sqrt(...) authored text -> radical.
+    .replace(/\bsqrt\s*\(/gi, '√(')
+    // log_b(x) and log_3(81) -> log₍b₎(x), log₍3₎(81)
+    .replace(/\blog_([A-Za-z0-9]+)\s*\(/g, (_, base) => `log₍${toSubscript(base)}₎(`)
+    // log_b without immediate parentheses.
+    .replace(/\blog_([A-Za-z0-9]+)/g, (_, base) => `log₍${toSubscript(base)}₎`)
+    // Prefer symbolic infinity over text.
+    .replace(/\binfinity\b/gi, '∞')
+    // Render the common set-union token.
+    .replace(/\sU\s/g, ' ∪ ');
+}
+
 /* ── Characters that break a simple-fraction token ── */
 function isBreak(ch) {
   return ' \t,;:.=<>!?\n\r'.includes(ch);
@@ -396,18 +430,9 @@ export function speechifyForNarration(str) {
 export function formatMathHtml(str) {
   if (typeof str !== 'string') return '';
   // Normalize common authoring patterns into standard math notation.
-  const normalized = str
+  const normalized = normalizeMathNotation(str)
     // "√ 2" -> "√2" so radicals parse correctly.
-    .replace(/([√\u221A])\s+(?=[(\[]|[A-Za-z0-9])/g, '$1')
-    // Use standard symbols for common authored operators.
-    .replace(/!=/g, '≠')
-    .replace(/<=/g, '≤')
-    .replace(/>=/g, '≥')
-    .replace(/->/g, '→')
-    // Prefer symbolic infinity over text.
-    .replace(/\binfinity\b/gi, '∞')
-    // Render the common set-union token.
-    .replace(/\sU\s/g, ' ∪ ');
+    .replace(/([√\u221A])\s+(?=[(\[]|[A-Za-z0-9])/g, '$1');
   return parseMath(normalized);
 }
 
