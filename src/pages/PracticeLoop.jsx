@@ -62,8 +62,8 @@ import { motionTransition } from '../utils/motion';
 import { showAppToast } from '../utils/appToast';
 
 const COMPETENCY_EXPLORER = { id: 'concept-explorer', name: 'Concept Explorer', path: '/concept-explorer' };
-const FREE_TILE_LIMIT = 5;
-const SAVE_PROGRESS_TILE_THRESHOLD = 3;
+const FREE_TILE_LIMIT = 4;
+const SAVE_PROGRESS_TILE_THRESHOLD = 8;
 const QUIZ_PHASES = new Set([
   'diagnostic',
   'check-quiz',
@@ -2043,6 +2043,7 @@ export default function PracticeLoop() {
     if (idx > highWatermark) setHighWatermark(idx);
   }, [phase, highWatermark]);
   const pendingPaywallPhaseRef = React.useRef(null);
+  const [pendingPaywallPhase, setPendingPaywallPhase] = useState(null);
   const [detourFromStep, setDetourFromStep] = useState(null);
   const [revisitReturnPhase, setRevisitReturnPhase] = useState(null);
   const revisitReturnRef = React.useRef(null);
@@ -2085,6 +2086,7 @@ export default function PracticeLoop() {
     }
     if (!isPaid && normalizedPhase !== 'paywall' && normalizedPhase !== 'diagnostic' && projectedTilesCompleted > FREE_TILE_LIMIT) {
       pendingPaywallPhaseRef.current = normalizedPhase;
+      setPendingPaywallPhase(normalizedPhase);
       setPhase('paywall');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
@@ -2204,7 +2206,11 @@ export default function PracticeLoop() {
   }, [ADAPTIVE, goToPhase, readinessRetries, isAdaptiveDebug]);
 
   const phaseRawIdx = PHASES.indexOf(phase);
-  const phaseIndex = phaseRawIdx >= 0 ? phaseRawIdx : 0;
+  const paywallPendingIdx = PHASES.indexOf(pendingPaywallPhase);
+  const fallbackIdx = phase === 'paywall'
+    ? (paywallPendingIdx >= 0 ? paywallPendingIdx : Math.max(0, highWatermark))
+    : 0;
+  const phaseIndex = phaseRawIdx >= 0 ? phaseRawIdx : fallbackIdx;
   const displayPhaseIndex = detourFromStep != null ? detourFromStep : phaseIndex;
   // When switching competency/standard scopes, clear detour-only indexing so
   // each loop paints tile progress from its own current phase.
@@ -2954,6 +2960,21 @@ export default function PracticeLoop() {
   const game3DisplayName = game3?.name || gameDisplayName;
   const game4Url = buildGameUrl(game4?.path, 'readiness-quiz');
   const game4DisplayName = game4?.name || gameDisplayName;
+  const continueAfterGame = useCallback((nextPhase, _gameDef) => {
+    if (!isPaid && !isStudentLoggedIn()) {
+      if (!saveProgressPromptedRef.current) {
+        saveProgressPromptedRef.current = true;
+        try { window.sessionStorage.setItem(savePromptSessionKey, '1'); } catch {}
+        setShowSaveProgressModal(true);
+      }
+      pendingPaywallPhaseRef.current = nextPhase;
+      setPendingPaywallPhase(nextPhase);
+      setPhase('paywall');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    goToPhase(nextPhase);
+  }, [isPaid, goToPhase, savePromptSessionKey]);
   const showScopedGameDebug = examId === 'math712' && !!currentStd;
   const scopedGameDebugText = showScopedGameDebug
     ? `Scoped games for ${currentStd.toUpperCase()}: 1) ${gameDisplayName}  2) ${game2DisplayName}  3) ${game3DisplayName}  4) ${game4DisplayName}`
@@ -3951,6 +3972,7 @@ export default function PracticeLoop() {
               setIsPaid(true);
               const pending = pendingPaywallPhaseRef.current;
               pendingPaywallPhaseRef.current = null;
+              setPendingPaywallPhase(null);
               const nextIdx = Math.min(FREE_TILE_LIMIT, PHASES.length - 1);
               setPhase(pending && PHASES.includes(pending) ? pending : (PHASES[nextIdx] || 'check-quiz-2'));
               window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -3986,7 +4008,7 @@ export default function PracticeLoop() {
             gameUrl={gameUrl} gameName={gameDisplayName}
             continueOnly
             scopeDebugText={scopedGameDebugText}
-            onSkip={() => goToPhase('check-quiz-2')}
+            onSkip={() => continueAfterGame('check-quiz-2', game1)}
           />
         )}
 
@@ -4106,7 +4128,7 @@ export default function PracticeLoop() {
             description="A different game to reinforce what you've learned so far."
             gameUrl={game2Url} gameName={game2DisplayName}
             scopeDebugText={scopedGameDebugText}
-            onSkip={() => goToPhase('check-quiz-5')}
+            onSkip={() => continueAfterGame('check-quiz-5', game2)}
           />
         )}
 
@@ -4202,7 +4224,7 @@ export default function PracticeLoop() {
             description="Switch it up with another game to keep practicing."
             gameUrl={game3Url} gameName={game3DisplayName}
             scopeDebugText={scopedGameDebugText}
-            onSkip={() => goToPhase('check-quiz-8')}
+            onSkip={() => continueAfterGame('check-quiz-8', game3)}
           />
         )}
 
@@ -4316,7 +4338,7 @@ export default function PracticeLoop() {
             description="One last game for retention before the final stretch."
             gameUrl={game4Url} gameName={game4DisplayName}
             scopeDebugText={scopedGameDebugText}
-            onSkip={() => goToPhase('readiness-quiz')}
+            onSkip={() => continueAfterGame('readiness-quiz', game4)}
           />
         )}
 

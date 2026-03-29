@@ -11,6 +11,7 @@ import {
 const EXAM_LABELS = {
   math712: 'TExES Math 7-12',
   math48: 'TExES Math 4-8',
+  linearAlgebra: 'Linear Algebra',
 };
 
 const PLANS = [
@@ -57,6 +58,8 @@ function isAccountExistsError(message) {
     || text.includes('duplicate');
 }
 
+const VALID_COUPONS = new Set(['ALLEN100', 'FREEACCESS', 'TEXES2025', 'MATHPREP', 'PIONEER']);
+
 export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
   const [viewportWidth, setViewportWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1200));
   const [mode, setMode] = useState(isStudentLoggedIn() ? 'pricing' : 'signup');
@@ -65,6 +68,9 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [busyLong, setBusyLong] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [couponError, setCouponError] = useState('');
 
   const examLabel = EXAM_LABELS[examId] || examId;
   const isMobile = viewportWidth < MOBILE_BP;
@@ -94,9 +100,13 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
       window.removeEventListener('resize', onResize);
     };
   }, []);
+  useEffect(() => {
+    if (!busy) { setBusyLong(false); return undefined; }
+    const timer = setTimeout(() => setBusyLong(true), 6000);
+    return () => clearTimeout(timer);
+  }, [busy]);
 
-  const handleAuth = useCallback(async (e) => {
-    e.preventDefault();
+  const runAuthFlow = useCallback(async ({ autoCheckoutPlanId = '' } = {}) => {
     setError('');
     if (!email.trim() || !password.trim()) { setError('Email and password are required.'); return; }
     if (mode === 'signup' && password.length < 4) { setError('Password must be at least 4 characters.'); return; }
@@ -111,7 +121,26 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
       if (!result?.success && mode === 'signup' && isAccountExistsError(result?.error)) {
         result = await studentLogin({ email: email.trim(), password });
       }
-      if (!result.success) { setError(result.error || 'Something went wrong.'); setBusy(false); return; }
+      if (!result.success) { setError(result.error || 'Something went wrong.'); return; }
+
+      // Local/demo account — skip server-side access check & checkout, go straight to pricing.
+      if (result.local) {
+        setMode('pricing');
+        return;
+      }
+
+      if (autoCheckoutPlanId) {
+        const checkoutResult = await createStudentCheckout(examId, autoCheckoutPlanId);
+        if (checkoutResult?.demo) {
+          onUnlocked?.();
+          return;
+        }
+        if (!checkoutResult?.success) {
+          setMode('pricing');
+          setError(checkoutResult?.error || 'Could not start checkout. You can pick a plan below.');
+        }
+        return;
+      }
 
       const accessResult = await withTimeout(
         hasExamAccess(examId).then((ok) => ({ success: true, ok })),
@@ -152,6 +181,18 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
     setBusy(false);
   }, [examId, onUnlocked]);
 
+  const handleCoupon = useCallback(() => {
+    setCouponError('');
+    const code = couponCode.trim().toUpperCase();
+    if (!code) { setCouponError('Please enter a coupon code.'); return; }
+    if (VALID_COUPONS.has(code)) {
+      try { localStorage.setItem(`coupon-redeemed:${examId}`, code); } catch {}
+      onUnlocked?.();
+    } else {
+      setCouponError('Invalid coupon code. Please check and try again.');
+    }
+  }, [couponCode, examId, onUnlocked]);
+
   const studentInfo = getStudentInfo();
 
   return (
@@ -187,7 +228,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
               {mode === 'signup' ? 'Create Your Free Account' : 'Log In'}
             </h3>
 
-            <form onSubmit={handleAuth}>
+            <form onSubmit={(e) => { e.preventDefault(); runAuthFlow(); }}>
               {mode === 'signup' && (
                 <div style={{ marginBottom: 12 }}>
                   <label style={{ fontSize: 13, fontWeight: 600, color: COLOR.textSecondary, display: 'block', marginBottom: 4 }}>Display Name</label>
@@ -234,6 +275,11 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
                   Connecting to our servers. If you haven&rsquo;t signed in for a while, this can take up to a minute the first time.
                 </p>
               )}
+              {busy && busyLong && (
+                <p style={{ color: COLOR.textSecondary, fontSize: 12, lineHeight: 1.45, marginBottom: 12 }}>
+                  Still working… if this keeps happening, retry once and check that the backend is running (`npm run start`).
+                </p>
+              )}
 
               <button
                 type="submit"
@@ -243,6 +289,44 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
                 {busy ? 'Please wait...' : mode === 'signup' ? 'Create Account & Continue' : 'Log In & Continue'}
               </button>
             </form>
+            <div style={{ marginTop: 10, borderTop: `1px solid ${COLOR.border}`, paddingTop: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.textSecondary, marginBottom: 8 }}>
+                Fast unlock option
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => runAuthFlow({ autoCheckoutPlanId: 'student_exam_onetime' })}
+                  style={{
+                    ...(busy ? BTN_PRIMARY_DISABLED : BTN_PRIMARY),
+                    minHeight: 40,
+                    fontSize: 13,
+                    padding: '8px 12px',
+                  }}
+                >
+                  {busy ? 'Please wait...' : 'Sign up + Pay ($29)'}
+                </button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => runAuthFlow({ autoCheckoutPlanId: 'student_monthly' })}
+                  style={{
+                    minHeight: 40,
+                    borderRadius: 10,
+                    border: `1px solid ${COLOR.border}`,
+                    background: '#fff',
+                    color: COLOR.text,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: busy ? 'not-allowed' : 'pointer',
+                    opacity: busy ? 0.65 : 1,
+                  }}
+                >
+                  {busy ? 'Please wait...' : 'Sign up + Pay ($9.99/mo)'}
+                </button>
+              </div>
+            </div>
 
             <p style={{ textAlign: 'center', marginTop: 14, fontSize: 13, color: COLOR.textSecondary }}>
               {mode === 'signup' ? (
@@ -255,6 +339,40 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
                 </>
               )}
             </p>
+
+            <div style={{ marginTop: 10, borderTop: `1px solid ${COLOR.border}`, paddingTop: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.textSecondary, marginBottom: 6 }}>Have a coupon code?</div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  type="text"
+                  value={couponCode}
+                  onChange={(e) => { setCouponCode(e.target.value); setCouponError(''); }}
+                  placeholder="Enter code"
+                  style={{ ...INPUT_STYLE, flex: 1, padding: '8px 12px', fontSize: 13 }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleCoupon(); }}
+                />
+                <button
+                  type="button"
+                  onClick={handleCoupon}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: 10,
+                    border: `1.5px solid #7c3aed`,
+                    background: 'rgba(124, 58, 237, 0.06)',
+                    color: '#7c3aed',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                  }}
+                >
+                  Apply
+                </button>
+              </div>
+              {couponError && (
+                <p style={{ color: COLOR.red, fontSize: 12, fontWeight: 600, marginTop: 4, marginBottom: 0 }}>{couponError}</p>
+              )}
+            </div>
           </div>
         )}
 
@@ -313,6 +431,37 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
             {error && (
               <p style={{ color: COLOR.red, fontSize: 13, fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>{error}</p>
             )}
+
+            <div style={{ ...CARD, marginBottom: 16, padding: isMobile ? 14 : 18 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: COLOR.text, marginBottom: 8 }}>Have a coupon code?</div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  type="text"
+                  value={couponCode}
+                  onChange={(e) => { setCouponCode(e.target.value); setCouponError(''); }}
+                  placeholder="Enter code"
+                  style={{ ...INPUT_STYLE, flex: 1, padding: '10px 12px', fontSize: 14 }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleCoupon(); }}
+                />
+                <button
+                  type="button"
+                  onClick={handleCoupon}
+                  style={{
+                    ...BTN_PRIMARY,
+                    minHeight: 42,
+                    padding: '10px 18px',
+                    fontSize: 13,
+                    flexShrink: 0,
+                    background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
+                  }}
+                >
+                  Apply
+                </button>
+              </div>
+              {couponError && (
+                <p style={{ color: COLOR.red, fontSize: 12, fontWeight: 600, marginTop: 6, marginBottom: 0 }}>{couponError}</p>
+              )}
+            </div>
 
             <p style={{ textAlign: 'center', fontSize: 12, color: COLOR.textMuted }}>
               Secure payment via Stripe. Cancel anytime.

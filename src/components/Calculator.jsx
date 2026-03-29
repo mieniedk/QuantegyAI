@@ -6,6 +6,7 @@ export const CALC_TYPE_BY_EXAM = {
   physicsMath612: 'graphing',
   math48: 'scientific',
   chemistry: 'scientific',
+  linearAlgebra: 'scientific',
   physicalScience: 'scientific',
   science712: 'scientific',
   science48: 'scientific',

@@ -871,7 +871,7 @@ const LECTURES = {
     title: 'Linear & Quadratic Functions',
     video: 'https://www.youtube.com/embed/qeByhTF8WEw',
     objective: 'You will solve and graph linear and quadratic equations and systems.',
-    keyIdea: 'Linear: y = mx + b (constant rate of change). Quadratic: y = ax² + bx + c (parabola). The discriminant b² − 4ac determines the number of real solutions.',
+    keyIdea: 'Linear: y = mx + b (constant rate of change).\nQuadratic: y = ax² + bx + c (parabola). The discriminant b² − 4ac determines the number of real solutions.',
     steps: [
       { title: 'Linear equations', content: 'Slope m = rise/run. Forms: slope-intercept, point-slope, standard. Systems solved by substitution, elimination, or graphing.' },
       { title: 'Quadratic equations', content: 'Solve by factoring, completing the square, or the quadratic formula x = (−b ± √(b² − 4ac)) / 2a.' },

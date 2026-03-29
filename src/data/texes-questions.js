@@ -1707,6 +1707,12 @@ export const TEXES_TEST_CONFIG = {
     passingScore: 0.70,
     categoryDistribution: { comp_lote_1: 42, comp_lote_2: 10, comp_lote_3: 20, comp_lote_4: 20, comp_lote_5: 14, comp_lote_6: 14 },
   },
+  linearAlgebra: {
+    totalQuestions: 60,
+    timeMinutes: 120,
+    passingScore: 0.70,
+    categoryDistribution: { la_vectors: 10, la_matrices: 12, la_transforms: 10, la_det_eigen: 12, la_inner: 8, la_diag: 8 },
+  },
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -3052,6 +3058,139 @@ export function getCompName(compId) {
   return d ? d.name : compId;
 }
 
+// ═══════════════════════════════════════════════════════════════
+// Linear Algebra — standalone college-level course
+// Domains: Vectors & Spaces, Matrices & Systems, Linear Transforms,
+//          Determinants & Eigen, Inner Product Spaces, Diagonalization
+// ═══════════════════════════════════════════════════════════════
+
+export const LINALG_DOMAINS = [
+  { id: 'la_vectors', name: 'Vectors & Vector Spaces', desc: 'Vectors in ℝⁿ, linear combinations, span, subspaces, linear independence, basis, dimension.', weight: 0.18, games: ['math-match', 'q-blocks'],
+    standards: [
+      { id: 'la_c001', name: 'Vector Operations & Properties', desc: 'Vector addition, scalar multiplication, dot product, norms, and ℝⁿ.' },
+      { id: 'la_c002', name: 'Linear Independence, Span & Basis', desc: 'Linearly independent sets, spanning sets, basis, dimension, subspaces.' },
+    ],
+  },
+  { id: 'la_matrices', name: 'Matrices & Linear Systems', desc: 'Matrix operations, row reduction, echelon forms, solution sets, rank.', weight: 0.20, games: ['math-match', 'q-blocks'],
+    standards: [
+      { id: 'la_c003', name: 'Matrix Operations', desc: 'Addition, scalar multiplication, matrix multiplication, transpose, inverse.' },
+      { id: 'la_c004', name: 'Systems of Linear Equations', desc: 'Gaussian elimination, row echelon form, RREF, free variables, solution sets.' },
+    ],
+  },
+  { id: 'la_transforms', name: 'Linear Transformations', desc: 'Definition, matrix representation, kernel, range, rank-nullity theorem.', weight: 0.18, games: ['math-match', 'q-blocks'],
+    standards: [
+      { id: 'la_c005', name: 'Definition & Matrix Representation', desc: 'T: ℝⁿ→ℝᵐ, standard matrix, composition, invertibility.' },
+      { id: 'la_c006', name: 'Kernel, Range & Rank-Nullity', desc: 'Null space, column space, rank + nullity = n.' },
+    ],
+  },
+  { id: 'la_det_eigen', name: 'Determinants & Eigenvalues', desc: 'Determinant computation, properties, eigenvalues, eigenvectors, characteristic polynomial.', weight: 0.18, games: ['math-match', 'q-blocks'],
+    standards: [
+      { id: 'la_c007', name: 'Determinants', desc: 'Cofactor expansion, row operations, product rule det(AB) = det A · det B.' },
+      { id: 'la_c008', name: 'Eigenvalues & Eigenvectors', desc: 'Characteristic polynomial, eigenspaces, algebraic vs geometric multiplicity.' },
+    ],
+  },
+  { id: 'la_inner', name: 'Inner Product Spaces', desc: 'Inner products, orthogonality, projections, Gram-Schmidt, least squares.', weight: 0.14, games: ['math-match', 'q-blocks'],
+    standards: [
+      { id: 'la_c009', name: 'Inner Products & Orthogonality', desc: 'Dot product generalization, orthogonal sets, orthogonal complements.' },
+      { id: 'la_c010', name: 'Gram-Schmidt & Projections', desc: 'Gram-Schmidt process, orthogonal projections, least-squares solutions.' },
+    ],
+  },
+  { id: 'la_diag', name: 'Diagonalization & Applications', desc: 'Diagonalization, similarity, SVD, applications to differential equations and data.', weight: 0.12, games: ['math-match', 'q-blocks'],
+    standards: [
+      { id: 'la_c011', name: 'Diagonalization & Similarity', desc: 'Diagonalizable matrices, P⁻¹AP = D, symmetric matrices and orthogonal diagonalization.' },
+      { id: 'la_c012', name: 'SVD & Applications', desc: 'Singular value decomposition, PCA, systems of differential equations, Markov chains.' },
+    ],
+  },
+];
+
+export const LINALG_QUESTIONS = [
+  // ── Domain 1: Vectors & Vector Spaces ──
+  { id: 'la001', comp: 'la_vectors', type: 'mc', difficulty: 1, q: 'What is ⟨2, 3⟩ + ⟨−1, 4⟩?', choices: ['⟨1, 7⟩', '⟨3, 7⟩', '⟨1, −1⟩', '⟨−2, 12⟩'], answer: '⟨1, 7⟩', explanation: 'Add component-wise: (2+(−1), 3+4) = (1, 7).' },
+  { id: 'la002', comp: 'la_vectors', type: 'mc', difficulty: 1, q: 'What is 3⟨1, −2, 4⟩?', choices: ['⟨3, −6, 12⟩', '⟨3, −2, 4⟩', '⟨1, −6, 12⟩', '⟨4, 1, 7⟩'], answer: '⟨3, −6, 12⟩', explanation: 'Scalar multiplication: multiply each component by 3.' },
+  { id: 'la003', comp: 'la_vectors', type: 'mc', difficulty: 1, q: 'What is the dot product ⟨1, 2⟩ · ⟨3, −1⟩?', choices: ['1', '5', '−1', '7'], answer: '1', explanation: '1·3 + 2·(−1) = 3 − 2 = 1.' },
+  { id: 'la004', comp: 'la_vectors', type: 'mc', difficulty: 2, q: 'What is ‖⟨3, 4⟩‖?', choices: ['5', '7', '√7', '25'], answer: '5', explanation: '‖⟨3,4⟩‖ = √(9+16) = √25 = 5.' },
+  { id: 'la005', comp: 'la_vectors', type: 'mc', difficulty: 2, q: 'Which set of vectors is linearly independent in ℝ²?', choices: ['{⟨1,0⟩, ⟨0,1⟩}', '{⟨1,2⟩, ⟨2,4⟩}', '{⟨0,0⟩, ⟨1,1⟩}', '{⟨3,6⟩, ⟨1,2⟩}'], answer: '{⟨1,0⟩, ⟨0,1⟩}', explanation: 'Neither vector is a scalar multiple of the other; the standard basis is independent.' },
+  { id: 'la006', comp: 'la_vectors', type: 'mc', difficulty: 2, q: 'What is the dimension of ℝ⁴?', choices: ['4', '3', '1', '∞'], answer: '4', explanation: 'The standard basis of ℝ⁴ has 4 vectors, so dim(ℝ⁴) = 4.' },
+  { id: 'la007', comp: 'la_vectors', type: 'mc', difficulty: 1, q: 'Is {⟨1, 2⟩, ⟨2, 4⟩} linearly independent?', choices: ['No — one is a scalar multiple of the other', 'Yes — they are different vectors', 'Cannot determine', 'Only if in ℝ³'], answer: 'No — one is a scalar multiple of the other', explanation: '⟨2,4⟩ = 2⟨1,2⟩, so they are dependent.' },
+  { id: 'la008', comp: 'la_vectors', type: 'mc', difficulty: 2, q: 'Which is a subspace of ℝ³?', choices: ['The set of all (x, y, 0)', 'The set of all (1, y, z)', 'The set of all (x, y, z) with x > 0', 'The set {⟨1, 0, 0⟩}'], answer: 'The set of all (x, y, 0)', explanation: 'It contains the zero vector and is closed under addition and scalar multiplication.' },
+  { id: 'la009', comp: 'la_vectors', type: 'mc', difficulty: 1, q: 'Two vectors are orthogonal when their dot product is:', choices: ['0', '1', '−1', 'Undefined'], answer: '0', explanation: 'u · v = 0 ⟺ u ⊥ v.' },
+  { id: 'la010', comp: 'la_vectors', type: 'mc', difficulty: 2, q: 'If v = ⟨1, 1, 1⟩, what is the unit vector in the direction of v?', choices: ['⟨1/√3, 1/√3, 1/√3⟩', '⟨1, 1, 1⟩', '⟨√3, √3, √3⟩', '⟨1/3, 1/3, 1/3⟩'], answer: '⟨1/√3, 1/√3, 1/√3⟩', explanation: '‖v‖ = √3, so v/‖v‖ = ⟨1/√3, 1/√3, 1/√3⟩.' },
+
+  // ── Domain 2: Matrices & Linear Systems ──
+  { id: 'la011', comp: 'la_matrices', type: 'mc', difficulty: 1, q: 'If A is 2×3 and B is 3×4, what size is AB?', choices: ['2×4', '3×3', '2×3', '4×2'], answer: '2×4', explanation: '(2×3)(3×4) → inner dims match, result is 2×4.' },
+  { id: 'la012', comp: 'la_matrices', type: 'mc', difficulty: 1, q: 'What is the identity matrix I₂?', choices: ['[[1,0],[0,1]]', '[[1,1],[1,1]]', '[[0,0],[0,0]]', '[[2,0],[0,2]]'], answer: '[[1,0],[0,1]]', explanation: 'The 2×2 identity has 1s on the diagonal and 0s elsewhere.' },
+  { id: 'la013', comp: 'la_matrices', type: 'mc', difficulty: 2, q: 'The system Ax = 0 always has:', choices: ['At least the trivial solution x = 0', 'No solution', 'Exactly one nonzero solution', 'Infinitely many solutions'], answer: 'At least the trivial solution x = 0', explanation: 'Homogeneous systems always have x = 0 as a solution.' },
+  { id: 'la014', comp: 'la_matrices', type: 'mc', difficulty: 2, q: 'After row-reducing [[1,2,3],[0,1,4],[0,0,0]], how many free variables are there?', choices: ['1', '0', '2', '3'], answer: '1', explanation: 'There are 3 variables and 2 pivots, so 3 − 2 = 1 free variable.' },
+  { id: 'la015', comp: 'la_matrices', type: 'mc', difficulty: 1, q: 'If A is invertible, what is A · A⁻¹?', choices: ['I (identity)', 'A²', '0', 'A + A⁻¹'], answer: 'I (identity)', explanation: 'By definition, A · A⁻¹ = I.' },
+  { id: 'la016', comp: 'la_matrices', type: 'mc', difficulty: 2, q: 'The rank of a 3×5 matrix can be at most:', choices: ['3', '5', '8', '15'], answer: '3', explanation: 'Rank ≤ min(rows, cols) = min(3, 5) = 3.' },
+  { id: 'la017', comp: 'la_matrices', type: 'mc', difficulty: 1, q: '(AB)ᵀ equals:', choices: ['BᵀAᵀ', 'AᵀBᵀ', '(AᵀB)ᵀ', 'AB'], answer: 'BᵀAᵀ', explanation: 'The transpose of a product reverses the order: (AB)ᵀ = BᵀAᵀ.' },
+  { id: 'la018', comp: 'la_matrices', type: 'mc', difficulty: 2, q: 'A system of 3 equations in 3 unknowns has a unique solution when:', choices: ['The coefficient matrix is invertible', 'The matrix has a zero row', 'There are free variables', 'det(A) = 0'], answer: 'The coefficient matrix is invertible', explanation: 'Invertible ⟺ det ≠ 0 ⟺ unique solution for Ax = b.' },
+  { id: 'la019', comp: 'la_matrices', type: 'mc', difficulty: 1, q: 'What operation does NOT change the solution set of a linear system?', choices: ['Swapping two rows', 'Adding a row to a column', 'Multiplying a row by a nonzero scalar', 'Both swapping and scaling rows'], answer: 'Both swapping and scaling rows', explanation: 'All three elementary row operations preserve the solution set.' },
+  { id: 'la020', comp: 'la_matrices', type: 'mc', difficulty: 2, q: 'If A is 4×4 with rank 3, the nullity of A is:', choices: ['1', '3', '4', '0'], answer: '1', explanation: 'Rank-nullity: rank + nullity = n → 3 + nullity = 4 → nullity = 1.' },
+
+  // ── Domain 3: Linear Transformations ──
+  { id: 'la021', comp: 'la_transforms', type: 'mc', difficulty: 1, q: 'A function T: ℝⁿ→ℝᵐ is linear if it preserves:', choices: ['Addition and scalar multiplication', 'Only addition', 'Only scalar multiplication', 'Norms'], answer: 'Addition and scalar multiplication', explanation: 'Linearity means T(u+v) = T(u)+T(v) and T(cv) = cT(v).' },
+  { id: 'la022', comp: 'la_transforms', type: 'mc', difficulty: 1, q: 'The standard matrix of T(x) = Ax is:', choices: ['A', 'A⁻¹', 'Aᵀ', 'I'], answer: 'A', explanation: 'T(x) = Ax, so the standard matrix is A itself.' },
+  { id: 'la023', comp: 'la_transforms', type: 'mc', difficulty: 2, q: 'The kernel (null space) of T is the set of all v such that:', choices: ['T(v) = 0', 'T(v) = v', 'T(v) = 1', '‖T(v)‖ = 1'], answer: 'T(v) = 0', explanation: 'ker(T) = {v ∈ ℝⁿ : T(v) = 0}.' },
+  { id: 'la024', comp: 'la_transforms', type: 'mc', difficulty: 2, q: 'T is one-to-one if and only if:', choices: ['ker(T) = {0}', 'ker(T) = ℝⁿ', 'rank(T) = 0', 'T maps to ℝ¹'], answer: 'ker(T) = {0}', explanation: 'Injective ⟺ the only solution to T(v) = 0 is v = 0.' },
+  { id: 'la025', comp: 'la_transforms', type: 'mc', difficulty: 2, q: 'The rank-nullity theorem states rank(A) + nullity(A) =', choices: ['n (number of columns)', 'm (number of rows)', 'det(A)', '0'], answer: 'n (number of columns)', explanation: 'For A: ℝⁿ→ℝᵐ, rank + nullity = n.' },
+  { id: 'la026', comp: 'la_transforms', type: 'mc', difficulty: 1, q: 'A rotation by 90° counterclockwise in ℝ² maps ⟨1,0⟩ to:', choices: ['⟨0, 1⟩', '⟨−1, 0⟩', '⟨0, −1⟩', '⟨1, 1⟩'], answer: '⟨0, 1⟩', explanation: 'Rotation 90° CCW sends the standard basis vector e₁ to e₂.' },
+  { id: 'la027', comp: 'la_transforms', type: 'mc', difficulty: 2, q: 'T is onto (surjective) if and only if:', choices: ['The columns of A span ℝᵐ', 'A is square', 'ker(T) = {0}', 'A has more rows than columns'], answer: 'The columns of A span ℝᵐ', explanation: 'Surjective means every b ∈ ℝᵐ is reachable, i.e., col(A) = ℝᵐ.' },
+  { id: 'la028', comp: 'la_transforms', type: 'mc', difficulty: 1, q: 'The composition of two linear transformations is:', choices: ['Also linear', 'Never linear', 'Linear only if both are invertible', 'Undefined'], answer: 'Also linear', explanation: 'The composition of linear maps is linear (matrix multiplication).' },
+  { id: 'la029', comp: 'la_transforms', type: 'mc', difficulty: 2, q: 'A 3×3 matrix with rank 2 maps ℝ³ to a subspace of dimension:', choices: ['2', '3', '1', '0'], answer: '2', explanation: 'The image (range) has dimension equal to the rank.' },
+  { id: 'la030', comp: 'la_transforms', type: 'mc', difficulty: 1, q: 'For any linear T, T(0) =', choices: ['0', '1', 'Undefined', 'T'], answer: '0', explanation: 'T(0) = T(0·v) = 0·T(v) = 0.' },
+
+  // ── Domain 4: Determinants & Eigenvalues ──
+  { id: 'la031', comp: 'la_det_eigen', type: 'mc', difficulty: 1, q: 'det([[a,b],[c,d]]) =', choices: ['ad − bc', 'ad + bc', 'ac − bd', 'ab − cd'], answer: 'ad − bc', explanation: 'The 2×2 determinant formula: ad − bc.' },
+  { id: 'la032', comp: 'la_det_eigen', type: 'mc', difficulty: 1, q: 'If det(A) = 0, then A is:', choices: ['Singular (not invertible)', 'Invertible', 'Orthogonal', 'Symmetric'], answer: 'Singular (not invertible)', explanation: 'det(A) = 0 ⟺ A is singular ⟺ A has no inverse.' },
+  { id: 'la033', comp: 'la_det_eigen', type: 'mc', difficulty: 2, q: 'det(AB) =', choices: ['det(A) · det(B)', 'det(A) + det(B)', 'det(A + B)', 'det(A)/det(B)'], answer: 'det(A) · det(B)', explanation: 'The determinant of a product is the product of determinants.' },
+  { id: 'la034', comp: 'la_det_eigen', type: 'mc', difficulty: 2, q: 'An eigenvalue λ of A satisfies:', choices: ['det(A − λI) = 0', 'det(A + λI) = 0', 'A − λI is invertible', 'λ = det(A)'], answer: 'det(A − λI) = 0', explanation: 'Eigenvalues are roots of the characteristic polynomial det(A − λI) = 0.' },
+  { id: 'la035', comp: 'la_det_eigen', type: 'mc', difficulty: 1, q: 'If Av = 3v and v ≠ 0, then 3 is:', choices: ['An eigenvalue of A', 'The determinant of A', 'The rank of A', 'The trace of A'], answer: 'An eigenvalue of A', explanation: 'Av = λv with λ = 3 and v ≠ 0 means 3 is an eigenvalue.' },
+  { id: 'la036', comp: 'la_det_eigen', type: 'mc', difficulty: 2, q: 'The characteristic polynomial of a 2×2 matrix is degree:', choices: ['2', '1', '3', '0'], answer: '2', explanation: 'For n×n matrix, the characteristic polynomial has degree n.' },
+  { id: 'la037', comp: 'la_det_eigen', type: 'mc', difficulty: 2, q: 'Swapping two rows of a matrix:', choices: ['Changes the sign of the determinant', 'Doubles the determinant', 'Does not change the determinant', 'Makes det = 0'], answer: 'Changes the sign of the determinant', explanation: 'Row swaps negate the determinant.' },
+  { id: 'la038', comp: 'la_det_eigen', type: 'mc', difficulty: 1, q: 'The trace of a matrix is the sum of its:', choices: ['Diagonal entries', 'All entries', 'Eigenvalues squared', 'Row sums'], answer: 'Diagonal entries', explanation: 'tr(A) = a₁₁ + a₂₂ + … + aₙₙ (also equals the sum of eigenvalues).' },
+  { id: 'la039', comp: 'la_det_eigen', type: 'mc', difficulty: 2, q: 'If A has eigenvalues 2 and 5, then det(A) =', choices: ['10', '7', '3', '25'], answer: '10', explanation: 'det(A) = product of eigenvalues = 2 × 5 = 10.' },
+  { id: 'la040', comp: 'la_det_eigen', type: 'mc', difficulty: 2, q: 'The eigenspace for eigenvalue λ is:', choices: ['The null space of (A − λI)', 'The column space of A', 'The row space of A', '{λ}'], answer: 'The null space of (A − λI)', explanation: 'Eigenspace = ker(A − λI) = {v : Av = λv}.' },
+
+  // ── Domain 5: Inner Product Spaces ──
+  { id: 'la041', comp: 'la_inner', type: 'mc', difficulty: 1, q: 'The dot product ⟨u, v⟩ in ℝⁿ equals:', choices: ['Σ uᵢvᵢ', 'Σ uᵢ + vᵢ', '‖u‖ + ‖v‖', 'u × v'], answer: 'Σ uᵢvᵢ', explanation: '⟨u,v⟩ = u₁v₁ + u₂v₂ + … + uₙvₙ.' },
+  { id: 'la042', comp: 'la_inner', type: 'mc', difficulty: 2, q: 'The projection of u onto v is:', choices: ['(⟨u,v⟩/⟨v,v⟩)v', '(⟨u,v⟩/‖u‖)v', 'u − v', '⟨u,v⟩u'], answer: '(⟨u,v⟩/⟨v,v⟩)v', explanation: 'proj_v(u) = (u·v / v·v) v.' },
+  { id: 'la043', comp: 'la_inner', type: 'mc', difficulty: 1, q: 'An orthogonal set of nonzero vectors is:', choices: ['Linearly independent', 'Always a basis', 'Linearly dependent', 'Empty'], answer: 'Linearly independent', explanation: 'Nonzero mutually orthogonal vectors cannot be written as linear combinations of each other.' },
+  { id: 'la044', comp: 'la_inner', type: 'mc', difficulty: 2, q: 'Gram-Schmidt produces a(n) ____ basis from any basis.', choices: ['Orthogonal (or orthonormal)', 'Diagonal', 'Triangular', 'Sparse'], answer: 'Orthogonal (or orthonormal)', explanation: 'Gram-Schmidt orthogonalizes a set of independent vectors.' },
+  { id: 'la045', comp: 'la_inner', type: 'mc', difficulty: 2, q: 'The least-squares solution x̂ to Ax = b minimizes:', choices: ['‖Ax − b‖', '‖x‖', 'det(A)', '‖A‖'], answer: '‖Ax − b‖', explanation: 'x̂ minimizes the Euclidean distance between Ax and b.' },
+  { id: 'la046', comp: 'la_inner', type: 'mc', difficulty: 1, q: 'If u ⊥ v, then ⟨u, v⟩ =', choices: ['0', '1', '‖u‖‖v‖', '−1'], answer: '0', explanation: 'Orthogonal means inner product is zero.' },
+  { id: 'la047', comp: 'la_inner', type: 'mc', difficulty: 2, q: 'For an orthonormal basis {q₁, …, qₙ}, the coordinate of v in direction qᵢ is:', choices: ['⟨v, qᵢ⟩', '⟨v, qᵢ⟩/‖qᵢ‖', 'v · v', '⟨qᵢ, qᵢ⟩'], answer: '⟨v, qᵢ⟩', explanation: 'Since ‖qᵢ‖ = 1, the coefficient is simply the inner product.' },
+  { id: 'la048', comp: 'la_inner', type: 'mc', difficulty: 2, q: 'The normal equation for least squares is:', choices: ['AᵀAx̂ = Aᵀb', 'Ax̂ = b', 'AᵀA = I', 'x̂ = A⁻¹b'], answer: 'AᵀAx̂ = Aᵀb', explanation: 'Multiply both sides of Ax = b by Aᵀ to get the normal equation.' },
+  { id: 'la049', comp: 'la_inner', type: 'mc', difficulty: 1, q: 'An orthonormal set has vectors that are mutually orthogonal and each has norm:', choices: ['1', '0', '√2', 'n'], answer: '1', explanation: 'Orthonormal = orthogonal + each vector has unit length.' },
+  { id: 'la050', comp: 'la_inner', type: 'mc', difficulty: 2, q: 'The orthogonal complement of a subspace W consists of all vectors v such that:', choices: ['⟨v, w⟩ = 0 for all w ∈ W', 'v ∈ W', '‖v‖ = 0', 'v = proj_W(v)'], answer: '⟨v, w⟩ = 0 for all w ∈ W', explanation: 'W⊥ contains every vector orthogonal to every element of W.' },
+
+  // ── Domain 6: Diagonalization & Applications ──
+  { id: 'la051', comp: 'la_diag', type: 'mc', difficulty: 2, q: 'A is diagonalizable if it has:', choices: ['n linearly independent eigenvectors', 'n equal eigenvalues', 'det(A) = 0', 'Only one eigenvalue'], answer: 'n linearly independent eigenvectors', explanation: 'An n×n matrix is diagonalizable ⟺ there exists a basis of eigenvectors.' },
+  { id: 'la052', comp: 'la_diag', type: 'mc', difficulty: 2, q: 'If A = PDP⁻¹, then A^k =', choices: ['PD^kP⁻¹', 'P^kD^kP⁻¹', '(PDP⁻¹)^k only', 'kA'], answer: 'PD^kP⁻¹', explanation: 'Diagonalization makes computing powers easy: just raise D to the power k.' },
+  { id: 'la053', comp: 'la_diag', type: 'mc', difficulty: 1, q: 'A real symmetric matrix always has:', choices: ['Real eigenvalues', 'Complex eigenvalues', 'Zero determinant', 'Rank 1'], answer: 'Real eigenvalues', explanation: 'The Spectral Theorem guarantees real eigenvalues for symmetric matrices.' },
+  { id: 'la054', comp: 'la_diag', type: 'mc', difficulty: 2, q: 'In SVD, a matrix A = UΣVᵀ. The diagonal entries of Σ are called:', choices: ['Singular values', 'Eigenvalues', 'Pivots', 'Cofactors'], answer: 'Singular values', explanation: 'Σ contains the singular values σ₁ ≥ σ₂ ≥ … ≥ 0.' },
+  { id: 'la055', comp: 'la_diag', type: 'mc', difficulty: 2, q: 'A Markov chain transition matrix has columns that sum to:', choices: ['1', '0', 'The eigenvalue', 'n'], answer: '1', explanation: 'Each column represents probabilities that must sum to 1.' },
+  { id: 'la056', comp: 'la_diag', type: 'mc', difficulty: 1, q: 'Two matrices A and B are similar if:', choices: ['B = P⁻¹AP for some invertible P', 'A + B = I', 'AB = 0', 'They have the same size'], answer: 'B = P⁻¹AP for some invertible P', explanation: 'Similarity means A and B represent the same transformation in different bases.' },
+  { id: 'la057', comp: 'la_diag', type: 'mc', difficulty: 2, q: 'Similar matrices share the same:', choices: ['Eigenvalues, determinant, and trace', 'Eigenvectors', 'Entries', 'Rows'], answer: 'Eigenvalues, determinant, and trace', explanation: 'Similarity preserves the characteristic polynomial and hence eigenvalues, det, and trace.' },
+  { id: 'la058', comp: 'la_diag', type: 'mc', difficulty: 2, q: 'Orthogonal diagonalization (A = QDQᵀ) is possible when A is:', choices: ['Real and symmetric', 'Any square matrix', 'Invertible', 'Upper triangular'], answer: 'Real and symmetric', explanation: 'The Spectral Theorem: real symmetric ⟹ orthogonally diagonalizable.' },
+  { id: 'la059', comp: 'la_diag', type: 'mc', difficulty: 1, q: 'The number of nonzero singular values of A equals:', choices: ['rank(A)', 'det(A)', 'trace(A)', 'nullity(A)'], answer: 'rank(A)', explanation: 'The number of nonzero singular values is the rank.' },
+  { id: 'la060', comp: 'la_diag', type: 'mc', difficulty: 2, q: 'PCA (Principal Component Analysis) uses which decomposition?', choices: ['Eigendecomposition of the covariance matrix (or SVD)', 'LU decomposition', 'QR decomposition only', 'Cholesky only'], answer: 'Eigendecomposition of the covariance matrix (or SVD)', explanation: 'PCA finds principal components via eigenvectors of the covariance matrix or via SVD.' },
+];
+
+export const LINALG_TEST_CONFIG = {
+  totalQuestions: 60,
+  timeMinutes: 120,
+  passingScore: 0.70,
+  categoryDistribution: {
+    la_vectors: 10,
+    la_matrices: 12,
+    la_transforms: 10,
+    la_det_eigen: 12,
+    la_inner: 8,
+    la_diag: 8,
+  },
+};
+
 /** Return domains array for a TExES exam id (used by ClassWizard, ClassView, TexesPrep). */
 export function getDomainsForExam(examId) {
   const map = {
@@ -3087,6 +3226,7 @@ export function getDomainsForExam(examId) {
     readingSpecialist: () => TEXES_DOMAINS_READING_SPECIALIST,
     schoolCounselor: () => TEXES_DOMAINS_SCHOOL_COUNSELOR,
     loteSpanish: () => TEXES_DOMAINS_LOTE_SPANISH,
+    linearAlgebra: () => LINALG_DOMAINS,
   };
   const fn = map[examId];
   return fn ? fn() : TEXES_DOMAINS;
@@ -3127,6 +3267,7 @@ export function getQuestionsForExam(examId) {
     readingSpecialist: () => TEXES_QUESTIONS_READING_SPECIALIST,
     schoolCounselor: () => TEXES_QUESTIONS_SCHOOL_COUNSELOR,
     loteSpanish: () => TEXES_QUESTIONS_LOTE_SPANISH,
+    linearAlgebra: () => LINALG_QUESTIONS,
   };
   const fn = map[examId];
   if (!fn) {

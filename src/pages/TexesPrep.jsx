@@ -36,6 +36,7 @@ const EXAM_OPTIONS = [
   { id: 'readingSpecialist', label: 'Reading Specialist', examLabel: 'Reading Specialist (151)', questions: 100, domains: 4 },
   { id: 'schoolCounselor', label: 'School Counselor', examLabel: 'School Counselor (252)', questions: 90, domains: 4 },
   { id: 'loteSpanish', label: 'LOTE Spanish', examLabel: 'LOTE Spanish (613)', questions: 120, domains: 6 },
+  { id: 'linearAlgebra', label: 'Linear Algebra', examLabel: 'Linear Algebra', questions: 60, domains: 6 },
 ];
 
 function getTestConfig(examId) {

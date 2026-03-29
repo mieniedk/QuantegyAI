@@ -53,6 +53,7 @@ const TRANSFORM_RULES = {
 
 function TransformLab({ onComplete, continueLabel, badgeLabel, embedded }) {
   const [roundIdx, setRound] = useState(0);
+  const [compactLayout, setCompactLayout] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 720 : true));
 
   const problem = useMemo(() => {
     const shapes = [
@@ -83,6 +84,12 @@ function TransformLab({ onComplete, continueLabel, badgeLabel, embedded }) {
   // Reset local UI when the random problem changes (roundIdx).
   // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional full reset on new problem
   useEffect(() => { setSelected(null); setApplied(null); setChecked(false); setDx(0); setDy(0); }, [roundIdx]);
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const onResize = () => setCompactLayout(window.innerWidth < 720);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const options = ['translate', 'reflect-x', 'reflect-y', 'rotate-90', 'rotate-180'];
   const optionLabels = { translate: 'Translate', 'reflect-x': 'Reflect about the x-axis', 'reflect-y': 'Reflect about the y-axis', 'rotate-90': 'Rotate 90°', 'rotate-180': 'Rotate 180°' };
@@ -191,181 +198,181 @@ function TransformLab({ onComplete, continueLabel, badgeLabel, embedded }) {
 
   const polyPath = (pts) => pts.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${sx(x)},${sy(y)}`).join('') + 'Z';
 
-  return (
-    <div style={embedded ? {} : CARD}>
-      {!embedded && <div style={{ ...BADGE, background: `${COLOR.purple}14`, color: COLOR.purple }}>{badgeLabel}</div>}
-      <p style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 800, color: COLOR.text }}>Transform Lab</p>
-      <p style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 700, color: COLOR.text }}>
-        Objective: Apply one transformation to make the blue shape match the dashed target.
-      </p>
-      <p style={{ margin: '0 0 8px', fontSize: 13, color: COLOR.textSecondary }}>
-        Apply the right transformation to move the <span style={{ color: COLOR.blue, fontWeight: 700 }}>blue shape</span> to match the <span style={{ color: '#d97706', fontWeight: 700 }}>dashed target</span>.
-        {' '}Drag the <span style={{ color: COLOR.purple, fontWeight: 700 }}>purple outline</span> on the grid to translate, or use the buttons for flips and turns—the panel below names the transformation and shows the coordinate rule.
-      </p>
-      <div style={{ margin: '0 0 10px', display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: COLOR.textSecondary, background: '#f1f5f9', border: `1px solid ${COLOR.border}`, borderRadius: 999, padding: '4px 10px' }}>
-          Stage: {!selected ? 'Drag or pick' : checked ? 'Checked' : 'Previewing'}
-        </span>
-        <span style={{ fontSize: 12, fontWeight: 700, color: isCorrect ? '#047857' : checked ? '#b91c1c' : '#64748b', background: isCorrect ? '#ecfdf5' : checked ? '#fef2f2' : '#f8fafc', border: `1px solid ${isCorrect ? '#86efac' : checked ? '#fca5a5' : '#e5e7eb'}`, borderRadius: 999, padding: '4px 10px' }}>
-          Progress: {isCorrect ? 'Matched' : checked ? 'Adjust and retry' : 'In progress'}
-        </span>
-      </div>
-
+  const controlsPanel = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <QBotBubble
-        message={isCorrect ? 'Correct transformation sequence - the image matches the target exactly.' : checked && !isCorrect ? 'Transformation is not correct yet. Recheck orientation (reflection/rotation) and then translation distance.' : 'Hint: compare orientation first (flip/rotate) and then position (translate) to match the dashed shape.'}
+        message={isCorrect ? 'Correct transformation sequence — the image matches the target exactly.' : checked && !isCorrect ? 'Not quite. Recheck orientation (flip/rotate) then position (translate).' : 'Compare orientation first (flip/rotate), then position (translate).'}
         mood={isCorrect ? 'celebrate' : checked ? 'think' : 'wave'}
       />
+
       <div
         role="status"
         aria-live="polite"
-        style={{ marginBottom: 10, padding: '10px 14px', borderRadius: 12, background: '#faf5ff', border: `1px solid #ddd6fe`, fontSize: 13, color: '#4c1d95', lineHeight: 1.5 }}
+        style={{ padding: '8px 10px', borderRadius: 10, background: '#faf5ff', border: '1px solid #ddd6fe', fontSize: 12, color: '#4c1d95', lineHeight: 1.4 }}
       >
-        <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#7c3aed', marginBottom: 4 }}>Current transformation</div>
-        <div style={{ fontWeight: 800, marginBottom: 4 }}>{transformReadout.headline}</div>
-        <div style={{ fontSize: 12, fontWeight: 600, opacity: 0.92 }}>{transformReadout.sub}</div>
+        <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#7c3aed', marginBottom: 2 }}>Current transformation</div>
+        <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 2 }}>{transformReadout.headline}</div>
+        <div style={{ fontSize: 11, fontWeight: 600, opacity: 0.92 }}>{transformReadout.sub}</div>
         {transformReadout.rule && (
-          <div style={{ marginTop: 8, fontFamily: 'ui-monospace, monospace', fontSize: 12, fontWeight: 700, background: '#fff', padding: '6px 10px', borderRadius: 8, border: '1px solid #e9d5ff' }}>
+          <div style={{ marginTop: 6, fontFamily: 'ui-monospace, monospace', fontSize: 11, fontWeight: 700, background: '#fff', padding: '4px 8px', borderRadius: 6, border: '1px solid #e9d5ff' }}>
             Rule: {transformReadout.rule}
           </div>
         )}
       </div>
-      <div style={{ marginBottom: 10, padding: '8px 12px', borderRadius: 10, background: '#eff6ff', border: '1px solid #bfdbfe', fontSize: 12, color: '#1e3a8a', lineHeight: 1.45 }}>
-        <strong>How to use:</strong> pick a transformation type, read the rule above, then drag the purple shape (translation) or tap a flip/turn. Use sliders if you prefer. Press Apply when you are ready to check.
-      </div>
 
-      <div style={{ background: '#f8fafc', borderRadius: 14, border: `1px solid ${COLOR.border}`, padding: 8, marginBottom: 12, touchAction: 'none' }}>
-        <svg
-          ref={svgRef}
-          viewBox={`0 0 ${W} ${H_SVG}`}
-          width="100%"
-          style={{ display: 'block' }}
-        >
-          {/* grid */}
-          {Array.from({ length: 2 * GRID + 1 }, (_, i) => i - GRID).map((v) => (
-            <g key={v}>
-              <line x1={sx(v)} y1={PAD} x2={sx(v)} y2={H_SVG - PAD} stroke={v === 0 ? '#9ca3af' : '#f3f4f6'} strokeWidth={v === 0 ? 1.5 : 0.5} />
-              <line x1={PAD} y1={sy(v)} x2={W - PAD} y2={sy(v)} stroke={v === 0 ? '#9ca3af' : '#f3f4f6'} strokeWidth={v === 0 ? 1.5 : 0.5} />
-              {v !== 0 && v % 3 === 0 && <text x={sx(v)} y={sy(0) + 11} fontSize={7} fill="#9ca3af" textAnchor="middle">{v}</text>}
-              {v !== 0 && v % 3 === 0 && <text x={sx(0) - 5} y={sy(v) + 3} fontSize={7} fill="#9ca3af" textAnchor="end">{v}</text>}
-            </g>
-          ))}
-          {/* target (dashed) */}
-          <path d={polyPath(problem.target)} fill="#d9770620" stroke="#d97706" strokeWidth={2} strokeDasharray="5 3" />
-          {/* original (blue, solid) */}
-          <path d={polyPath(problem.original)} fill={`${COLOR.blue}20`} stroke={COLOR.blue} strokeWidth={2} />
-          {/* student's transform preview — non-translate (view only) */}
-          {selected && selected !== 'translate' && !checked && (
-            <path d={polyPath(currentTransformed)} fill="#7c3aed15" stroke={COLOR.purple} strokeWidth={2} strokeDasharray="3 2" />
-          )}
-          {/* draggable translation layer (starts before any selection) */}
-          {!checked && (selected === 'translate' || !selected) && (
-            <path
-              d={polyPath(selected === 'translate' ? currentTransformed : problem.original)}
-              fill={selected === 'translate' ? '#7c3aed18' : '#7c3aed10'}
-              stroke={COLOR.purple}
-              strokeWidth={selected === 'translate' ? 2.5 : 2}
-              strokeDasharray={selected === 'translate' ? '3 2' : '6 4'}
-              style={{ cursor: 'grab', touchAction: 'none' }}
-              onPointerDown={beginTranslateDrag}
-              onPointerMove={onTranslatePointerMove}
-              onPointerUp={endTranslateDrag}
-              onPointerCancel={endTranslateDrag}
-            />
-          )}
-          {selected === 'translate' && !checked && currentTransformed.map(([x, y], vi) => (
-            <circle
-              key={`drag-${vi}`}
-              cx={sx(x)}
-              cy={sy(y)}
-              r={11}
-              fill={COLOR.purple}
-              fillOpacity={0.85}
-              stroke="#fff"
-              strokeWidth={2}
-              style={{ cursor: 'grab', touchAction: 'none' }}
-              onPointerDown={beginTranslateDrag}
-              onPointerMove={onTranslatePointerMove}
-              onPointerUp={endTranslateDrag}
-              onPointerCancel={endTranslateDrag}
-            />
-          ))}
-          {/* applied result */}
-          {checked && (
-            <path d={polyPath(applied || currentTransformed)} fill={isCorrect ? `${COLOR.green}25` : '#ef444425'} stroke={isCorrect ? COLOR.green : '#ef4444'} strokeWidth={2.5} />
-          )}
-          {/* vertex labels */}
-          {problem.original.map(([x, y], i) => (
-            <text key={`o${i}`} x={sx(x)} y={sy(y) - 8} fontSize={8} fill={COLOR.blue} fontWeight={700} textAnchor="middle">
-              ({x},{y})
-            </text>
-          ))}
-          {problem.target.map(([x, y], i) => (
-            <text key={`t${i}`} x={sx(x)} y={sy(y) - 8} fontSize={8} fill="#d97706" fontWeight={600} textAnchor="middle" opacity={0.7}>
-              ({x},{y})
-            </text>
-          ))}
-        </svg>
-      </div>
-
-      {/* Transform selector */}
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 10 }}>
+      <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', justifyContent: 'center' }}>
         {options.map((opt) => (
           <button key={opt} type="button" onClick={() => { setSelected(opt); setChecked(false); }}
             style={{
-              padding: '10px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', minHeight: 44,
+              padding: '7px 8px', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer', minHeight: 34,
               background: selected === opt ? COLOR.blueBg : '#fff',
               border: `2px solid ${selected === opt ? COLOR.blueBorder : COLOR.border}`,
-              color: selected === opt ? COLOR.blue : COLOR.textSecondary,
+              color: selected === opt ? COLOR.blue : COLOR.textSecondary, flex: '1 1 100%',
             }}>
             {optionLabels[opt]}
           </button>
         ))}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
-        <div style={{ padding: '5px 12px', borderRadius: 999, background: selected ? '#ecfeff' : '#f8fafc', border: `1px solid ${selected ? '#67e8f9' : '#e5e7eb'}`, fontSize: 12, fontWeight: 700, color: selected ? '#0e7490' : '#64748b' }}>
-          {selected ? `Selected: ${optionLabels[selected]}` : 'Select a transformation to begin'}
-        </div>
-      </div>
 
       {selected === 'translate' && (
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginBottom: 10 }}>
+        <div style={{ display: 'flex', gap: 8, flexDirection: 'column' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: COLOR.text }}>dx:</span>
-            <input type="range" min={-GRID} max={GRID} step={1} value={dx} onChange={(e) => setDx(parseInt(e.target.value, 10))} aria-label="Translate x amount" style={{ width: 90, accentColor: COLOR.blue }} />
-            <span style={{ fontSize: 13, fontWeight: 700, color: COLOR.blue }}>{dx}</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: COLOR.text, minWidth: 22 }}>dx:</span>
+            <input type="range" min={-GRID} max={GRID} step={1} value={dx} onChange={(e) => setDx(parseInt(e.target.value, 10))} aria-label="Translate x amount" style={{ flex: 1, accentColor: COLOR.blue }} />
+            <span style={{ fontSize: 12, fontWeight: 700, color: COLOR.blue, minWidth: 18, textAlign: 'right' }}>{dx}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: COLOR.text }}>dy:</span>
-            <input type="range" min={-GRID} max={GRID} step={1} value={dy} onChange={(e) => setDy(parseInt(e.target.value, 10))} aria-label="Translate y amount" style={{ width: 90, accentColor: COLOR.green }} />
-            <span style={{ fontSize: 13, fontWeight: 700, color: COLOR.green }}>{dy}</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: COLOR.text, minWidth: 22 }}>dy:</span>
+            <input type="range" min={-GRID} max={GRID} step={1} value={dy} onChange={(e) => setDy(parseInt(e.target.value, 10))} aria-label="Translate y amount" style={{ flex: 1, accentColor: COLOR.green }} />
+            <span style={{ fontSize: 12, fontWeight: 700, color: COLOR.green, minWidth: 18, textAlign: 'right' }}>{dy}</span>
           </div>
         </div>
+      )}
+
+      {!checked && selected && (
+        <button type="button" onClick={handleCheck}
+          style={{ ...BTN_PRIMARY, background: `linear-gradient(135deg, ${COLOR.blue}, #1d4ed8)`, width: '100%' }}>
+          Apply Transformation
+        </button>
       )}
 
       {isCorrect && (
-        <div style={{ margin: '0 0 12px', padding: '10px 14px', borderRadius: 12, background: COLOR.greenLight, border: `1px solid ${COLOR.greenBorder}`, textAlign: 'center' }}>
-          <p aria-live="polite" style={{ margin: 0, fontSize: 14, fontWeight: 700, color: COLOR.green }}>{'\u2713'} Correct transformation! Shape and orientation both match.</p>
+        <div style={{ padding: '8px 10px', borderRadius: 10, background: COLOR.greenLight, border: `1px solid ${COLOR.greenBorder}`, textAlign: 'center' }}>
+          <p aria-live="polite" style={{ margin: 0, fontSize: 13, fontWeight: 700, color: COLOR.green }}>{'\u2713'} Correct! Shape and orientation match.</p>
         </div>
       )}
       {checked && !isCorrect && (
-        <div style={{ margin: '0 0 12px', padding: '10px 14px', borderRadius: 12, background: '#fef2f2', border: '1px solid #fca5a5', textAlign: 'center' }}>
-          <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#ef4444' }}>Not a match. The correct transformation was: {problem.transform.label}.</p>
+        <div style={{ padding: '8px 10px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fca5a5', textAlign: 'center' }}>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#ef4444' }}>Not a match. Answer: {problem.transform.label}.</p>
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-        {!checked && selected && (
-          <button type="button" onClick={handleCheck}
-            style={{ ...BTN_PRIMARY, background: `linear-gradient(135deg, ${COLOR.blue}, #1d4ed8)`, flex: '1 1 auto' }}>
-            Apply Transformation
-          </button>
-        )}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <button type="button" onClick={() => setRound((r) => r + 1)}
-          style={{ ...BTN_PRIMARY, background: 'linear-gradient(135deg,#d97706,#b45309)', flex: '0 0 auto' }}>
+          style={{ ...BTN_PRIMARY, background: 'linear-gradient(135deg,#d97706,#b45309)', flex: '1 1 auto', fontSize: 12, padding: '8px 10px' }}>
           {'\u{1F504}'} New Problem
         </button>
-        <button type="button" onClick={onComplete} style={{ ...BTN_PRIMARY, flex: '1 1 auto' }}>{continueLabel}</button>
+        <button type="button" onClick={onComplete} style={{ ...BTN_PRIMARY, flex: '1 1 auto', fontSize: 12, padding: '8px 10px' }}>{continueLabel}</button>
       </div>
+    </div>
+  );
+
+  const graphPanel = (
+    <div style={{ background: '#f8fafc', borderRadius: 14, border: `1px solid ${COLOR.border}`, padding: 6, touchAction: 'none' }}>
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${W} ${H_SVG}`}
+        width="100%"
+        style={{ display: 'block', margin: '0 auto' }}
+      >
+        {Array.from({ length: 2 * GRID + 1 }, (_, i) => i - GRID).map((v) => (
+          <g key={v}>
+            <line x1={sx(v)} y1={PAD} x2={sx(v)} y2={H_SVG - PAD} stroke={v === 0 ? '#9ca3af' : '#f3f4f6'} strokeWidth={v === 0 ? 1.5 : 0.5} />
+            <line x1={PAD} y1={sy(v)} x2={W - PAD} y2={sy(v)} stroke={v === 0 ? '#9ca3af' : '#f3f4f6'} strokeWidth={v === 0 ? 1.5 : 0.5} />
+            {v !== 0 && v % 3 === 0 && <text x={sx(v)} y={sy(0) + 11} fontSize={7} fill="#9ca3af" textAnchor="middle">{v}</text>}
+            {v !== 0 && v % 3 === 0 && <text x={sx(0) - 5} y={sy(v) + 3} fontSize={7} fill="#9ca3af" textAnchor="end">{v}</text>}
+          </g>
+        ))}
+        <path d={polyPath(problem.target)} fill="#d9770620" stroke="#d97706" strokeWidth={2} strokeDasharray="5 3" />
+        <path d={polyPath(problem.original)} fill={`${COLOR.blue}20`} stroke={COLOR.blue} strokeWidth={2} />
+        {selected && selected !== 'translate' && !checked && (
+          <path d={polyPath(currentTransformed)} fill="#7c3aed15" stroke={COLOR.purple} strokeWidth={2} strokeDasharray="3 2" />
+        )}
+        {!checked && (selected === 'translate' || !selected) && (
+          <path
+            d={polyPath(selected === 'translate' ? currentTransformed : problem.original)}
+            fill={selected === 'translate' ? '#7c3aed18' : '#7c3aed10'}
+            stroke={COLOR.purple}
+            strokeWidth={selected === 'translate' ? 2.5 : 2}
+            strokeDasharray={selected === 'translate' ? '3 2' : '6 4'}
+            style={{ cursor: 'grab', touchAction: 'none' }}
+            onPointerDown={beginTranslateDrag}
+            onPointerMove={onTranslatePointerMove}
+            onPointerUp={endTranslateDrag}
+            onPointerCancel={endTranslateDrag}
+          />
+        )}
+        {selected === 'translate' && !checked && currentTransformed.map(([x, y], vi) => (
+          <circle
+            key={`drag-${vi}`}
+            cx={sx(x)}
+            cy={sy(y)}
+            r={11}
+            fill={COLOR.purple}
+            fillOpacity={0.85}
+            stroke="#fff"
+            strokeWidth={2}
+            style={{ cursor: 'grab', touchAction: 'none' }}
+            onPointerDown={beginTranslateDrag}
+            onPointerMove={onTranslatePointerMove}
+            onPointerUp={endTranslateDrag}
+            onPointerCancel={endTranslateDrag}
+          />
+        ))}
+        {checked && (
+          <path d={polyPath(applied || currentTransformed)} fill={isCorrect ? `${COLOR.green}25` : '#ef444425'} stroke={isCorrect ? COLOR.green : '#ef4444'} strokeWidth={2.5} />
+        )}
+        {problem.original.map(([x, y], i) => (
+          <text key={`o${i}`} x={sx(x)} y={sy(y) - 8} fontSize={8} fill={COLOR.blue} fontWeight={700} textAnchor="middle">
+            ({x},{y})
+          </text>
+        ))}
+        {problem.target.map(([x, y], i) => (
+          <text key={`t${i}`} x={sx(x)} y={sy(y) - 8} fontSize={8} fill="#d97706" fontWeight={600} textAnchor="middle" opacity={0.7}>
+            ({x},{y})
+          </text>
+        ))}
+      </svg>
+    </div>
+  );
+
+  return (
+    <div style={embedded ? {} : CARD}>
+      {!embedded && <div style={{ ...BADGE, background: `${COLOR.purple}14`, color: COLOR.purple }}>{badgeLabel}</div>}
+      <p style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 800, color: COLOR.text }}>Transform Lab</p>
+      <p style={{ margin: '0 0 6px', fontSize: 13, color: COLOR.textSecondary }}>
+        Match the <span style={{ color: COLOR.blue, fontWeight: 700 }}>blue shape</span> to the <span style={{ color: '#d97706', fontWeight: 700 }}>dashed target</span>. Drag the <span style={{ color: COLOR.purple, fontWeight: 700 }}>purple outline</span> to translate, or pick a flip/rotation.
+      </p>
+      <div style={{ margin: '0 0 8px', display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: COLOR.textSecondary, background: '#f1f5f9', border: `1px solid ${COLOR.border}`, borderRadius: 999, padding: '3px 10px' }}>
+          Stage: {!selected ? 'Drag or pick' : checked ? 'Checked' : 'Previewing'}
+        </span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: isCorrect ? '#047857' : checked ? '#b91c1c' : '#64748b', background: isCorrect ? '#ecfdf5' : checked ? '#fef2f2' : '#f8fafc', border: `1px solid ${isCorrect ? '#86efac' : checked ? '#fca5a5' : '#e5e7eb'}`, borderRadius: 999, padding: '3px 10px' }}>
+          Progress: {isCorrect ? 'Matched' : checked ? 'Adjust and retry' : 'In progress'}
+        </span>
+      </div>
+
+      {compactLayout ? (
+        <>
+          {graphPanel}
+          <div style={{ marginTop: 10 }}>{controlsPanel}</div>
+        </>
+      ) : (
+        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+          <div style={{ flex: '1 1 58%', minWidth: 0 }}>{graphPanel}</div>
+          <div style={{ flex: '0 0 280px', maxHeight: '70vh', overflowY: 'auto' }}>{controlsPanel}</div>
+        </div>
+      )}
     </div>
   );
 }

@@ -351,6 +351,7 @@ export function speechifyForNarration(str) {
 
   // Pronunciation tuning for common assessment vocabulary.
   s = s.replace(/\bsummative\b/gi, 'sum-uh-tiv');
+  s = s.replace(/\bdiscriminant\b/gi, 'dis-crim-in-ant');
 
   const superDigits = {
     '\u2070': '0', '\u00B9': '1', '\u00B2': '2', '\u00B3': '3', '\u2074': '4',

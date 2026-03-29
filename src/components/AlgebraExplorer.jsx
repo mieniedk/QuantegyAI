@@ -149,6 +149,14 @@ function transformEquationDisplay(parentName) {
 
 function FunctionTransform({ onComplete, continueLabel, badgeLabel, embedded }) {
   const [roundIdx, setRound] = useState(0);
+  const [wideLayout, setWideLayout] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 760 : false));
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const onResize = () => setWideLayout(window.innerWidth >= 760);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const target = useMemo(() => {
     const a = [0.5, 1, 2, -1, -0.5][rand(0, 4)];
@@ -222,48 +230,68 @@ function FunctionTransform({ onComplete, continueLabel, badgeLabel, embedded }) 
       </div>
 
       <QBotBubble message={qbot.msg} mood={qbot.mood} />
-      <div style={{ marginBottom: 10, padding: '8px 12px', borderRadius: 10, background: '#eef2ff', border: '1px solid #c7d2fe', fontSize: 12, color: '#3730a3', lineHeight: 1.45 }}>
-        <strong>How to use:</strong> Move one slider at a time: first <strong>a</strong> (shape/flip), then <strong>h</strong> (left/right), then <strong>k</strong> (up/down).
-      </div>
 
-      <div style={{ background: '#f8fafc', borderRadius: 14, border: `1px solid ${COLOR.border}`, padding: 8, marginBottom: 12 }}>
-        <svg viewBox={`0 0 ${W} ${H_SVG}`} width="100%" style={{ display: 'block' }}>
-          <line x1={PAD} y1={sy(0)} x2={W - PAD} y2={sy(0)} stroke="#d1d5db" strokeWidth={1.5} />
-          <line x1={sx(0)} y1={PAD} x2={sx(0)} y2={H_SVG - PAD} stroke="#d1d5db" strokeWidth={1.5} />
-          {Array.from({ length: 13 }, (_, i) => i - 6).map((v) => (
-            <g key={v}>
-              {v !== 0 && <text x={sx(v)} y={sy(0) + 14} fontSize={8} fill="#9ca3af" textAnchor="middle">{v}</text>}
-              {v !== 0 && <text x={sx(0) - 8} y={sy(v) + 3} fontSize={8} fill="#9ca3af" textAnchor="end">{v}</text>}
-            </g>
-          ))}
-          <path d={targetPath} fill="none" stroke="#d97706" strokeWidth={2.5} strokeDasharray="6 3" opacity={0.8} />
-          <path d={studentPath} fill="none" stroke={isMatch ? COLOR.green : COLOR.blue} strokeWidth={2.5} opacity={0.9} />
-        </svg>
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14, padding: '0 8px' }}>
-        {[
-          { label: 'a (stretch)', val: a, set: setA, min: -3, max: 3, step: 0.5, color: '#2563eb' },
-          { label: 'h (horizontal)', val: h, set: setH, min: -5, max: 5, step: 1, color: '#059669' },
-          { label: 'k (vertical)', val: k, set: setK, min: -5, max: 5, step: 1, color: '#7c3aed' },
-        ].map((s) => (
-          <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: s.color, minWidth: 100 }}>{s.label}</span>
-            <input type="range" min={s.min} max={s.max} step={s.step} value={s.val}
-              onChange={(e) => s.set(parseFloat(e.target.value))}
-              aria-label={`${s.label} slider`}
-              style={{ flex: 1, accentColor: s.color }} />
-            <span style={{ fontSize: 14, fontWeight: 700, color: s.color, minWidth: 32, textAlign: 'right' }}>{s.val}</span>
+      <div style={{ display: 'flex', flexDirection: wideLayout ? 'row' : 'column', gap: 12, alignItems: 'stretch', marginBottom: 12 }}>
+        {/* Graph panel */}
+        <div style={{ flex: wideLayout ? '1 1 60%' : '1 1 auto', minWidth: 0 }}>
+          <div style={{ background: '#f8fafc', borderRadius: 14, border: `1px solid ${COLOR.border}`, padding: wideLayout ? 6 : 8 }}>
+            <svg viewBox={`0 0 ${W} ${H_SVG}`} width="100%" style={{ display: 'block', maxWidth: wideLayout ? 480 : '100%', margin: '0 auto' }}>
+              <line x1={PAD} y1={sy(0)} x2={W - PAD} y2={sy(0)} stroke="#d1d5db" strokeWidth={1.5} />
+              <line x1={sx(0)} y1={PAD} x2={sx(0)} y2={H_SVG - PAD} stroke="#d1d5db" strokeWidth={1.5} />
+              {Array.from({ length: 13 }, (_, i) => i - 6).map((v) => (
+                <g key={v}>
+                  {v !== 0 && <text x={sx(v)} y={sy(0) + 14} fontSize={8} fill="#9ca3af" textAnchor="middle">{v}</text>}
+                  {v !== 0 && <text x={sx(0) - 8} y={sy(v) + 3} fontSize={8} fill="#9ca3af" textAnchor="end">{v}</text>}
+                </g>
+              ))}
+              <path d={targetPath} fill="none" stroke="#d97706" strokeWidth={2.5} strokeDasharray="6 3" opacity={0.8} />
+              <path d={studentPath} fill="none" stroke={isMatch ? COLOR.green : COLOR.blue} strokeWidth={2.5} opacity={0.9} />
+            </svg>
           </div>
-        ))}
-      </div>
-
-      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 10, flexWrap: 'wrap' }}>
-        <div style={{ padding: '6px 14px', borderRadius: 10, background: isMatch ? COLOR.greenLight : '#eff6ff', border: `1px solid ${isMatch ? COLOR.greenBorder : '#93c5fd'}`, fontSize: 13, fontWeight: 700, color: isMatch ? COLOR.green : COLOR.blue }}>
-          y = {a}{parent.name.replace('x', `(x${h >= 0 ? '\u2212' : '+'}${Math.abs(h)})`)} {k >= 0 ? '+' : '\u2212'} {Math.abs(k)}
+          {/* Live equation readout — sits below graph so it's always visible */}
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 8, flexWrap: 'wrap' }}>
+            <div style={{ padding: '5px 12px', borderRadius: 10, background: isMatch ? COLOR.greenLight : '#eff6ff', border: `1px solid ${isMatch ? COLOR.greenBorder : '#93c5fd'}`, fontSize: 12, fontWeight: 700, color: isMatch ? COLOR.green : COLOR.blue }}>
+              y = {a}{parent.name.replace('x', `(x${h >= 0 ? '\u2212' : '+'}${Math.abs(h)})`)} {k >= 0 ? '+' : '\u2212'} {Math.abs(k)}
+            </div>
+            <div style={{ padding: '5px 12px', borderRadius: 10, background: transformDistance <= 0.6 ? '#ecfdf5' : '#fff7ed', border: `1px solid ${transformDistance <= 0.6 ? '#86efac' : '#fdba74'}`, fontSize: 11, fontWeight: 700, color: transformDistance <= 0.6 ? '#047857' : '#9a3412' }}>
+              Distance: {transformDistance}
+            </div>
+          </div>
         </div>
-        <div style={{ padding: '6px 14px', borderRadius: 10, background: transformDistance <= 0.6 ? '#ecfdf5' : '#fff7ed', border: `1px solid ${transformDistance <= 0.6 ? '#86efac' : '#fdba74'}`, fontSize: 12, fontWeight: 700, color: transformDistance <= 0.6 ? '#047857' : '#9a3412' }}>
-          Distance to target: {transformDistance}
+
+        {/* Controls panel */}
+        <div style={{ flex: wideLayout ? '0 0 260px' : '1 1 auto', background: '#fff', borderRadius: 14, border: `1px solid ${COLOR.border}`, padding: '12px 14px 10px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: COLOR.textSecondary, marginBottom: 2 }}>
+            Adjust parameters
+          </div>
+          <div style={{ padding: '6px 10px', borderRadius: 8, background: '#eef2ff', border: '1px solid #c7d2fe', fontSize: 11, color: '#3730a3', lineHeight: 1.4 }}>
+            Move one slider at a time: <strong>a</strong> (shape/flip), <strong>h</strong> (left/right), <strong>k</strong> (up/down).
+          </div>
+          {[
+            { label: 'a', desc: 'stretch / flip', val: a, set: setA, min: -3, max: 3, step: 0.5, color: '#2563eb' },
+            { label: 'h', desc: 'horizontal shift', val: h, set: setH, min: -5, max: 5, step: 1, color: '#059669' },
+            { label: 'k', desc: 'vertical shift', val: k, set: setK, min: -5, max: 5, step: 1, color: '#7c3aed' },
+          ].map((s) => (
+            <div key={s.label}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 3 }}>
+                <span style={{ fontSize: 13, fontWeight: 800, color: s.color }}>{s.label}</span>
+                <span style={{ fontSize: 10, fontWeight: 600, color: COLOR.textSecondary }}>{s.desc}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input type="range" min={s.min} max={s.max} step={s.step} value={s.val}
+                  onChange={(e) => s.set(parseFloat(e.target.value))}
+                  aria-label={`${s.label} — ${s.desc}`}
+                  style={{ flex: 1, accentColor: s.color }} />
+                <span style={{ fontSize: 15, fontWeight: 800, color: s.color, minWidth: 32, textAlign: 'right' }}>{s.val}</span>
+              </div>
+            </div>
+          ))}
+          <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: 8, background: isMatch ? '#ecfdf5' : '#f8fafc', border: `1px solid ${isMatch ? '#86efac' : '#e5e7eb'}` }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: isMatch ? COLOR.green : '#d97706', flexShrink: 0 }} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: isMatch ? COLOR.green : '#92400e' }}>
+              {isMatch ? 'Matched!' : 'Keep adjusting'}
+            </span>
+          </div>
         </div>
       </div>
 

@@ -577,10 +577,13 @@ const Student = () => {
   const [studentId, setStudentId] = useState('');
   const [assignments, setAssignments] = useState([]);
   const [searchParams, setSearchParams] = useSearchParams();
+  const focusParam = searchParams.get('focus');
   const tabParam = searchParams.get('tab');
   const validTabs = ['overview', 'skill-graph', 'feed', 'modules', 'chat', 'meet', 'studio', 'live', 'spaces', 'concept-map', 'progress', 'warmups', 'games', 'practice', 'awards', 'gamification', 'ai-tutor'];
   const [tab, setTabState] = useState(validTabs.includes(tabParam) ? tabParam : 'overview');
   const mainPanelRef = useRef(null);
+  const texesSignupRef = useRef(null);
+  const [highlightTexesSignup, setHighlightTexesSignup] = useState(false);
   const setTab = (newTab) => {
     setTabState(newTab);
     const next = new URLSearchParams(searchParams);
@@ -591,6 +594,18 @@ const Student = () => {
   useEffect(() => {
     if (tabParam && validTabs.includes(tabParam) && tabParam !== tab) setTabState(tabParam);
   }, [tabParam]);
+  useEffect(() => {
+    if (isJoined || focusParam !== 'texes-signup') return undefined;
+    const scrollTimer = setTimeout(() => {
+      texesSignupRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setHighlightTexesSignup(true);
+    }, 120);
+    const clearHighlightTimer = setTimeout(() => setHighlightTexesSignup(false), 3600);
+    return () => {
+      clearTimeout(scrollTimer);
+      clearTimeout(clearHighlightTimer);
+    };
+  }, [isJoined, focusParam]);
   const [joinError, setJoinError] = useState('');
   const [activeLecture, setActiveLecture] = useState(null);
   const [activeConceptCheck, setActiveConceptCheck] = useState(null); // Learn→Check→Game when no lecture
@@ -961,18 +976,28 @@ const Student = () => {
             </div>
 
             {/* Self-serve exam prep */}
-            <div style={{
+            <div
+              ref={texesSignupRef}
+              style={{
               marginTop: 16, padding: '20px 20px', background: 'linear-gradient(135deg, #eff6ff, #f5f3ff)', borderRadius: 14,
-              border: '1px solid #c7d2fe', textAlign: 'center',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
-            }}>
+              border: highlightTexesSignup ? '2px solid #8b5cf6' : '1px solid #c7d2fe', textAlign: 'center',
+              boxShadow: highlightTexesSignup ? '0 0 0 4px rgba(139,92,246,0.15)' : '0 1px 4px rgba(0,0,0,0.03)',
+              transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
+            }}
+            >
+              {highlightTexesSignup && (
+                <div style={{ margin: '0 auto 8px', fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#6d28d9' }}>
+                  Recommended next step
+                </div>
+              )}
               <p style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 700, color: '#1e293b' }}>
                 Preparing for a certification exam?
               </p>
               <p style={{ margin: '0 0 12px', fontSize: 13, color: '#64748b' }}>
                 Start a free adaptive learning loop — no class code needed.
               </p>
-              <Link to="/practice-loop?examId=math712&comp=comp002&currentStd=c004&grade=grade7-12&subject=math" style={{
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <Link to="/practice-loop?examId=math712&comp=comp002&currentStd=c004&grade=grade7-12&subject=math" style={{
                 display: 'inline-block', padding: '10px 22px',
                 background: 'linear-gradient(135deg, #7c3aed, #5b21b6)', color: '#fff', borderRadius: 10,
                 textDecoration: 'none', fontWeight: 700, fontSize: 14,
@@ -980,7 +1005,16 @@ const Student = () => {
                 boxShadow: '0 2px 10px rgba(124,58,237,0.25)',
               }}>
                 Start Free Preview
-              </Link>
+                </Link>
+                <Link to="/practice-loop?examId=math712&comp=comp002&currentStd=c004&grade=grade7-12&subject=math&phase=paywall" style={{
+                  display: 'inline-block', padding: '10px 22px',
+                  background: '#ffffff', color: '#5b21b6', borderRadius: 10,
+                  textDecoration: 'none', fontWeight: 700, fontSize: 14,
+                  border: '1px solid #a78bfa', transition: 'all 0.15s',
+                }}>
+                  Create TExES 7-12 Account
+                </Link>
+              </div>
             </div>
           </div>
         ) : (

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vector Playground — Quantegy AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --grid:rgba(255,255,255,0.07);--label:rgba(255,255,255,0.3);
+    --cyan:#00e5ff;--magenta:#ff2d8a;--yellow:#ffd600;
+    --green:#00e676;--orange:#ff9100;
+  }
+  body{
+    min-height:100vh;
+    background:linear-gradient(135deg,#0a0e1a 0%,#101828 50%,#0d1420 100%);
+    padding:24px;font-family:'Outfit',sans-serif;color:#fff;
+  }
+  .wrap{max-width:820px;margin:0 auto}
+  h1{font-size:28px;font-weight:700;letter-spacing:-0.5px;text-align:center}
+  .subtitle{color:rgba(255,255,255,0.4);font-size:14px;font-weight:300;text-align:center;margin:6px 0 20px}
+  .layout{display:flex;gap:20px;flex-wrap:wrap;justify-content:center}
+  .svg-wrap{position:relative;flex:0 0 auto}
+  svg{display:block;max-width:460px;width:100%;background:rgba(0,0,0,0.3);border-radius:16px;border:1px solid rgba(255,255,255,0.06)}
+  .panel{display:flex;flex-direction:column;gap:10px;min-width:220px;flex:1}
+  .card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px;backdrop-filter:blur(10px)}
+  .card-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.4);margin-bottom:6px;font-weight:500}
+  .card-value{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500}
+  .card-value.sm{font-size:15px}
+  .toggles{display:flex;gap:8px;margin-top:6px}
+  .toggle-btn{
+    background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+    border-radius:8px;padding:8px 14px;color:rgba(255,255,255,0.6);
+    cursor:pointer;font-family:'Outfit',sans-serif;font-size:13px;transition:all .2s;
+  }
+  .toggle-btn:hover{background:rgba(255,255,255,0.1)}
+  .toggle-btn.active{background:rgba(0,229,255,0.12);border-color:rgba(0,229,255,0.3);color:var(--cyan)}
+  .legend{
+    margin-top:8px;padding:12px 14px;background:rgba(255,255,255,0.03);
+    border-radius:10px;border:1px solid rgba(255,255,255,0.06);
+    color:rgba(255,255,255,0.5);font-size:12px;line-height:1.6;
+  }
+  @media(max-width:600px){
+    body{padding:12px}
+    .layout{flex-direction:column;align-items:center}
+    .panel{min-width:0;width:100%}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Vector Playground</h1>
+  <p class="subtitle">Drag the tip of the vector to explore</p>
+
+  <div class="layout">
+    <div class="svg-wrap">
+      <svg id="canvas" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+
+    <div class="panel">
+      <div class="card" style="border-left:3px solid var(--cyan)">
+        <div class="card-label">Vector</div>
+        <div class="card-value" id="infoVec">v = ⟨3, 4⟩</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--orange)">
+        <div class="card-label">Magnitude</div>
+        <div class="card-value" id="infoMag">‖v‖ = √(9 + 16) = 5.00</div>
+      </div>
+      <div class="card" id="unitCard" style="border-left:3px solid var(--magenta)">
+        <div class="card-label">Unit Vector</div>
+        <div class="card-value" id="infoUnit">û = ⟨0.60, 0.80⟩</div>
+      </div>
+      <div class="card" id="compCard" style="border-left:3px solid var(--yellow)">
+        <div class="card-label">Components</div>
+        <div class="card-value sm" id="infoComp">
+          <span style="color:var(--yellow)">3î</span> + <span style="color:var(--green)">4ĵ</span>
+        </div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--orange)">
+        <div class="card-label">Angle from x-axis</div>
+        <div class="card-value" id="infoAngle">53.1°</div>
+      </div>
+
+      <div class="toggles">
+        <button class="toggle-btn active" id="btnComp">Components</button>
+        <button class="toggle-btn active" id="btnUnit">Unit Vector</button>
+      </div>
+
+      <div class="legend">
+        <span style="color:var(--cyan)">●</span> Main vector &nbsp;
+        <span style="color:var(--yellow)">●</span> x-component &nbsp;
+        <span style="color:var(--green)">●</span> y-component<br>
+        <span style="color:var(--magenta)">●</span> Unit vector &nbsp;
+        <span style="color:var(--orange)">●</span> Angle
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const W = 500, H = 500, GRID = 40, OX = W / 2, OY = H / 2;
+  const svg = document.getElementById('canvas');
+  const NS = 'http://www.w3.org/2000/svg';
+
+  let vx = 3, vy = 4;
+  let showComp = true, showUnit = true, dragging = false;
+
+  function toScreen(x, y) { return [OX + x * GRID, OY - y * GRID]; }
+  function toMath(sx, sy) { return [(sx - OX) / GRID, (OY - sy) / GRID]; }
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (k === 'text') { e.textContent = v; continue; }
+      e.setAttribute(k.replace(/([A-Z])/g, '-$1').toLowerCase(), String(v));
+    }
+    (parent || svg).appendChild(e);
+    return e;
+  }
+
+  /* ── static defs ── */
+  function buildDefs() {
+    const defs = el('defs', {});
+    const colors = { cyan: 'var(--cyan)', yellow: 'var(--yellow)', green: 'var(--green)', magenta: 'var(--magenta)' };
+    const sizes = { cyan: 8, yellow: 7, green: 7, magenta: 6 };
+    for (const [name, color] of Object.entries(colors)) {
+      const m = el('marker', { id: 'ah-' + name, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: sizes[name], markerHeight: sizes[name], orient: 'auto' }, defs);
+      el('path', { d: 'M1 1L9 5L1 9', fill: 'none', stroke: color, strokeWidth: 1.5, strokeLinecap: 'round', strokeLinejoin: 'round' }, m);
+    }
+  }
+
+  /* ── static grid ── */
+  function buildGrid() {
+    const g = el('g', { id: 'grid-layer' });
+    for (let i = -6; i <= 6; i++) {
+      const [sx] = toScreen(i, 0);
+      const [, sy] = toScreen(0, i);
+      el('line', { x1: sx, y1: 20, x2: sx, y2: H - 20, stroke: 'var(--grid)', strokeWidth: i === 0 ? 1.5 : 0.5 }, g);
+      el('line', { x1: 20, y1: sy, x2: W - 20, y2: sy, stroke: 'var(--grid)', strokeWidth: i === 0 ? 1.5 : 0.5 }, g);
+      if (i !== 0) {
+        el('text', { x: sx, y: OY + 16, textAnchor: 'middle', fontSize: 10, fill: 'var(--label)', fontFamily: "'JetBrains Mono', monospace", text: String(i) }, g);
+        el('text', { x: OX - 12, y: sy + 4, textAnchor: 'end', fontSize: 10, fill: 'var(--label)', fontFamily: "'JetBrains Mono', monospace", text: String(i) }, g);
+      }
+    }
+  }
+
+  /* ── dynamic layer (rebuilt each frame) ── */
+  let dynGroup = null;
+  function render() {
+    if (dynGroup) dynGroup.remove();
+    dynGroup = el('g', { id: 'dyn' });
+
+    const mag = Math.sqrt(vx * vx + vy * vy);
+    const ux = mag > 0 ? vx / mag : 0;
+    const uy = mag > 0 ? vy / mag : 0;
+    const angle = Math.atan2(vy, vx) * (180 / Math.PI);
+
+    const [tipX, tipY] = toScreen(vx, vy);
+    const [compXEnd] = toScreen(vx, 0);
+    const [unitTipX, unitTipY] = toScreen(ux, uy);
+
+    /* components */
+    if (showComp && vx !== 0) {
+      el('line', { x1: OX, y1: OY, x2: compXEnd, y2: OY, stroke: 'var(--yellow)', strokeWidth: 2.5, strokeDasharray: '6 4', markerEnd: 'url(#ah-yellow)', opacity: 0.8 }, dynGroup);
+      el('text', { x: (OX + compXEnd) / 2, y: OY + (vy >= 0 ? 24 : -12), textAnchor: 'middle', fill: 'var(--yellow)', fontSize: 13, fontFamily: "'JetBrains Mono', monospace", fontWeight: 500, opacity: 0.9, text: vx + 'î' }, dynGroup);
+    }
+    if (showComp && vy !== 0) {
+      el('line', { x1: compXEnd, y1: OY, x2: tipX, y2: tipY, stroke: 'var(--green)', strokeWidth: 2.5, strokeDasharray: '6 4', markerEnd: 'url(#ah-green)', opacity: 0.8 }, dynGroup);
+      el('text', { x: tipX + (vx >= 0 ? 18 : -18), y: (OY + tipY) / 2 + 4, textAnchor: vx >= 0 ? 'start' : 'end', fill: 'var(--green)', fontSize: 13, fontFamily: "'JetBrains Mono', monospace", fontWeight: 500, opacity: 0.9, text: vy + 'ĵ' }, dynGroup);
+    }
+
+    /* unit vector */
+    if (showUnit && mag > 0.1) {
+      el('line', { x1: OX, y1: OY, x2: unitTipX, y2: unitTipY, stroke: 'var(--magenta)', strokeWidth: 3, markerEnd: 'url(#ah-magenta)', opacity: 0.7 }, dynGroup);
+      el('text', { x: unitTipX + (ux >= 0 ? 10 : -10), y: unitTipY - 10, textAnchor: ux >= 0 ? 'start' : 'end', fill: 'var(--magenta)', fontSize: 11, fontFamily: "'JetBrains Mono', monospace", opacity: 0.8, text: 'û' }, dynGroup);
+    }
+
+    /* main vector */
+    el('line', { x1: OX, y1: OY, x2: tipX, y2: tipY, stroke: 'var(--cyan)', strokeWidth: 3, markerEnd: 'url(#ah-cyan)' }, dynGroup);
+
+    /* angle arc */
+    if (mag > 0.1) {
+      const r = 25;
+      const endArcX = OX + r * Math.cos(-angle * Math.PI / 180);
+      const endArcY = OY + r * Math.sin(-angle * Math.PI / 180);
+      const large = Math.abs(angle) > 180 ? 1 : 0;
+      const sweep = angle >= 0 ? 0 : 1;
+      el('path', { d: 'M ' + (OX + r) + ' ' + OY + ' A ' + r + ' ' + r + ' 0 ' + large + ' ' + sweep + ' ' + endArcX + ' ' + endArcY, fill: 'none', stroke: 'var(--orange)', strokeWidth: 1.5, opacity: 0.5 }, dynGroup);
+      const labelR = 36;
+      el('text', { x: OX + labelR * Math.cos(-angle * Math.PI / 360), y: OY + labelR * Math.sin(-angle * Math.PI / 360) + 4, textAnchor: 'middle', fill: 'var(--orange)', fontSize: 11, fontFamily: "'JetBrains Mono', monospace", opacity: 0.7, text: angle.toFixed(0) + '°' }, dynGroup);
+    }
+
+    /* drag handle */
+    el('circle', { cx: tipX, cy: tipY, r: dragging ? 14 : 10, fill: dragging ? 'rgba(0,229,255,0.25)' : 'rgba(0,229,255,0.12)', stroke: 'var(--cyan)', strokeWidth: 2, style: 'cursor:grab' }, dynGroup);
+    el('circle', { cx: tipX, cy: tipY, r: 3, fill: 'var(--cyan)', pointerEvents: 'none' }, dynGroup);
+
+    /* origin dot */
+    el('circle', { cx: OX, cy: OY, r: 4, fill: 'rgba(255,255,255,0.4)', stroke: 'rgba(255,255,255,0.2)', strokeWidth: 1 }, dynGroup);
+
+    /* ── info panel ── */
+    document.getElementById('infoVec').textContent = 'v = ⟨' + vx + ', ' + vy + '⟩';
+    document.getElementById('infoMag').textContent = '‖v‖ = √(' + (vx * vx) + ' + ' + (vy * vy) + ') = ' + mag.toFixed(2);
+    document.getElementById('infoAngle').textContent = angle.toFixed(1) + '°';
+
+    if (showUnit && mag > 0.1) {
+      document.getElementById('unitCard').style.display = '';
+      document.getElementById('infoUnit').textContent = 'û = ⟨' + ux.toFixed(2) + ', ' + uy.toFixed(2) + '⟩';
+    } else {
+      document.getElementById('unitCard').style.display = 'none';
+    }
+
+    if (showComp) {
+      document.getElementById('compCard').style.display = '';
+      document.getElementById('infoComp').innerHTML =
+        '<span style="color:var(--yellow)">' + vx + 'î</span> + <span style="color:var(--green)">' + vy + 'ĵ</span>';
+    } else {
+      document.getElementById('compCard').style.display = 'none';
+    }
+  }
+
+  /* ── pointer events ── */
+  function ptrToSvg(e) {
+    const rect = svg.getBoundingClientRect();
+    const sx = (e.clientX - rect.left) * (W / rect.width);
+    const sy = (e.clientY - rect.top) * (H / rect.height);
+    return toMath(sx, sy);
+  }
+
+  svg.addEventListener('pointerdown', function (e) {
+    const [mx, my] = ptrToSvg(e);
+    const dist = Math.sqrt((mx - vx) ** 2 + (my - vy) ** 2);
+    if (dist < 0.8) {
+      e.preventDefault();
+      dragging = true;
+      svg.setPointerCapture(e.pointerId);
+      render();
+    }
+  });
+  svg.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    e.preventDefault();
+    const [mx, my] = ptrToSvg(e);
+    vx = Math.round(Math.max(-6, Math.min(6, mx)) * 2) / 2;
+    vy = Math.round(Math.max(-6, Math.min(6, my)) * 2) / 2;
+    render();
+  });
+  svg.addEventListener('pointerup', function () { dragging = false; render(); });
+  svg.addEventListener('pointerleave', function () { dragging = false; render(); });
+
+  /* ── toggle buttons ── */
+  document.getElementById('btnComp').addEventListener('click', function () {
+    showComp = !showComp;
+    this.classList.toggle('active', showComp);
+    render();
+  });
+  document.getElementById('btnUnit').addEventListener('click', function () {
+    showUnit = !showUnit;
+    this.classList.toggle('active', showUnit);
+    render();
+  });
+
+  /* ── init ── */
+  buildDefs();
+  buildGrid();
+  render();
+})();
+</script>
+</body>
+</html>

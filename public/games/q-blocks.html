@@ -13,7 +13,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;user-select:none;-webkit-user-select:none;touch-action:manipulation;}
 html,body{position:fixed;width:100%;height:100%;overflow:hidden;background:linear-gradient(135deg,#0a0a1a 0%,#0d1b2a 50%,#0a0a1a 100%);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:#e0e0e0;}
-.screen{display:none;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;max-width:420px;margin:0 auto;padding:16px;position:absolute;top:0;left:50%;transform:translateX(-50%);overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.screen{display:none;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;max-width:520px;margin:0 auto;padding:16px;position:absolute;top:0;left:50%;transform:translateX(-50%);overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .screen.active{display:flex;}
 
 /* Username Screen */
@@ -95,7 +95,7 @@ body:has(#game.screen.active) #menu{display:none!important;visibility:hidden!imp
 .top-bar .score-area .val{color:#00f5ff;font-weight:700;}
 .top-bar .tbtn{width:44px;height:44px;border:1px solid rgba(0,245,255,.2);border-radius:8px;background:rgba(0,245,255,.06);color:#00f5ff;font-size:.9em;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .top-bar .tbtns{display:flex;gap:6px;}
-.board-wrap{flex:1;min-height:35vh;max-height:65vh;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;overflow:hidden;padding:4px 4px 12px 4px;position:relative;}
+.board-wrap{flex:1;min-height:42vh;max-height:78vh;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;overflow:hidden;padding:4px 4px 12px 4px;position:relative;}
 #board-box{position:relative;border:2px solid rgba(0,245,255,.3);border-radius:8px;background:rgba(0,0,0,.5);overflow:hidden;flex-shrink:1;touch-action:none;box-shadow:0 0 30px rgba(0,245,255,.08),inset 0 0 40px rgba(0,0,0,.3);}
 #board{display:grid;grid-template-columns:repeat(8,1fr);width:100%;height:100%;}
 #board .cell{aspect-ratio:1;border:1px solid rgba(0,245,255,.06);transition:background .05s;}
@@ -142,41 +142,101 @@ body:has(#game.screen.active) #menu{display:none!important;visibility:hidden!imp
 #pause button:active{transform:scale(.95);}
 
 /* Game Over */
-#gameover{gap:12px;padding:16px;padding-bottom:80px;overflow-y:auto;}
-#gameover h2{font-size:1.6em;color:#00f5ff;margin-bottom:0;}
-#gameover .final-score{font-size:2.4em;font-weight:800;color:#ffcc00;text-shadow:0 0 20px rgba(255,204,0,.4);}
-.go-stats{width:100%;max-width:360px;display:flex;flex-direction:column;gap:6px;}
-.go-stat{display:flex;justify-content:space-between;padding:6px 12px;background:rgba(0,245,255,.04);border-radius:8px;font-size:.85em;}
-.go-stat .label{color:#aaa;}
-.go-stat .value{color:#00f5ff;font-weight:600;}
-.go-section-title{color:#888;font-size:.75em;text-transform:uppercase;letter-spacing:1px;margin-top:6px;padding-left:4px;}
-.diff-row{display:flex;justify-content:space-between;padding:4px 12px;font-size:.8em;}
-.diff-row .dl{color:#aaa;}
+#gameover{gap:14px;padding:16px 12px;padding-bottom:90px;overflow-y:auto;align-items:stretch;justify-content:flex-start;}
+#gameover .go-hero{width:100%;max-width:480px;margin:0 auto;text-align:center;padding:6px 0 2px;}
+#gameover .go-hero h2{font-size:1.5em;font-weight:800;margin:0 0 2px;background:linear-gradient(135deg,#00f5ff,#00ff88);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+#gameover .go-hero .go-subtitle{font-size:.78em;color:#94a3b8;font-weight:600;}
+
+/* Accuracy ring */
+.acc-ring-wrap{display:flex;align-items:center;justify-content:center;gap:18px;width:100%;max-width:480px;margin:0 auto;}
+.acc-ring{position:relative;width:110px;height:110px;flex-shrink:0;}
+.acc-ring svg{width:100%;height:100%;transform:rotate(-90deg);}
+.acc-ring .ring-bg{fill:none;stroke:rgba(255,255,255,.06);stroke-width:10;}
+.acc-ring .ring-fg{fill:none;stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset .8s ease;}
+.acc-ring .ring-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.acc-ring .ring-pct{font-size:1.7em;font-weight:900;color:#fff;line-height:1;}
+.acc-ring .ring-sub{font-size:.6em;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+.acc-side{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0;}
+.acc-side .acc-row{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;border-radius:8px;background:rgba(0,245,255,.04);font-size:.82em;}
+.acc-side .acc-row .al{color:#94a3b8;font-weight:600;}
+.acc-side .acc-row .av{font-weight:700;}
+
+/* Score + level strip */
+.go-score-strip{display:flex;gap:8px;width:100%;max-width:480px;margin:0 auto;}
+.go-score-strip .ss-box{flex:1;background:rgba(0,0,0,.28);border:1px solid rgba(0,245,255,.1);border-radius:12px;padding:10px 8px;text-align:center;}
+.ss-box .ss-val{font-size:1.5em;font-weight:800;line-height:1.1;}
+.ss-box .ss-lbl{font-size:.62em;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-top:2px;}
+
+/* QBot feedback card */
+.go-qbot{width:100%;max-width:480px;margin:0 auto;display:flex;align-items:flex-start;gap:10px;background:rgba(0,245,255,.05);border:1px solid rgba(0,245,255,.12);border-radius:14px;padding:12px 14px;}
+.go-qbot svg{flex-shrink:0;margin-top:2px;}
+.go-qbot-body{flex:1;min-width:0;}
+.go-qbot-body .qbot-heading{font-size:.72em;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#00f5ff;margin-bottom:3px;}
+.go-qbot-body .qbot-msg{font-size:.84em;color:#c8d6e5;line-height:1.45;font-weight:500;}
+.go-qbot-body .qbot-tip{margin-top:6px;font-size:.78em;color:#ffcc00;font-weight:600;line-height:1.35;}
+
+/* Collapsible details */
+.go-details-toggle{width:100%;max-width:480px;margin:0 auto;background:none;border:1px solid rgba(0,245,255,.1);border-radius:10px;padding:8px 14px;color:#94a3b8;font-size:.78em;font-weight:700;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .2s;}
+.go-details-toggle:hover{background:rgba(0,245,255,.04);}
+.go-details-toggle .arrow{transition:transform .25s;font-size:.7em;}
+.go-details-toggle.open .arrow{transform:rotate(180deg);}
+.go-details-body{width:100%;max-width:480px;margin:0 auto;display:none;flex-direction:column;gap:6px;padding:4px 0;}
+.go-details-body.open{display:flex;}
+.go-stat{display:flex;justify-content:space-between;align-items:center;padding:7px 11px;background:rgba(0,245,255,.04);border:1px solid rgba(0,245,255,.08);border-radius:9px;font-size:.82em;}
+.go-stat .label{color:#94a3b8;font-weight:600;}
+.go-stat .value{color:#00f5ff;font-weight:700;}
+.go-section-title{color:#64748b;font-size:.68em;text-transform:uppercase;letter-spacing:1px;margin-top:4px;padding-left:2px;font-weight:700;}
+.diff-row{display:flex;justify-content:space-between;align-items:center;padding:4px 10px;font-size:.78em;border-radius:7px;background:rgba(255,255,255,.02);}
+.diff-row .dl{color:#94a3b8;}
 .diff-row .dv{color:#00f5ff;font-weight:600;}
-#gameover .review-btn{padding:10px 24px;border:2px solid #ffcc00;border-radius:10px;background:rgba(255,204,0,.1);color:#ffcc00;font-size:.9em;font-weight:600;cursor:pointer;margin-top:4px;}
-#gameover .retry-btn{padding:14px 48px;border:none;border-radius:12px;background:linear-gradient(135deg,#00f5ff,#00bb99);color:#0a0a1a;font-size:1.1em;font-weight:700;cursor:pointer;}
-#gameover .back-btn{padding:8px 24px;border:1px solid rgba(0,245,255,.3);border-radius:10px;background:transparent;color:#00f5ff;font-size:.85em;cursor:pointer;}
-#gameover .retry-btn:active,#gameover .back-btn:active,#gameover .review-btn:active{transform:scale(.95);}
-#continueToQuizWrap{display:none;margin-top:12px;text-align:center;}
-#gameover .continue-quiz-btn{padding:14px 30px;border:2px solid #34d399;border-radius:12px;background:linear-gradient(135deg,#059669,#047857);color:#fff;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 0 14px rgba(5,150,105,0.35);white-space:nowrap;}
-#gameover .continue-quiz-btn:active{transform:scale(.95);}
+
+/* Actions */
+#gameover .go-actions{width:100%;max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:8px;}
+#gameover .review-btn{padding:11px 14px;border:2px solid #ffcc00;border-radius:10px;background:rgba(255,204,0,.08);color:#ffcc00;font-size:.92em;font-weight:700;cursor:pointer;width:100%;}
+#gameover .retry-btn{padding:13px 14px;border:none;border-radius:12px;background:linear-gradient(135deg,#00f5ff,#00bb99);color:#0a0a1a;font-size:1.02em;font-weight:800;cursor:pointer;width:100%;box-shadow:0 2px 14px rgba(0,245,255,.2);}
+#gameover .back-btn{padding:10px 14px;border:1px solid rgba(0,245,255,.2);border-radius:10px;background:transparent;color:#64748b;font-size:.85em;font-weight:600;cursor:pointer;width:100%;}
+#gameover .retry-btn:active,#gameover .back-btn:active,#gameover .review-btn:active{transform:scale(.96);}
+#continueToQuizWrap{display:none;width:100%;}
+#gameover .continue-quiz-btn{padding:13px 14px;border:2px solid #34d399;border-radius:12px;background:linear-gradient(135deg,#059669,#047857);color:#fff;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 0 14px rgba(5,150,105,0.35);white-space:nowrap;width:100%;}
+#gameover .continue-quiz-btn:active{transform:scale(.96);}
 
 /* Review Screen */
-#reviewScreen{padding:16px;gap:12px;overflow-y:auto;}
-#reviewScreen h2{font-size:1.4em;color:#00f5ff;margin-bottom:4px;}
-#reviewScreen .review-info{color:#888;font-size:.8em;margin-bottom:8px;}
-.flashcard{width:100%;max-width:340px;background:rgba(0,245,255,.04);border:1px solid rgba(0,245,255,.1);border-radius:14px;padding:20px;text-align:center;margin-bottom:10px;}
-.flashcard .fc-q{font-size:1.1em;color:#e0e0e0;margin-bottom:12px;font-weight:600;}
-.flashcard .math-display{display:inline-flex;flex-direction:column;align-items:flex-end;font-family:'Courier New',monospace;font-size:1.5em;font-weight:700;line-height:1.3;margin-bottom:10px;color:#e0e0e0;}
-.math-display .md-row{display:flex;gap:0;}
-.math-display .md-op{color:#00f5ff;min-width:1.2em;text-align:center;}
-.math-display .md-num{letter-spacing:.08em;}
-.math-display .md-line{width:100%;height:2px;background:#00f5ff;margin:4px 0;}
-.math-display .md-ans{color:#00ff88;}
-.math-display .md-wrong{color:#ff4466;text-decoration:line-through;}
-.flashcard .fc-your{font-size:.85em;color:#ff4466;margin-bottom:4px;}
-.flashcard .fc-correct{font-size:.95em;color:#00ff88;font-weight:700;}
-#reviewScreen .back-btn{padding:10px 32px;border:1px solid rgba(0,245,255,.3);border-radius:10px;background:transparent;color:#00f5ff;font-size:.9em;cursor:pointer;margin-top:8px;}
+#reviewScreen{padding:16px 12px;padding-bottom:80px;gap:10px;overflow-y:auto;align-items:stretch;justify-content:flex-start;}
+#reviewScreen .rv-header{text-align:center;margin-bottom:2px;}
+#reviewScreen .rv-header h2{font-size:1.3em;font-weight:800;background:linear-gradient(135deg,#ff4466,#ffcc00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:0 0 2px;}
+#reviewScreen .rv-header .review-info{color:#94a3b8;font-size:.78em;font-weight:600;}
+.rv-card{width:100%;max-width:480px;margin:0 auto;background:rgba(0,0,0,.28);border:1px solid rgba(0,245,255,.1);border-radius:14px;overflow:hidden;}
+.rv-card-head{display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(0,245,255,.04);border-bottom:1px solid rgba(0,245,255,.08);}
+.rv-card-head .rv-num{width:24px;height:24px;border-radius:50%;background:rgba(255,68,102,.15);color:#ff4466;font-size:.72em;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.rv-card-head .rv-q{flex:1;font-size:.88em;font-weight:600;color:#e0e0e0;line-height:1.35;}
+.rv-card-head .rv-diff{font-size:.58em;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:2px 7px;border-radius:6px;flex-shrink:0;}
+.rv-diff-easy{background:rgba(0,255,136,.12);color:#00ff88;}
+.rv-diff-medium{background:rgba(255,204,0,.12);color:#ffcc00;}
+.rv-diff-hard{background:rgba(255,68,102,.12);color:#ff4466;}
+.rv-card-body{padding:12px 14px;}
+.rv-answers{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.rv-ans-box{flex:1;min-width:100px;padding:8px 10px;border-radius:10px;text-align:center;}
+.rv-ans-box .rv-ans-lbl{font-size:.6em;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px;}
+.rv-ans-box .rv-ans-val{font-size:1.2em;font-weight:800;}
+.rv-ans-yours{background:rgba(255,68,102,.08);border:1px solid rgba(255,68,102,.2);}
+.rv-ans-yours .rv-ans-lbl{color:#ff4466;}
+.rv-ans-yours .rv-ans-val{color:#ff4466;text-decoration:line-through;}
+.rv-ans-correct{background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.2);}
+.rv-ans-correct .rv-ans-lbl{color:#00ff88;}
+.rv-ans-correct .rv-ans-val{color:#00ff88;}
+.rv-explain{background:rgba(0,245,255,.04);border:1px solid rgba(0,245,255,.08);border-radius:10px;padding:10px 12px;}
+.rv-explain .rv-explain-title{font-size:.65em;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#00f5ff;margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.rv-explain .rv-explain-title::before{content:'💡';}
+.rv-steps{display:flex;flex-direction:column;gap:5px;}
+.rv-step{display:flex;align-items:flex-start;gap:7px;font-size:.82em;line-height:1.4;}
+.rv-step .step-n{width:18px;height:18px;border-radius:50%;background:rgba(0,245,255,.1);color:#00f5ff;font-size:.7em;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.rv-step .step-text{color:#c8d6e5;font-weight:500;}
+.rv-step .step-text b{color:#fff;font-weight:700;}
+.rv-step .step-text .math-hl{color:#00f5ff;font-weight:700;font-family:'Courier New',monospace;}
+.rv-takeaway{margin-top:8px;padding:8px 10px;background:rgba(255,204,0,.06);border:1px solid rgba(255,204,0,.12);border-radius:8px;font-size:.76em;color:#ffcc00;font-weight:600;line-height:1.35;}
+#reviewScreen .rv-actions{width:100%;max-width:480px;margin:6px auto 0;display:flex;gap:8px;}
+#reviewScreen .rv-actions .back-btn{flex:1;padding:11px 14px;border:1px solid rgba(0,245,255,.2);border-radius:10px;background:transparent;color:#00f5ff;font-size:.88em;font-weight:700;cursor:pointer;}
+#reviewScreen .rv-actions .retry-btn{flex:1;padding:11px 14px;border:none;border-radius:10px;background:linear-gradient(135deg,#00f5ff,#00bb99);color:#0a0a1a;font-size:.88em;font-weight:800;cursor:pointer;}
 
 /* High Score Popup */
 #highscore-popup{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);z-index:200;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:20px;}
@@ -388,27 +448,66 @@ if(location.hash==='#play'){location.hash='';setTimeout(function(){window.__qbSt
 
 <!-- Game Over -->
 <div id="gameover" class="screen">
-  <h2>Game Over</h2>
-  <div id="goQBotMsg" style="display:flex;align-items:center;gap:8px;background:rgba(0,245,255,0.06);border:1px solid rgba(0,245,255,0.15);border-radius:12px;padding:8px 12px;margin-bottom:8px;max-width:340px;">
-    <svg viewBox="0 0 100 110" width="32" height="32" style="flex-shrink:0"><rect x="22" y="18" width="56" height="36" rx="8" stroke="#00f5ff" fill="none"/><circle cx="36" cy="32" r="5" stroke="#00f5ff" fill="none"/><circle cx="64" cy="32" r="5" stroke="#00f5ff" fill="none"/><rect x="28" y="56" width="44" height="38" rx="6" stroke="#00f5ff" fill="none"/><text x="50" y="82" text-anchor="middle" font-size="22" font-weight="900" fill="#00f5ff">Q</text></svg>
-    <span style="font-size:0.78em;font-weight:600;color:#7dd3fc;line-height:1.3" id="goQBotText">Great game! QBot is impressed!</span>
+  <div class="go-hero">
+    <h2 id="goTitle">Great Effort!</h2>
+    <div class="go-subtitle" id="goSubtitle">Here's how you did</div>
   </div>
-  <div class="final-score" id="goScore">0</div>
-  <div class="go-stats" id="goStats"></div>
-  <button class="review-btn" id="reviewBtn">Review Mistakes</button>
-  <button class="retry-btn" id="retryBtn">Play Again</button>
-  <button class="back-btn" id="goBackBtn">Back to Menu</button>
-  <div id="continueToQuizWrap" style="display:none;">
-    <button class="continue-quiz-btn" id="continueToQuizBtn">Continue</button>
+
+  <div class="acc-ring-wrap">
+    <div class="acc-ring">
+      <svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="50"/><circle class="ring-fg" id="accRingFg" cx="60" cy="60" r="50" stroke-dasharray="314.16" stroke-dashoffset="314.16"/></svg>
+      <div class="ring-label"><span class="ring-pct" id="accRingPct">0%</span><span class="ring-sub">Accuracy</span></div>
+    </div>
+    <div class="acc-side">
+      <div class="acc-row"><span class="al">Correct</span><span class="av" id="accCorrect" style="color:#00ff88">0</span></div>
+      <div class="acc-row"><span class="al">Wrong</span><span class="av" id="accWrong" style="color:#ff4466">0</span></div>
+      <div class="acc-row"><span class="al">Max Combo</span><span class="av" id="accCombo" style="color:#ffcc00">0x</span></div>
+    </div>
+  </div>
+
+  <div class="go-score-strip">
+    <div class="ss-box"><div class="ss-val" id="goScore" style="color:#ffcc00">0</div><div class="ss-lbl">Score</div></div>
+    <div class="ss-box"><div class="ss-val" id="goLevel" style="color:#00f5ff">1</div><div class="ss-lbl">Level</div></div>
+    <div class="ss-box"><div class="ss-val" id="goRows" style="color:#00ff88">0</div><div class="ss-lbl">Rows</div></div>
+  </div>
+
+  <div class="go-qbot" id="goQBotCard">
+    <svg viewBox="0 0 100 110" width="30" height="30"><rect x="22" y="18" width="56" height="36" rx="8" stroke="#00f5ff" fill="none"/><circle cx="36" cy="32" r="5" stroke="#00f5ff" fill="none"/><circle cx="64" cy="32" r="5" stroke="#00f5ff" fill="none"/><rect x="28" y="56" width="44" height="38" rx="6" stroke="#00f5ff" fill="none"/><text x="50" y="82" text-anchor="middle" font-size="22" font-weight="900" fill="#00f5ff">Q</text></svg>
+    <div class="go-qbot-body">
+      <div class="qbot-heading">QBot Says</div>
+      <div class="qbot-msg" id="goQBotText">Great game!</div>
+      <div class="qbot-tip" id="goQBotTip" style="display:none"></div>
+    </div>
+  </div>
+
+  <button class="go-details-toggle" id="goDetailsToggle" type="button">
+    <span>Full Stats</span><span class="arrow">&#9660;</span>
+  </button>
+  <div class="go-details-body" id="goDetailsBody">
+    <div class="go-stats" id="goStats"></div>
+  </div>
+
+  <div class="go-actions">
+    <button class="review-btn" id="reviewBtn" style="display:none">Review Mistakes — See Solutions</button>
+    <button class="retry-btn" id="retryBtn">Play Again</button>
+    <button class="back-btn" id="goBackBtn">Back to Menu</button>
+    <div id="continueToQuizWrap">
+      <button class="continue-quiz-btn" id="continueToQuizBtn">Continue</button>
+    </div>
   </div>
 </div>
 
 <!-- Review Screen -->
 <div id="reviewScreen" class="screen">
-  <h2>Review Mistakes</h2>
-  <div class="review-info" id="reviewInfo"></div>
+  <div class="rv-header">
+    <h2>Let's Learn From These</h2>
+    <div class="review-info" id="reviewInfo"></div>
+  </div>
   <div id="reviewCards"></div>
-  <button class="back-btn" id="reviewBackBtn">Back</button>
+  <div class="rv-actions">
+    <button class="back-btn" id="reviewBackBtn">Back to Results</button>
+    <button class="retry-btn" id="reviewRetryBtn">Play Again</button>
+  </div>
 </div>
 
 <!-- High Score Popup -->
@@ -1226,7 +1325,7 @@ function checkAnswer(btn){
       :(currentQuestion.type==='competency'
         ?currentQuestion.q
         :`${currentQuestion.a} ${currentQuestion.op} ${currentQuestion.b}`);
-    wrongAnswers.push({q:qStr,correct:currentQuestion.ans,given:Number(btn.textContent),a:currentQuestion.a,b:currentQuestion.b,op:currentQuestion.op});
+    wrongAnswers.push({q:qStr,correct:currentQuestion.ans,given:Number(btn.textContent),a:currentQuestion.a,b:currentQuestion.b,op:currentQuestion.op,type:currentQuestion.type||'arithmetic',diff:currentQuestion.diff||'easy',fullQ:currentQuestion.q||qStr});
     playSfx('wrong');
     // PENALTY: drop the piece one row (if possible)
     if(piece&&!hit(px,py+1,piece)){py++;renderBoard();}
@@ -1328,33 +1427,97 @@ function showHighScoreCelebration(){
 }
 
 function showGameOver(){
-  const goMsgs=score>=500?["Incredible score! QBot is blown away! 🤖✨","QBot says you're a block master! 🤖🏆","Amazing performance! QBot is so proud! 🤖⭐"]:score>=200?["Nice job! QBot is impressed! 🤖","QBot says keep stacking! 🤖💪","Great game! QBot loves your skills! 🤖"]:["Good try! QBot believes in you! 🤖","Keep practicing! QBot is cheering for you! 🤖","Don't give up — QBot knows you can do better! 🤖"];
-  $('goQBotText').textContent=goMsgs[Math.floor(Math.random()*goMsgs.length)];
+  var totalAnswers=stats.mathCorrect+stats.mathWrong;
+  var accuracy=totalAnswers>0?Math.round((stats.mathCorrect/totalAnswers)*100):0;
+  var ringColor=accuracy>=80?'#00ff88':accuracy>=50?'#ffcc00':'#ff4466';
+
+  // Title & subtitle adapt to performance
+  if(accuracy>=90){$('goTitle').textContent='Outstanding!';$('goSubtitle').textContent='You crushed it';}
+  else if(accuracy>=70){$('goTitle').textContent='Nice Work!';$('goSubtitle').textContent='Solid performance';}
+  else if(accuracy>=50){$('goTitle').textContent='Good Effort!';$('goSubtitle').textContent='Room to grow';}
+  else if(totalAnswers>0){$('goTitle').textContent='Keep Practicing!';$('goSubtitle').textContent='You\'ll get there';}
+  else{$('goTitle').textContent='Game Over';$('goSubtitle').textContent='Try answering some questions next time!';}
+
+  // Accuracy ring animation
+  var circumference=314.16;
+  var ring=$('accRingFg');
+  ring.style.stroke=ringColor;
+  ring.style.strokeDashoffset=String(circumference);
+  $('accRingPct').textContent=accuracy+'%';
+  $('accRingPct').style.color=ringColor;
+  $('accCorrect').textContent=stats.mathCorrect;
+  $('accWrong').textContent=stats.mathWrong;
+  $('accCombo').textContent=stats.maxCombo+'x';
+  requestAnimationFrame(function(){requestAnimationFrame(function(){
+    ring.style.strokeDashoffset=String(circumference*(1-accuracy/100));
+  });});
+
+  // Score strip
   $('goScore').textContent=score;
-  const totalAnswers=stats.mathCorrect+stats.mathWrong;
-  const accuracy=totalAnswers>0?Math.round((stats.mathCorrect/totalAnswers)*100):0;
-  let html='';
-  html+=`<div class="go-stat"><span class="label">Math Points</span><span class="value">${stats.mathPts}</span></div>`;
-  html+=`<div class="go-stat"><span class="label">Row Points</span><span class="value">${stats.rowPts}</span></div>`;
-  html+=`<div class="go-stat"><span class="label">Correct Answers</span><span class="value" style="color:#00ff88">${stats.mathCorrect}</span></div>`;
-  html+=`<div class="go-stat"><span class="label">Wrong Answers</span><span class="value" style="color:#ff4466">${stats.mathWrong}</span></div>`;
-  html+=`<div class="go-stat"><span class="label">Accuracy</span><span class="value">${accuracy}%</span></div>`;
-  html+=`<div class="go-stat"><span class="label">Max Combo</span><span class="value" style="color:#ffcc00">${stats.maxCombo}x</span></div>`;
-  html+=`<div class="go-section-title">Difficulty Breakdown</div>`;
-  ['easy','medium','hard'].forEach(d=>{
-    const t=stats.byDifficulty[d].correct+stats.byDifficulty[d].wrong;
-    if(t>0) html+=`<div class="diff-row"><span class="dl">${d.charAt(0).toUpperCase()+d.slice(1)}</span><span class="dv">${stats.byDifficulty[d].correct}/${t}</span></div>`;
+  $('goLevel').textContent=level;
+  $('goRows').textContent=stats.rowsCleared;
+
+  // QBot smart feedback
+  var qbotMsg='';var qbotTip='';
+  if(accuracy>=90){
+    qbotMsg='Wow — nearly perfect! Your math skills are rock-solid. Let\'s see if harder questions can challenge you.';
+  }else if(accuracy>=70){
+    qbotMsg='Strong result! You know the concepts well. A few tricky ones slipped through — review them and you\'ll ace it.';
+    if(wrongAnswers.length>0) qbotTip='Tip: Tap "Review Mistakes" to see exactly where you tripped up.';
+  }else if(accuracy>=50){
+    qbotMsg='You\'re getting there! More than half right is a good foundation. Focus on the ones you missed.';
+    qbotTip='Tip: Play again — you\'ll see similar questions and your speed will improve.';
+  }else if(totalAnswers>0){
+    qbotMsg='Don\'t worry — everyone starts somewhere. Each game builds your muscle memory for these problems.';
+    qbotTip='Tip: Review your mistakes, then play again. You\'ll be surprised how fast you improve.';
+  }else{
+    qbotMsg='Looks like you focused on the blocks! Try tapping the math answers next game to boost your score.';
+  }
+  // Add topic-specific tips from wrong answers
+  if(wrongAnswers.length>0&&!qbotTip){
+    var ops={};var types={};
+    wrongAnswers.forEach(function(w){
+      if(w.op)ops[w.op]=(ops[w.op]||0)+1;
+      if(w.type)types[w.type]=(types[w.type]||0)+1;
+    });
+    var topOp=Object.keys(ops).sort(function(a,b){return ops[b]-ops[a];})[0];
+    var opNames={'+':'addition','-':'subtraction','×':'multiplication','÷':'division','*':'multiplication','/':'division'};
+    if(types.equation&&types.equation>=wrongAnswers.length/2){
+      qbotTip='Tip: Most mistakes were on equations. Practice isolating x step-by-step.';
+    }else if(types.standard||types.competency){
+      qbotTip='Tip: Review the concept questions in the learning loop — they target the same ideas.';
+    }else if(topOp&&opNames[topOp]){
+      qbotTip='Tip: Most mistakes were in '+opNames[topOp]+'. Tap "Review Mistakes" to see step-by-step solutions.';
+    }
+  }
+  $('goQBotText').textContent=qbotMsg;
+  var tipEl=$('goQBotTip');
+  if(qbotTip){tipEl.textContent=qbotTip;tipEl.style.display='block';}
+  else{tipEl.style.display='none';}
+
+  // Collapsible full stats
+  var detailsHtml='';
+  detailsHtml+='<div class="go-stat"><span class="label">Math Points</span><span class="value">'+stats.mathPts+'</span></div>';
+  detailsHtml+='<div class="go-stat"><span class="label">Row Points</span><span class="value">'+stats.rowPts+'</span></div>';
+  detailsHtml+='<div class="go-stat"><span class="label">Blocks Placed</span><span class="value">'+stats.blocksPlaced+'</span></div>';
+  detailsHtml+='<div class="go-section-title">Difficulty Breakdown</div>';
+  ['easy','medium','hard'].forEach(function(d){
+    var t=stats.byDifficulty[d].correct+stats.byDifficulty[d].wrong;
+    if(t>0) detailsHtml+='<div class="diff-row"><span class="dl">'+d.charAt(0).toUpperCase()+d.slice(1)+'</span><span class="dv">'+stats.byDifficulty[d].correct+'/'+t+'</span></div>';
   });
-  html+=`<div class="go-section-title">Blocks & Rows</div>`;
-  html+=`<div class="go-stat"><span class="label">Blocks Placed</span><span class="value">${stats.blocksPlaced}</span></div>`;
-  html+=`<div class="go-stat"><span class="label">Rows Cleared</span><span class="value">${stats.rowsCleared}</span></div>`;
-  if(stats.singleClears)html+=`<div class="diff-row"><span class="dl">Singles</span><span class="dv">${stats.singleClears}</span></div>`;
-  if(stats.doubleClears)html+=`<div class="diff-row"><span class="dl">Doubles</span><span class="dv">${stats.doubleClears}</span></div>`;
-  if(stats.tripleClears)html+=`<div class="diff-row"><span class="dl">Triples</span><span class="dv">${stats.tripleClears}</span></div>`;
-  if(stats.quadClears)html+=`<div class="diff-row"><span class="dl">Quads</span><span class="dv">${stats.quadClears}</span></div>`;
-  html+=`<div class="go-stat"><span class="label">Level Reached</span><span class="value">${level}</span></div>`;
-  $('goStats').innerHTML=html;
-  $('reviewBtn').style.display=wrongAnswers.length>0?'inline-block':'none';
+  if(stats.singleClears||stats.doubleClears||stats.tripleClears||stats.quadClears){
+    detailsHtml+='<div class="go-section-title">Row Clears</div>';
+    if(stats.singleClears) detailsHtml+='<div class="diff-row"><span class="dl">Singles</span><span class="dv">'+stats.singleClears+'</span></div>';
+    if(stats.doubleClears) detailsHtml+='<div class="diff-row"><span class="dl">Doubles</span><span class="dv">'+stats.doubleClears+'</span></div>';
+    if(stats.tripleClears) detailsHtml+='<div class="diff-row"><span class="dl">Triples</span><span class="dv">'+stats.tripleClears+'</span></div>';
+    if(stats.quadClears) detailsHtml+='<div class="diff-row"><span class="dl">Quads</span><span class="dv">'+stats.quadClears+'</span></div>';
+  }
+  $('goStats').innerHTML=detailsHtml;
+  // Reset collapsed state
+  $('goDetailsToggle').classList.remove('open');
+  $('goDetailsBody').classList.remove('open');
+
+  $('reviewBtn').style.display=wrongAnswers.length>0?'block':'none';
   var inIframe = window.parent && window.parent !== window;
   var showContinue = !inIframe && !!(practiceReturnUrl || fromLoop);
   var wrap = document.getElementById('continueToQuizWrap');
@@ -1364,30 +1527,164 @@ function showGameOver(){
   show('gameover');
 }
 
+function generateExplanation(w){
+  var steps=[];var takeaway='';
+  var a=w.a,b=w.b,op=w.op,correct=w.correct,given=w.given,type=w.type||'arithmetic';
+
+  if(type==='equation'){
+    var qText=w.fullQ||w.q||'';
+    // Parse equation patterns
+    var m1=qText.match(/x\s*\+\s*(\d+)\s*=\s*(\d+)/);
+    var m2=qText.match(/(\d+)x\s*\+\s*(\d+)\s*=\s*(\d+)/);
+    var m3=qText.match(/(\d+)x\s*-\s*(\d+)\s*=\s*(\d+)/);
+    if(m2){
+      var coef=Number(m2[1]),con=Number(m2[2]),rhs=Number(m2[3]);
+      steps.push('Start with: <span class="math-hl">'+coef+'x + '+con+' = '+rhs+'</span>');
+      steps.push('Subtract '+con+' from both sides: <span class="math-hl">'+coef+'x = '+(rhs-con)+'</span>');
+      steps.push('Divide both sides by '+coef+': <span class="math-hl">x = '+(rhs-con)+' ÷ '+coef+' = <b>'+correct+'</b></span>');
+      takeaway='To isolate x, undo operations in reverse order: subtraction first, then division.';
+    }else if(m3){
+      var coef=Number(m3[1]),con=Number(m3[2]),rhs=Number(m3[3]);
+      steps.push('Start with: <span class="math-hl">'+coef+'x - '+con+' = '+rhs+'</span>');
+      steps.push('Add '+con+' to both sides: <span class="math-hl">'+coef+'x = '+(rhs+con)+'</span>');
+      steps.push('Divide both sides by '+coef+': <span class="math-hl">x = '+(rhs+con)+' ÷ '+coef+' = <b>'+correct+'</b></span>');
+      takeaway='When the variable has subtraction, add to both sides first.';
+    }else if(m1){
+      var con=Number(m1[1]),rhs=Number(m1[2]);
+      steps.push('Start with: <span class="math-hl">x + '+con+' = '+rhs+'</span>');
+      steps.push('Subtract '+con+' from both sides: <span class="math-hl">x = '+rhs+' - '+con+' = <b>'+correct+'</b></span>');
+      takeaway='To solve x + a = b, subtract a from both sides.';
+    }else{
+      steps.push('The question: <span class="math-hl">'+escHtml(w.q)+'</span>');
+      steps.push('The correct answer is <b>'+correct+'</b>.');
+      takeaway='Work through the equation step-by-step, isolating the variable.';
+    }
+    // Diagnose the wrong answer
+    if(given!==correct){
+      var diff=given-correct;
+      if(m2&&given===Number(m2[3])){
+        steps.push('<span style="color:#ff4466">You may have forgotten to subtract and divide — '+given+' is the right-hand side, not x.</span>');
+      }else if(Math.abs(diff)===1){
+        steps.push('<span style="color:#ff4466">Off by 1 — likely an arithmetic slip. Double-check your final step.</span>');
+      }else{
+        steps.push('<span style="color:#ff4466">You answered '+given+'. Check each step to find where the calculation went wrong.</span>');
+      }
+    }
+  }else if(type==='standard'||type==='competency'){
+    steps.push('The question: <span class="math-hl">'+escHtml(w.fullQ||w.q)+'</span>');
+    steps.push('The correct answer is <b>'+correct+'</b>, but you answered <span style="color:#ff4466">'+given+'</span>.');
+    var offBy=Math.abs(given-correct);
+    if(offBy===1){
+      steps.push('You were off by just 1 — likely a small counting or rounding error.');
+      takeaway='Read the question carefully and double-check before answering.';
+    }else if(given===correct*2||given===Math.round(correct/2)){
+      steps.push('Your answer is roughly double or half the correct one — check if you multiplied or divided an extra time.');
+      takeaway='Track your operations carefully: multiply vs. divide, add vs. subtract.';
+    }else{
+      steps.push('Think through the concept again. What formula or rule applies here?');
+      takeaway='Review this topic in the learning loop to strengthen your understanding.';
+    }
+  }else{
+    // Arithmetic
+    if(a!=null&&b!=null&&op!=null){
+      var opWord=op==='+'?'add':op==='-'?'subtract':op==='×'?'multiply':op==='÷'?'divide':'compute';
+      var opVerb=op==='+'?'Adding':op==='-'?'Subtracting':op==='×'?'Multiplying':op==='÷'?'Dividing':'Computing';
+      steps.push(opVerb+': <span class="math-hl">'+a+' '+op+' '+b+'</span>');
+
+      if(op==='+'){
+        if(a>9&&b>9){
+          var ones_a=a%10,tens_a=Math.floor(a/10)*10;
+          var ones_b=b%10,tens_b=Math.floor(b/10)*10;
+          steps.push('Break it down: <span class="math-hl">'+tens_a+' + '+tens_b+' = '+(tens_a+tens_b)+'</span>, then <span class="math-hl">'+ones_a+' + '+ones_b+' = '+(ones_a+ones_b)+'</span>');
+          steps.push('Combine: <span class="math-hl">'+(tens_a+tens_b)+' + '+(ones_a+ones_b)+' = <b>'+correct+'</b></span>');
+        }else{
+          steps.push('Count up from '+a+' by '+b+': the result is <b>'+correct+'</b>');
+        }
+        if(given===a-b) steps.push('<span style="color:#ff4466">It looks like you subtracted instead of adding.</span>');
+        takeaway='For larger additions, break numbers into tens and ones.';
+      }else if(op==='-'){
+        if(a>9&&b>9){
+          steps.push('Think: <span class="math-hl">'+a+' - '+b+'</span>. How far apart are they?');
+          steps.push('Count up from '+b+' to '+a+': the difference is <b>'+correct+'</b>');
+        }else{
+          steps.push('Count back from '+a+' by '+b+': <b>'+correct+'</b>');
+        }
+        if(given===a+b) steps.push('<span style="color:#ff4466">It looks like you added instead of subtracting.</span>');
+        takeaway='Subtraction = finding the distance between two numbers.';
+      }else if(op==='×'){
+        steps.push('Think of it as '+a+' groups of '+b+':');
+        if(a<=12&&b<=12){
+          var partial=Math.floor(b/2)*a;
+          if(b>2) steps.push('<span class="math-hl">'+a+' × '+Math.floor(b/2)+' = '+partial+'</span>, then double to get to ×'+b+' or add one more group.');
+        }
+        steps.push('Result: <span class="math-hl">'+a+' × '+b+' = <b>'+correct+'</b></span>');
+        if(given===a+b) steps.push('<span style="color:#ff4466">It looks like you added instead of multiplying.</span>');
+        takeaway='Multiplication = repeated addition. Break harder ones into smaller steps.';
+      }else if(op==='÷'){
+        steps.push('Ask: what number times '+b+' equals '+a+'?');
+        steps.push('<span class="math-hl">'+correct+' × '+b+' = '+a+'</span>, so <span class="math-hl">'+a+' ÷ '+b+' = <b>'+correct+'</b></span>');
+        if(given===a*b) steps.push('<span style="color:#ff4466">It looks like you multiplied instead of dividing.</span>');
+        takeaway='Division is the inverse of multiplication. Use times tables in reverse.';
+      }
+
+      // General wrong-answer diagnosis
+      var offBy=Math.abs(given-correct);
+      if(offBy===1&&steps.filter(function(s){return s.indexOf('color:#ff4466')>=0;}).length===0){
+        steps.push('<span style="color:#ff4466">Off by 1 — likely a small counting error.</span>');
+      }else if(offBy===10&&steps.filter(function(s){return s.indexOf('color:#ff4466')>=0;}).length===0){
+        steps.push('<span style="color:#ff4466">Off by 10 — check if you carried or borrowed correctly.</span>');
+      }
+    }else{
+      steps.push('The correct answer is <b>'+correct+'</b>, you answered <span style="color:#ff4466">'+given+'</span>.');
+      takeaway='Take an extra moment to double-check your work.';
+    }
+  }
+  return {steps:steps,takeaway:takeaway};
+}
+
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
 function showReviewScreen(){
-  const cards=$('reviewCards');cards.innerHTML='';
-  $('reviewInfo').textContent=`You got ${wrongAnswers.length} question${wrongAnswers.length!==1?'s':''} wrong. Let's review!`;
-  wrongAnswers.forEach(w=>{
-    const card=document.createElement('div');card.className='flashcard';
-    const mathHtml=(w.a!=null&&w.b!=null&&w.op!=null)?formatMathProblem(w.a,w.b,w.op,w.correct,w.given):'';
-    card.innerHTML=`<div class="fc-q">${w.q} = ?</div>${mathHtml}<div class="fc-your">Your answer: ${w.given}</div><div class="fc-correct">Correct answer: ${w.correct}</div>`;
-    cards.appendChild(card);
+  var cards=$('reviewCards');cards.innerHTML='';
+  var n=wrongAnswers.length;
+  $('reviewInfo').textContent=n+' question'+(n!==1?'s':'')+' to review — read each explanation carefully';
+  wrongAnswers.forEach(function(w,i){
+    var exp=generateExplanation(w);
+    var diffClass='rv-diff-'+(w.diff||'easy');
+    var diffLabel=(w.diff||'easy').charAt(0).toUpperCase()+(w.diff||'easy').slice(1);
+    var html='<div class="rv-card">';
+    html+='<div class="rv-card-head">';
+    html+='<span class="rv-num">'+(i+1)+'</span>';
+    html+='<span class="rv-q">'+escHtml(w.q)+' = ?</span>';
+    html+='<span class="rv-diff '+diffClass+'">'+diffLabel+'</span>';
+    html+='</div>';
+    html+='<div class="rv-card-body">';
+    html+='<div class="rv-answers">';
+    html+='<div class="rv-ans-box rv-ans-yours"><div class="rv-ans-lbl">Your Answer</div><div class="rv-ans-val">'+w.given+'</div></div>';
+    html+='<div class="rv-ans-box rv-ans-correct"><div class="rv-ans-lbl">Correct</div><div class="rv-ans-val">'+w.correct+'</div></div>';
+    html+='</div>';
+    html+='<div class="rv-explain">';
+    html+='<div class="rv-explain-title">Step-by-Step Solution</div>';
+    html+='<div class="rv-steps">';
+    exp.steps.forEach(function(step,si){
+      html+='<div class="rv-step"><span class="step-n">'+(si+1)+'</span><span class="step-text">'+step+'</span></div>';
+    });
+    html+='</div>';
+    if(exp.takeaway){
+      html+='<div class="rv-takeaway">'+exp.takeaway+'</div>';
+    }
+    html+='</div>';
+    html+='</div>';
+    html+='</div>';
+    cards.appendChild(createElementFromHTML(html));
   });
   show('reviewScreen');
 }
 
-function formatMathProblem(a,b,op,correct,given){
-  const sa=String(a),sb=String(b),sc=String(correct),sg=String(given);
-  const maxLen=Math.max(sa.length,sb.length,sc.length,sg.length);
-  const padA=sa.padStart(maxLen,' '),padB=sb.padStart(maxLen,' '),padC=sc.padStart(maxLen,' '),padG=sg.padStart(maxLen,' ');
-  let html='<div class="math-display">';
-  html+=`<div class="md-row"><span class="md-op">&nbsp;</span><span class="md-num">${padA.replace(/ /g,'&nbsp;')}</span></div>`;
-  html+=`<div class="md-row"><span class="md-op">${op}</span><span class="md-num">${padB.replace(/ /g,'&nbsp;')}</span></div>`;
-  html+=`<div class="md-line" style="width:${(maxLen+1)*1}em"></div>`;
-  if(given!==correct)html+=`<div class="md-row"><span class="md-op">&nbsp;</span><span class="md-num md-wrong">${padG.replace(/ /g,'&nbsp;')}</span></div>`;
-  html+=`<div class="md-row"><span class="md-op">&nbsp;</span><span class="md-num md-ans">${padC.replace(/ /g,'&nbsp;')}</span></div>`;
-  html+='</div>';
-  return html;
+function createElementFromHTML(htmlString){
+  var div=document.createElement('div');
+  div.innerHTML=htmlString.trim();
+  return div.firstChild;
 }
 
 // ─── Board Sizing ───
@@ -1402,10 +1699,10 @@ function sizeBoard(){
   const barH=(contBar&&contBar.style.display!=='none')?contBar.offsetHeight:0;
   const usedH=(topBar?topBar.offsetHeight:0)+(qPanel?qPanel.offsetHeight:0)+(controls?controls.offsetHeight:0)+barH+16;
   const availH=wh-usedH;
-  const availW=Math.min(420,window.innerWidth)-16;
+  const availW=Math.min(520,window.innerWidth)-16;
   const cellFromW=Math.floor(availW/W);
   const cellFromH=Math.floor((availH-16)/H);
-  const cellSize=Math.min(cellFromW,cellFromH,36);
+  const cellSize=Math.min(cellFromW,cellFromH,46);
   const bw=cellSize*W,bh=cellSize*H;
   const box=$('board-box');
   box.style.width=bw+'px';
@@ -1610,7 +1907,12 @@ function init(){
   $('retryBtn').addEventListener('click',startGame);
   $('goBackBtn').addEventListener('click',showMenu);
   $('reviewBtn').addEventListener('click',showReviewScreen);
+  $('goDetailsToggle').addEventListener('click',function(){
+    this.classList.toggle('open');
+    $('goDetailsBody').classList.toggle('open');
+  });
   $('reviewBackBtn').addEventListener('click',()=>show('gameover'));
+  $('reviewRetryBtn').addEventListener('click',startGame);
   var continueBtn = document.getElementById('continueToQuizBtn');
   if (continueBtn) {
     continueBtn.addEventListener('click', function(){
