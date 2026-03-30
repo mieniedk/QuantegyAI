@@ -2811,13 +2811,14 @@ export default function PracticeLoop() {
     if (subject !== 'math') return undefined;
     if (comp === 'comp002' && currentStd) {
       const standardModes = {
-        c004: ['sequence-patterns', 'sequence-patterns', 'function-transform'],
-        c005: ['function-transform', 'function-transform', 'quadratic'],
+        // Tiles 6/12/18 (Interactive A/B/C) must be distinct modes.
+        c004: ['sequence-patterns', 'function-transform', 'quadratic'],
+        c005: ['function-transform', 'quadratic', 'sequence-patterns'],
         c006: ['slope', 'intercept', 'both'],
-        c007: ['function-transform', 'quadratic', 'function-transform'],
-        c008: ['function-transform', 'function-transform', 'quadratic'],
-        c009: ['trig-circle', 'trig-circle', 'function-transform'],
-        c010: ['quadratic', 'function-transform', 'quadratic'],
+        c007: ['function-transform', 'quadratic', 'sequence-patterns'],
+        c008: ['function-transform', 'quadratic', 'sequence-patterns'],
+        c009: ['trig-circle', 'function-transform', 'quadratic'],
+        c010: ['quadratic', 'function-transform', 'sequence-patterns'],
       };
       const mapped = standardModes[currentStd];
       if (mapped?.length) return mapped[index % mapped.length];
