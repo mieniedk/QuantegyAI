@@ -351,6 +351,24 @@ function FunctionMachine({ onComplete, continueLabel, badgeLabel, embedded }) {
   const expectedOutput = isInputValid ? roundTo(task.rule.fn(numericInput), 2) : null;
   const canCheck = machineState === 'done' && guessValue.trim().length > 0 && expectedOutput !== null;
   const isCorrect = canCheck && Number(guessValue) === expectedOutput;
+  const fmtNum = useCallback((n) => (Number.isFinite(n) ? String(roundTo(n, 2)) : '?'), []);
+  const xyRows = useMemo(() => {
+    if (!isInputValid) return [];
+    return [-2, -1, 0, 1, 2].map((offset) => {
+      const x = roundTo(numericInput + offset, 2);
+      return { x, y: roundTo(task.rule.fn(x), 2), current: offset === 0 };
+    });
+  }, [isInputValid, numericInput, task.rule]);
+  const substitutionParts = useMemo(() => {
+    switch (task.rule.display) {
+      case 'y = 2x + 1': return { pre: 'y = 2(', post: ') + 1' };
+      case 'y = x² − 3': return { pre: 'y = (', post: ')² − 3' };
+      case 'y = |x − 2| + 1': return { pre: 'y = |', post: ' − 2| + 1' };
+      case 'y = -x + 4': return { pre: 'y = -(', post: ') + 4' };
+      case 'y = 3(x − 1)': return { pre: 'y = 3(', post: ' − 1)' };
+      default: return { pre: 'y = f(', post: ')' };
+    }
+  }, [task.rule.display]);
 
   const playCue = useCallback((frequency, duration = 0.08, type = 'sine') => {
     if (!soundOn || typeof window === 'undefined') return;
@@ -507,7 +525,15 @@ function FunctionMachine({ onComplete, continueLabel, badgeLabel, embedded }) {
           </div>
           <div style={{ borderRadius: 10, background: '#f3e8ff', border: '1px solid #ddd6fe', padding: 10, textAlign: 'center' }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#6d28d9', marginBottom: 4 }}>OUTPUT y</div>
-            <div style={{ fontSize: 24, fontWeight: 800, color: COLOR.purple }}>
+            <div style={{
+              fontSize: 24,
+              fontWeight: 800,
+              color: COLOR.purple,
+              borderRadius: 8,
+              background: machineState === 'done' ? '#ede9fe' : 'transparent',
+              boxShadow: machineState === 'done' ? '0 0 0 2px rgba(124,58,237,0.2)' : 'none',
+              transition: 'all 0.2s ease',
+            }}>
               {machineState === 'done' ? String(lastOutput) : '?'}
             </div>
           </div>
@@ -515,6 +541,63 @@ function FunctionMachine({ onComplete, continueLabel, badgeLabel, embedded }) {
         <div style={{ marginTop: 8, borderRadius: 10, background: '#ffffff', border: `1px solid ${COLOR.border}`, padding: '8px 10px', textAlign: 'center' }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.textSecondary, marginBottom: 2 }}>Machine rule</div>
           <div style={{ fontSize: 16, fontWeight: 800, color: COLOR.text }}>{task.rule.display}</div>
+        </div>
+        <div style={{ marginTop: 8, borderRadius: 10, background: '#fffbeb', border: '1px solid #fde68a', padding: '8px 10px' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#92400e', marginBottom: 6 }}>Substitution steps</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#78350f', marginBottom: 4 }}>
+            {substitutionParts.pre}
+            <span style={{
+              padding: '1px 7px',
+              borderRadius: 999,
+              background: machineState === 'running' ? '#dbeafe' : '#eff6ff',
+              border: '1px solid #93c5fd',
+              color: '#1d4ed8',
+              boxShadow: machineState === 'running' ? '0 0 0 2px rgba(59,130,246,0.2)' : 'none',
+              transition: 'all 0.2s ease',
+            }}
+            >
+              x = {fmtNum(numericInput)}
+            </span>
+            {substitutionParts.post}
+          </div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#4c1d95' }}>
+            y ={' '}
+            <span style={{
+              padding: '1px 7px',
+              borderRadius: 999,
+              background: machineState === 'done' ? '#ede9fe' : '#f5f3ff',
+              border: '1px solid #c4b5fd',
+              color: '#6d28d9',
+              boxShadow: machineState === 'done' ? '0 0 0 2px rgba(124,58,237,0.2)' : 'none',
+              transition: 'all 0.2s ease',
+            }}
+            >
+              {machineState === 'done' ? fmtNum(lastOutput) : '?'}
+            </span>
+          </div>
+        </div>
+        <div style={{ marginTop: 8, borderRadius: 10, background: '#ffffff', border: `1px solid ${COLOR.border}`, padding: '8px 10px' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.textSecondary, marginBottom: 6 }}>x-y value table</div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: 'left', padding: '5px 6px', color: COLOR.textSecondary, borderBottom: `1px solid ${COLOR.border}` }}>x</th>
+                <th style={{ textAlign: 'left', padding: '5px 6px', color: COLOR.textSecondary, borderBottom: `1px solid ${COLOR.border}` }}>y = f(x)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {xyRows.map((row) => (
+                <tr key={`xy-${row.x}`} style={{ background: row.current ? '#eff6ff' : 'transparent' }}>
+                  <td style={{ padding: '6px', borderBottom: `1px solid ${COLOR.border}`, fontWeight: row.current ? 800 : 600, color: row.current ? '#1d4ed8' : COLOR.text }}>
+                    {fmtNum(row.x)}
+                  </td>
+                  <td style={{ padding: '6px', borderBottom: `1px solid ${COLOR.border}`, fontWeight: row.current ? 800 : 700, color: row.current ? (machineState === 'done' ? '#6d28d9' : '#1d4ed8') : COLOR.text }}>
+                    {fmtNum(row.y)} {row.current ? (machineState === 'done' ? '← current output' : '← current input row') : ''}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 

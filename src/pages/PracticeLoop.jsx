@@ -959,10 +959,12 @@ function GamePhase({ gameLabel, scopeBadge, description, gameUrl, gameName, onSk
 
 
 function ActivityPhase({ subject, examId, comp, currentStd, mode, activityIndex, onComplete, badgeLabel, stepIndex, totalSteps, phaseKey, seed = 0 }) {
+  const activityRenderKey = `${phaseKey}:${String(mode || '')}:${activityIndex + seed}:${String(comp || '')}:${String(currentStd || '')}`;
   return (
     <PhaseCard stepIndex={stepIndex} totalSteps={totalSteps} phaseKey={phaseKey}>
       <PhaseHeader badgeColor={COLOR.purple} badgeLabel={badgeLabel} />
       <CompetencyActivity
+        key={activityRenderKey}
         subject={subject} examId={examId} comp={comp}
         currentStd={currentStd}
         mode={mode}
@@ -2908,6 +2910,55 @@ export default function PracticeLoop() {
   const showNumberSetsActivity = !deepDiveVideoEmbed && (comp === 'comp001' || currentStd === 'c001');
   const hasUniqueDeepDiveLecture = !!(deepDiveLecture && comp !== 'comp001' && deepDiveLecture !== introLecture);
   const useGeometricRefreshActivity = comp === 'comp005' || currentStd === 'c018';
+  const microTeachConcept = useMemo(() => {
+    const normalizeConceptText = (v) => String(v || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    const key = `loop-microteach-seen:${conceptSessionScopeKey}`;
+    let used = new Set();
+    try {
+      const raw = window.sessionStorage.getItem(key);
+      const parsed = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(parsed)) used = new Set(parsed.map(normalizeConceptText).filter(Boolean));
+    } catch {
+      used = new Set();
+    }
+    const candidates = [];
+    const pushCandidate = (candidate) => {
+      const textKey = normalizeConceptText(candidate?.conceptText);
+      if (!textKey) return;
+      if (candidates.some((c) => normalizeConceptText(c?.conceptText) === textKey)) return;
+      candidates.push(candidate);
+    };
+    // Build a broad candidate list so each concept lesson rotates to a fresh angle.
+    for (let step = 0; step < 40; step++) {
+      pushCandidate(getMicroConcept(examId, comp, singleTeks, currentStd, conceptVariantIndex + (step * 11)));
+    }
+    if (!candidates.length) return microConcept || null;
+    const fresh = candidates.find((candidate) => !used.has(normalizeConceptText(candidate?.conceptText)));
+    if (fresh) return fresh;
+    // Exhausted the pool for this scope, start a new cycle.
+    try { window.sessionStorage.removeItem(key); } catch {}
+    return candidates[0];
+  }, [examId, comp, singleTeks, currentStd, conceptVariantIndex, conceptSessionScopeKey, microConcept]);
+
+  useEffect(() => {
+    if (phase !== 'micro-teach') return;
+    const text = String(microTeachConcept?.conceptText || '').trim();
+    if (!text) return;
+    const key = `loop-microteach-seen:${conceptSessionScopeKey}`;
+    const normalizeConceptText = (v) => String(v || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    try {
+      const raw = window.sessionStorage.getItem(key);
+      const parsed = raw ? JSON.parse(raw) : [];
+      const current = Array.isArray(parsed) ? parsed : [];
+      const normalized = normalizeConceptText(text);
+      const normalizedSet = new Set(current.map(normalizeConceptText));
+      if (!normalizedSet.has(normalized)) {
+        window.sessionStorage.setItem(key, JSON.stringify([...current, text]));
+      }
+    } catch {}
+  }, [phase, microTeachConcept, conceptSessionScopeKey]);
+
+  const activeMicroConcept = microTeachConcept || microConcept;
   const conceptRefreshConcept = useMemo(() => {
     const normalizeConceptText = (v) => String(v || '').replace(/\s+/g, ' ').trim().toLowerCase();
     const currentTileSeen = new Set([
@@ -4092,25 +4143,25 @@ export default function PracticeLoop() {
             <PhaseHeader
               badgeColor={COLOR.purple}
               badgeLabel={getTileLabel('micro-teach', 'Concept lesson')}
-              title={hasTopic ? (microConcept?.title || conceptTitle) : null}
+              title={hasTopic ? (activeMicroConcept?.title || conceptTitle) : null}
               description={!hasTopic ? 'Pick a topic to practice. Start from Test Prep.' : null}
             />
             {hasTopic ? (
               <>
-                <div style={{ ...BODY, lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(conceptToBulletHtml(microConcept?.conceptText || reminderText || '')) }} />
-                {microConcept?.illustrationHtml && (
-                  <div style={{ marginTop: 12 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(microConcept.illustrationHtml) }} />
+                <div style={{ ...BODY, lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(conceptToBulletHtml(activeMicroConcept?.conceptText || reminderText || '')) }} />
+                {activeMicroConcept?.illustrationHtml && (
+                  <div style={{ marginTop: 12 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(activeMicroConcept.illustrationHtml) }} />
                 )}
-                {microConcept?.workedExample && (
+                {activeMicroConcept?.workedExample && (
                   <div style={{ marginBottom: 16, padding: 14, background: COLOR.successBg, borderRadius: 12, border: `1px solid ${COLOR.successBorder}` }}>
                     <div style={{ fontSize: 11, fontWeight: 800, color: COLOR.successText, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Worked example</div>
-                    <p style={{ margin: 0, fontSize: 15, color: COLOR.green, fontWeight: 600, lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(microConcept.workedExample)) }} />
+                    <p style={{ margin: 0, fontSize: 15, color: COLOR.green, fontWeight: 600, lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(activeMicroConcept.workedExample)) }} />
                   </div>
                 )}
-                {microConcept?.misconception && (
+                {activeMicroConcept?.misconception && (
                   <div style={{ marginBottom: 24, padding: 14, background: COLOR.amberBg, borderRadius: 12, border: `1px solid ${COLOR.amberBorder}` }}>
                     <div style={{ fontSize: 11, fontWeight: 800, color: COLOR.amber, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Watch out</div>
-                    <p style={{ margin: 0, fontSize: 14, color: '#92400e', lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(microConcept.misconception)) }} />
+                    <p style={{ margin: 0, fontSize: 14, color: '#92400e', lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(activeMicroConcept.misconception)) }} />
                   </div>
                 )}
                 <button type="button" onClick={() => goToPhase('video')} style={BTN_PRIMARY}>Continue</button>

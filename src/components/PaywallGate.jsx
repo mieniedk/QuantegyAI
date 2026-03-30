@@ -125,22 +125,28 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
       attempt += 1;
       setWakeStatus(`Connecting payment server... (${attempt})`);
       const online = await retryServerConnection();
-      if (online && authEmail && authPassword) {
-        const reAuth = await reAuthenticateWithServer(authEmail, authPassword);
-        if (reAuth?.success) {
-          setIsOffline(false);
-          const checkoutResult = await createStudentCheckout(examId, planId);
-          if (checkoutResult?.success) return { success: true };
-          if (checkoutResult?.offline) {
-            lastError = checkoutResult?.error || 'Payment server not ready yet.';
-          } else {
-            return { success: false, error: checkoutResult?.error || 'Could not start checkout.' };
-          }
-        } else {
-          lastError = reAuth?.error || 'Could not re-authenticate with payment server.';
-        }
-      } else {
+      if (!online) {
         lastError = 'Payment server is still starting.';
+        await sleep(WAKE_RETRY_STEP_MS);
+        continue;
+      }
+
+      if (authEmail && authPassword) {
+        const reAuth = await reAuthenticateWithServer(authEmail, authPassword);
+        if (!reAuth?.success) {
+          lastError = reAuth?.error || 'Could not re-authenticate with payment server.';
+          await sleep(WAKE_RETRY_STEP_MS);
+          continue;
+        }
+      }
+
+      setIsOffline(false);
+      const checkoutResult = await createStudentCheckout(examId, planId);
+      if (checkoutResult?.success) return { success: true };
+      if (checkoutResult?.offline) {
+        lastError = checkoutResult?.error || 'Payment server not ready yet.';
+      } else {
+        return { success: false, error: checkoutResult?.error || 'Could not start checkout.' };
       }
       await sleep(WAKE_RETRY_STEP_MS);
     }
@@ -224,7 +230,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
     setError('');
     setWakeStatus('');
     try {
-      if (isOffline && authEmail && authPassword) {
+      if (isOffline) {
         setRetrying(true);
         const recovered = await recoverServerAndCheckout(planId);
         setRetrying(false);

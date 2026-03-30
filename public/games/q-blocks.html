@@ -1072,7 +1072,8 @@ const USED_POOL_QUESTIONS=Object.create(null);
 const USED_GENERATED_QUESTIONS=Object.create(null);
 
 function keyForQuestion(item){
-  return String(item&&item.q||'').trim();
+  if(!item)return '';
+  return String(item.q||item.question||item.prompt||item.text||'').trim();
 }
 
 function getOrCreateSet(store,key){
@@ -1095,12 +1096,13 @@ function buildChoiceFromPool(pool,diff,type,poolKey){
   if(!pool||!pool.length)return null;
   const item=selectUniqueFromPool(pool,poolKey);
   if(!item)return null;
-  const prompt=String(item.q||item.question||item.prompt||item.text||'').trim();
+  const prompt=normalizePromptText(item&&item.q||item&&item.question||item&&item.prompt||item&&item.text);
   if(!prompt)return null;
   const ans=Number(item.ans);
   if(!Number.isFinite(ans))return null;
   const offsets=(diff==='hard'?[2,-2,3,-3,5,-5,7,-7]:[1,-1,2,-2,3,-3]).filter(function(d){return ans+d!==ans;});
   const wrong=ans+offsets[Math.floor(Math.random()*offsets.length)];
+  if(!Number.isFinite(wrong))return null;
   return {type:type,q:prompt,ans:ans,wrong:wrong,diff:diff};
 }
 
@@ -1142,11 +1144,56 @@ function makeWrongFromAnswer(ans,diff){
 }
 
 function makeQuestionObject(q,ans){
-  const prompt=String(q||'').trim();
+  const prompt=normalizePromptText(q);
   if(!prompt)return null;
   const n=Number(ans);
   if(!Number.isFinite(n))return null;
   return {q:prompt,ans:n};
+}
+
+function normalizePromptText(value){
+  return String(value==null?'':value).replace(/\s+/g,' ').trim();
+}
+
+function ensureQuestionPayload(input,fallbackPrompt,diff,type){
+  const prompt=normalizePromptText(input&&input.q||input&&input.question||input&&input.prompt||input&&input.text)||String(fallbackPrompt||'Solve to drop: choose the correct answer.');
+  const ans=Number(input&&input.ans);
+  const wrong=Number(input&&input.wrong);
+  const safeDiff=String(diff||input&&input.diff||'easy');
+  const safeType=String(type||input&&input.type||'arithmetic');
+  const computedWrong=Number.isFinite(wrong)&&wrong!==ans?wrong:makeWrongFromAnswer(Number.isFinite(ans)?ans:0,safeDiff);
+  return {
+    type:safeType,
+    q:prompt,
+    ans:Number.isFinite(ans)?ans:0,
+    wrong:Number.isFinite(computedWrong)&&computedWrong!==ans?computedWrong:((Number.isFinite(ans)?ans:0)+1),
+    diff:safeDiff,
+    a:input&&input.a,
+    b:input&&input.b,
+    op:input&&input.op
+  };
+}
+
+function paintQuestionUI(question,isEquation){
+  const payload=ensureQuestionPayload(question,'Solve to drop: choose the correct answer.',question&&question.diff,question&&question.type);
+  currentQuestion=payload;
+  var qEl=$('qText');
+  if(qEl){
+    var safePrompt=normalizePromptText(payload.q)||'Solve to drop: choose the correct answer.';
+    qEl.innerHTML=mathRender(isEquation?(safePrompt+' → x = ?'):safePrompt);
+  }
+  const btns=[$('ansA'),$('ansB')];
+  if(Math.random()<.5){
+    btns[0].innerHTML=mathRender(payload.ans);btns[0].dataset.correct='1';
+    btns[1].innerHTML=mathRender(payload.wrong);btns[1].dataset.correct='0';
+  }else{
+    btns[1].innerHTML=mathRender(payload.ans);btns[1].dataset.correct='1';
+    btns[0].innerHTML=mathRender(payload.wrong);btns[0].dataset.correct='0';
+  }
+  btns.forEach(function(btn){btn.classList.remove('correct-flash','wrong-flash');btn.disabled=false;});
+  var mb=$('mathBonus');
+  mb.classList.remove('show');
+  mb.textContent='';
 }
 
 function generateQuestionFromStd(std,diff){
@@ -1724,21 +1771,7 @@ function mkQ(){
     diff=level<=3?'easy':level<=6?'medium':'hard';
     const std48=buildStdQuestion48(diff);
     if(std48){
-      currentQuestion=std48;
-      var std48QEl=$('qText');
-      if(std48QEl)std48QEl.innerHTML=mathRender(String(std48.q||std48.question||std48.prompt||'Solve to drop: choose the correct answer.'));
-      const std48Btns=[$('ansA'),$('ansB')];
-      if(Math.random()<.5){
-        std48Btns[0].innerHTML=mathRender(std48.ans);std48Btns[0].dataset.correct='1';
-        std48Btns[1].innerHTML=mathRender(std48.wrong);std48Btns[1].dataset.correct='0';
-      }else{
-        std48Btns[1].innerHTML=mathRender(std48.ans);std48Btns[1].dataset.correct='1';
-        std48Btns[0].innerHTML=mathRender(std48.wrong);std48Btns[0].dataset.correct='0';
-      }
-      std48Btns.forEach(function(btn){btn.classList.remove('correct-flash','wrong-flash');btn.disabled=false;});
-      var std48Mb=$('mathBonus');
-      std48Mb.classList.remove('show');
-      std48Mb.textContent='';
+      paintQuestionUI(ensureQuestionPayload(std48,'Solve to drop: choose the correct answer.',diff,'standard'),false);
       return;
     }
   }
@@ -1746,21 +1779,7 @@ function mkQ(){
     diff=level<=3?'easy':level<=6?'medium':'hard';
     const comp48=buildCompQuestion48(diff);
     if(comp48){
-      currentQuestion=comp48;
-      var comp48QEl=$('qText');
-      if(comp48QEl)comp48QEl.innerHTML=mathRender(String(comp48.q||comp48.question||comp48.prompt||'Solve to drop: choose the correct answer.'));
-      const comp48Btns=[$('ansA'),$('ansB')];
-      if(Math.random()<.5){
-        comp48Btns[0].innerHTML=mathRender(comp48.ans);comp48Btns[0].dataset.correct='1';
-        comp48Btns[1].innerHTML=mathRender(comp48.wrong);comp48Btns[1].dataset.correct='0';
-      }else{
-        comp48Btns[1].innerHTML=mathRender(comp48.ans);comp48Btns[1].dataset.correct='1';
-        comp48Btns[0].innerHTML=mathRender(comp48.wrong);comp48Btns[0].dataset.correct='0';
-      }
-      comp48Btns.forEach(function(btn){btn.classList.remove('correct-flash','wrong-flash');btn.disabled=false;});
-      var comp48Mb=$('mathBonus');
-      comp48Mb.classList.remove('show');
-      comp48Mb.textContent='';
+      paintQuestionUI(ensureQuestionPayload(comp48,'Solve to drop: choose the correct answer.',diff,'competency'),false);
       return;
     }
   }
@@ -1768,21 +1787,7 @@ function mkQ(){
     diff=level<=3?'easy':level<=6?'medium':'hard';
     const scopedStd=buildStdQuestion(diff);
     if(scopedStd){
-      currentQuestion=scopedStd;
-      var stdQEl=$('qText');
-      if(stdQEl)stdQEl.innerHTML=mathRender(String(scopedStd.q||scopedStd.question||scopedStd.prompt||'Solve to drop: choose the correct answer.'));
-      const stdBtns=[$('ansA'),$('ansB')];
-      if(Math.random()<.5){
-        stdBtns[0].innerHTML=mathRender(scopedStd.ans);stdBtns[0].dataset.correct='1';
-        stdBtns[1].innerHTML=mathRender(scopedStd.wrong);stdBtns[1].dataset.correct='0';
-      }else{
-        stdBtns[1].innerHTML=mathRender(scopedStd.ans);stdBtns[1].dataset.correct='1';
-        stdBtns[0].innerHTML=mathRender(scopedStd.wrong);stdBtns[0].dataset.correct='0';
-      }
-      stdBtns.forEach(function(btn){btn.classList.remove('correct-flash','wrong-flash');btn.disabled=false;});
-      var stdMb=$('mathBonus');
-      stdMb.classList.remove('show');
-      stdMb.textContent='';
+      paintQuestionUI(ensureQuestionPayload(scopedStd,'Solve to drop: choose the correct answer.',diff,'standard'),false);
       return;
     }
   }
@@ -1790,21 +1795,7 @@ function mkQ(){
     diff=level<=3?'easy':level<=6?'medium':'hard';
     const scoped=buildCompQuestion(diff);
     if(scoped){
-      currentQuestion=scoped;
-      var scopedQEl=$('qText');
-      if(scopedQEl)scopedQEl.innerHTML=mathRender(String(scoped.q||scoped.question||scoped.prompt||'Solve to drop: choose the correct answer.'));
-      const scopedBtns=[$('ansA'),$('ansB')];
-      if(Math.random()<.5){
-        scopedBtns[0].innerHTML=mathRender(scoped.ans);scopedBtns[0].dataset.correct='1';
-        scopedBtns[1].innerHTML=mathRender(scoped.wrong);scopedBtns[1].dataset.correct='0';
-      }else{
-        scopedBtns[1].innerHTML=mathRender(scoped.ans);scopedBtns[1].dataset.correct='1';
-        scopedBtns[0].innerHTML=mathRender(scoped.wrong);scopedBtns[0].dataset.correct='0';
-      }
-      scopedBtns.forEach(function(btn){btn.classList.remove('correct-flash','wrong-flash');btn.disabled=false;});
-      var scopedMb=$('mathBonus');
-      scopedMb.classList.remove('show');
-      scopedMb.textContent='';
+      paintQuestionUI(ensureQuestionPayload(scoped,'Solve to drop: choose the correct answer.',diff,'competency'),false);
       return;
     }
   }
@@ -1829,7 +1820,7 @@ function mkQ(){
       tries++;
     }while(tries<30&&!markGeneratedUnique(uniqueScope,qText));
     const wrong=ans+(([1,-1,2,-2,3,-3].filter(d=>ans+d>0&&ans+d!==ans))||[1])[Math.floor(Math.random()*[1,-1,2,-2,3,-3].filter(d=>ans+d>0&&ans+d!==ans).length)]||ans+1;
-    currentQuestion={type:'equation',q:qText,a:null,b:null,op:null,ans,wrong,diff};
+    currentQuestion=ensureQuestionPayload({type:'equation',q:qText,a:null,b:null,op:null,ans,wrong,diff},'Solve to drop: equation question',diff,'equation');
   }else{
     if(level<=3){
       diff='easy';
@@ -1861,21 +1852,9 @@ function mkQ(){
     }while(tries<30&&!markGeneratedUnique(uniqueScope,qText));
     var _offsets=[1,-1,2,-2,3,-3,5,-5,10,-10].filter(d=>ans+d>0&&ans+d!==ans);if(!_offsets.length)_offsets=[1];
     const wrong=ans+_offsets[Math.floor(Math.random()*_offsets.length)]||ans+1;
-    currentQuestion={a,b,op,ans,wrong,diff};
+    currentQuestion=ensureQuestionPayload({a,b,op,ans,wrong,diff},'Solve to drop: arithmetic question',diff,'arithmetic');
   }
-  var qEl=$('qText');
-  if(qEl){
-    const safePrompt=String((currentQuestion&&currentQuestion.q)||qText||'Solve to drop: choose the correct answer.').trim();
-    if(isEquation) qEl.innerHTML=mathRender(safePrompt+' → x = ?');
-    else qEl.innerHTML=mathRender(safePrompt);
-  }
-  const btns=[$('ansA'),$('ansB')];
-  if(Math.random()<.5){btns[0].innerHTML=mathRender(currentQuestion.ans);btns[0].dataset.correct='1';btns[1].innerHTML=mathRender(currentQuestion.wrong);btns[1].dataset.correct='0';}
-  else{btns[1].innerHTML=mathRender(currentQuestion.ans);btns[1].dataset.correct='1';btns[0].innerHTML=mathRender(currentQuestion.wrong);btns[0].dataset.correct='0';}
-  btns.forEach(b=>{b.classList.remove('correct-flash','wrong-flash');b.disabled=false;});
-  const mb=$('mathBonus');
-  mb.classList.remove('show');
-  mb.textContent='';
+  paintQuestionUI(currentQuestion,isEquation);
 }
 
 function checkAnswer(btn){
