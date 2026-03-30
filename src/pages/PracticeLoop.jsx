@@ -330,6 +330,16 @@ function pickPhaseQuestions(orderedPool, count, usedIds, recentIds = []) {
 }
 
 const MATH_ACTIVITY_MODES = ['slope', 'intercept', 'both', 'y-intercept-read'];
+const CORE_ACTIVITY_MODE_FALLBACKS = [
+  'function-transform',
+  'quadratic',
+  'sequence-patterns',
+  'trig-circle',
+  'slope',
+  'intercept',
+  'both',
+  'y-intercept-read',
+];
 const LINEAR_FUNCTION_COMPS = new Set(['comp002']);
 const LINEAR_FUNCTION_STANDARDS = new Set(['c005', 'c006']);
 
@@ -2837,6 +2847,25 @@ export default function PracticeLoop() {
     return activityModes[index] || fallback;
   }, [subject, comp, currentStd, activityModes, supportLevel]);
 
+  const coreInteractiveModes = useMemo(() => {
+    if (subject !== 'math') return [];
+    const used = new Set();
+    const picks = [];
+    for (let i = 0; i < 3; i++) {
+      const primary = getActivityMode(i);
+      const candidateOrder = [
+        primary,
+        activityModes[i],
+        ...activityModes,
+        ...CORE_ACTIVITY_MODE_FALLBACKS,
+      ].filter(Boolean);
+      const pick = candidateOrder.find((mode) => !used.has(mode)) || candidateOrder[0] || 'function-transform';
+      picks.push(pick);
+      used.add(pick);
+    }
+    return picks;
+  }, [subject, getActivityMode, activityModes]);
+
   const game1 = fourGames[0];
   const game2 = fourGames[1] || COMPETENCY_EXPLORER;
   const game3 = fourGames[2] || COMPETENCY_EXPLORER;
@@ -4224,7 +4253,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-1' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(0)} activityIndex={0} seed={revisitSeed} badgeLabel={getTileLabel('activity-1', 'Activity 1')} onComplete={() => goToPhase('check-quiz-3')} />}
+        {phase === 'activity-1' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={coreInteractiveModes[0] || getActivityMode(0)} activityIndex={0} seed={revisitSeed} badgeLabel={getTileLabel('activity-1', 'Activity 1')} onComplete={() => goToPhase('check-quiz-3')} />}
 
         {phase === 'check-quiz-2' && (
           <QuizBlock
@@ -4244,7 +4273,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-2' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(1)} activityIndex={1} seed={revisitSeed} badgeLabel={getTileLabel('activity-2', 'Activity 2')} onComplete={() => goToPhase('check-quiz-6')} />}
+        {phase === 'activity-2' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={coreInteractiveModes[1] || getActivityMode(1)} activityIndex={1} seed={revisitSeed} badgeLabel={getTileLabel('activity-2', 'Activity 2')} onComplete={() => goToPhase('check-quiz-6')} />}
 
         {phase === 'game2' && (
           <GamePhase
@@ -4259,7 +4288,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-3' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(2)} activityIndex={2} seed={revisitSeed} badgeLabel={getTileLabel('activity-3', 'Activity 3')} onComplete={() => goToPhase('game4')} />}
+        {phase === 'activity-3' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={coreInteractiveModes[2] || getActivityMode(2)} activityIndex={2} seed={revisitSeed} badgeLabel={getTileLabel('activity-3', 'Activity 3')} onComplete={() => goToPhase('game4')} />}
 
         {phase === 'check-quiz-3' && (
           <QuizBlock
