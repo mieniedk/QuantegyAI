@@ -1408,15 +1408,21 @@ app.get('/api/billing/student/plans', (req, res) => {
   res.json({ success: true, plans });
 });
 
+function studentIdFromReq(req) {
+  return String(req.user?.studentId || req.user?.id || req.user?.sub || '').trim() || null;
+}
+
 app.get('/api/billing/student/subscription/me', requireStudent, (req, res) => {
-  const studentId = req.user.id || req.user.sub;
+  const studentId = studentIdFromReq(req);
+  if (!studentId) return res.status(401).json({ success: false, error: 'Invalid student session.' });
   const subscription = getStudentSubscription(studentId) || null;
   const entitlements = computeEntitlements(subscription || {});
   res.json({ success: true, studentId, subscription, entitlements });
 });
 
 app.post('/api/billing/student/create-checkout-session', requireStudent, asyncHandler(async (req, res) => {
-  const studentId = req.user.id || req.user.sub;
+  const studentId = studentIdFromReq(req);
+  if (!studentId) return res.status(401).json({ success: false, error: 'Invalid student session.' });
   const planId = String(req.body?.planId || '');
   const examId = String(req.body?.examId || '');
   const plan = STUDENT_BILLING_PLANS[planId];
@@ -1424,8 +1430,10 @@ app.post('/api/billing/student/create-checkout-session', requireStudent, asyncHa
 
   const existing = getStudentSubscription(studentId) || {};
   const origin = req.body?.origin || `${req.protocol}://${req.get('host')}`;
-  const successUrl = `${origin}/practice-loop?paid=1&exam=${encodeURIComponent(examId)}`;
-  const cancelUrl = `${origin}/practice-loop?cancelled=1&exam=${encodeURIComponent(examId)}`;
+  const examQuery = examId ? `&examId=${encodeURIComponent(examId)}&exam=${encodeURIComponent(examId)}` : '';
+  const successUrlDemo = `${origin}/practice-loop?paid=1${examQuery}`;
+  const successUrlStripe = `${successUrlDemo}&session_id={CHECKOUT_SESSION_ID}`;
+  const cancelUrl = `${origin}/practice-loop?cancelled=1${examQuery}`;
 
   if (!stripe || !plan.priceId) {
     const now = new Date();
@@ -1444,7 +1452,7 @@ app.post('/api/billing/student/create-checkout-session', requireStudent, asyncHa
       updatedAt: now.toISOString(),
     };
     saveStudentSubscription(studentId, subscription);
-    return res.json({ success: true, demo: true, url: successUrl });
+    return res.json({ success: true, demo: true, url: successUrlDemo });
   }
 
   let customerId = existing.stripeCustomerId || '';
@@ -1461,7 +1469,7 @@ app.post('/api/billing/student/create-checkout-session', requireStudent, asyncHa
   const session = await stripe.checkout.sessions.create({
     mode: isOneTime ? 'payment' : 'subscription',
     customer: customerId,
-    success_url: successUrl,
+    success_url: successUrlStripe,
     cancel_url: cancelUrl,
     line_items: [{ price: plan.priceId, quantity: 1 }],
     allow_promotion_codes: true,
@@ -1472,6 +1480,52 @@ app.post('/api/billing/student/create-checkout-session', requireStudent, asyncHa
   });
 
   res.json({ success: true, url: session.url, sessionId: session.id });
+}));
+
+/**
+ * Client calls this after Stripe redirect when webhooks are delayed or misconfigured.
+ * Verifies the Checkout session belongs to this student and applies entitlements.
+ */
+app.post('/api/billing/student/confirm-checkout', requireStudent, asyncHandler(async (req, res) => {
+  const studentId = studentIdFromReq(req);
+  if (!studentId) return res.status(401).json({ success: false, error: 'Invalid student session.' });
+  const sessionId = String(req.body?.sessionId || '').trim();
+  if (!sessionId) return res.status(400).json({ success: false, error: 'Missing sessionId.' });
+  if (!stripe) {
+    return res.status(503).json({ success: false, error: 'Stripe is not configured on this server.' });
+  }
+  const session = await stripe.checkout.sessions.retrieve(sessionId, {
+    expand: ['subscription'],
+  });
+  const metaStudent = String(session.metadata?.studentId || '').trim();
+  if (!metaStudent || metaStudent !== studentId) {
+    return res.status(403).json({ success: false, error: 'This purchase does not match your account.' });
+  }
+  const complete = session.status === 'complete';
+  const paid = session.payment_status === 'paid' || session.payment_status === 'no_payment_required';
+  if (!complete || !paid) {
+    return res.json({
+      success: false,
+      error: 'Payment is not complete yet.',
+      payment_status: session.payment_status,
+      status: session.status,
+    });
+  }
+  if (session.subscription) {
+    const subId = typeof session.subscription === 'string' ? session.subscription : session.subscription.id;
+    const sub = await stripe.subscriptions.retrieve(subId);
+    await upsertStripeSubscriptionRecord(sub);
+  } else {
+    upsertStudentStripeRecord(
+      { status: 'active', customer: session.customer, metadata: session.metadata },
+      studentId,
+      'active',
+      session.metadata || {},
+    );
+  }
+  const subscription = getStudentSubscription(studentId) || null;
+  const entitlements = computeEntitlements(subscription || {});
+  res.json({ success: true, studentId, subscription, entitlements });
 }));
 
 // ── Classes & Assignments sync (protected) ──

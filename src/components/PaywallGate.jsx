@@ -64,6 +64,9 @@ function isAccountExistsError(message) {
 
 const VALID_COUPONS = new Set(['ALLEN100', 'FREEACCESS', 'TEXES2025', 'MATHPREP', 'PIONEER']);
 
+/** Set VITE_SUPPORT_EMAIL in env so paywall errors include a contact path. */
+const SUPPORT_EMAIL = (import.meta.env.VITE_SUPPORT_EMAIL || '').trim();
+
 export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
   const [viewportWidth, setViewportWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1200));
   const [mode, setMode] = useState(isStudentLoggedIn() ? 'pricing' : 'signup');
@@ -556,8 +559,14 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
               )}
             </div>
 
-            <p style={{ textAlign: 'center', fontSize: 12, color: COLOR.textMuted }}>
+            <p style={{ textAlign: 'center', fontSize: 12, color: COLOR.textMuted, lineHeight: 1.5 }}>
               Secure payment via Stripe. Cancel anytime.
+              {SUPPORT_EMAIL ? (
+                <>
+                  {' '}If checkout fails or access doesn&rsquo;t unlock after paying, email{' '}
+                  <a href={`mailto:${SUPPORT_EMAIL}?subject=Quantegy%20student%20billing`} style={{ color: COLOR.blue, fontWeight: 600 }}>{SUPPORT_EMAIL}</a>.
+                </>
+              ) : null}
             </p>
           </>
         )}

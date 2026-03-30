@@ -55,7 +55,7 @@ import {
 
 import PaywallGate from '../components/PaywallGate';
 import SaveProgressModal from '../components/SaveProgressModal';
-import { isStudentLoggedIn, hasExamAccess } from '../utils/studentAuth';
+import { isStudentLoggedIn, hasExamAccess, confirmStudentCheckoutSession } from '../utils/studentAuth';
 import { fireConfetti } from '../utils/confetti';
 import { trackEvent, flushTelemetryOnExit } from '../utils/telemetry';
 import { motionTransition } from '../utils/motion';
@@ -1589,7 +1589,7 @@ export default function PracticeLoop() {
   const singleTeks = teks.split(',')[0] || '';
   const sid = params.get('sid') || '';
   const cid = params.get('cid') || '';
-  const examId = params.get('examId') || gradeToExamId(grade) || 'math712';
+  const examId = params.get('examId') || params.get('exam') || gradeToExamId(grade) || 'math712';
   const requestedPhase = params.get('phase');
   const sessionPhaseKey = `practice-loop-phase:${examId}:${comp}:${currentStd || ''}:${teks}`;
   const sessionQuizKey = `practice-loop-quiz:${comp}:${teks}:${currentStd || ''}`;
@@ -1934,13 +1934,49 @@ export default function PracticeLoop() {
 
   useEffect(() => {
     let cancelled = false;
-    if (params.get('paid') === '1' || isStudentLoggedIn()) {
+    const paidReturn = searchParams.get('paid') === '1';
+    const checkoutSessionId = (searchParams.get('session_id') || '').trim();
+
+    async function afterCheckoutReturn() {
+      if (checkoutSessionId && isStudentLoggedIn()) {
+        try {
+          await confirmStudentCheckoutSession(checkoutSessionId);
+        } catch {
+          /* confirm is best-effort; polling below still applies */
+        }
+      }
+      for (let i = 0; i < 24 && !cancelled; i += 1) {
+        const ok = await hasExamAccess(examId);
+        if (ok) {
+          if (!cancelled) {
+            setIsPaid(true);
+            try {
+              const next = new URLSearchParams(searchParams);
+              next.delete('paid');
+              next.delete('session_id');
+              setSearchParams(next, { replace: true });
+            } catch {
+              /* ignore */
+            }
+          }
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 2500));
+      }
+    }
+
+    if (paidReturn && isStudentLoggedIn()) {
+      afterCheckoutReturn();
+      return () => { cancelled = true; };
+    }
+
+    if (isStudentLoggedIn()) {
       hasExamAccess(examId)
         .then((ok) => { if (!cancelled && ok) setIsPaid(true); })
         .catch(() => {});
     }
     return () => { cancelled = true; };
-  }, [examId]);
+  }, [examId, searchParams, setSearchParams]);
 
   const lastCheckpointBeforeMastery = useMemo(() => {
     const rev = [...quizHistory].reverse();

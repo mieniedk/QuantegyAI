@@ -13,7 +13,6 @@ import { showAppToast } from '../utils/appToast';
 const Pricing = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const STUDENT_TEXES_PORTAL_URL = '/student?focus=texes-signup';
   const [username, setUsername] = useState('');
   const [sub, setSub] = useState(null);
   const [pricingAudience, setPricingAudience] = useState('teacher');
@@ -21,6 +20,7 @@ const Pricing = () => {
   const [studentBusyPlanId, setStudentBusyPlanId] = useState('');
   const studentInfo = getStudentInfo();
   const hasStudentSession = isStudentLoggedIn() && !!studentInfo;
+  const studentTexesPortalUrl = `/student?focus=texes-signup&examId=${encodeURIComponent(studentExamId)}`;
 
   const STUDENT_PLANS = [
     {
@@ -72,7 +72,7 @@ const Pricing = () => {
     if (!username) {
       if (hasStudentSession) {
         showAppToast('You are signed in as a student. Teacher subscriptions are in the Teacher Portal.', { type: 'info' });
-        navigate(STUDENT_TEXES_PORTAL_URL);
+        navigate(studentTexesPortalUrl);
         return;
       }
       showAppToast('Choose your portal: Student or Teacher.', { type: 'warning' });
@@ -85,7 +85,7 @@ const Pricing = () => {
   const handleStudentCheckout = async (planId) => {
     if (!hasStudentSession) {
       showAppToast('Please sign in to the Student Portal to continue.', { type: 'warning' });
-      navigate(STUDENT_TEXES_PORTAL_URL);
+      navigate(studentTexesPortalUrl);
       return;
     }
     setStudentBusyPlanId(planId);
@@ -168,7 +168,7 @@ const Pricing = () => {
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button
             type="button"
-            onClick={() => navigate(STUDENT_TEXES_PORTAL_URL)}
+            onClick={() => navigate(studentTexesPortalUrl)}
             style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #16a34a', background: '#ecfdf5', color: '#166534', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}
           >
             Go to Student Portal

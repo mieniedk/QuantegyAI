@@ -25,8 +25,20 @@ import { awardXP as gamificationAwardXP } from '../utils/gamification';
 import LearningPath from '../components/LearningPath';
 import CrossCompetencyDashboard from '../components/CrossCompetencyDashboard';
 import { trackPageView } from '../utils/activityTracker';
+import { getExamLabel } from '../data/texesExams';
 
 const SESSION_KEY = 'quantegy-student-session';
+
+/** Default practice-loop query for self-study (no teacher class). */
+function getSelfStudyPracticePaths(examId) {
+  const id = examId === 'math48' ? 'math48' : 'math712';
+  if (id === 'math48') {
+    const q = 'examId=math48&comp=comp48_1&currentStd=m48_c001&grade=grade4-8&subject=math';
+    return { preview: `/practice-loop?${q}`, paywall: `/practice-loop?${q}&phase=paywall` };
+  }
+  const q = 'examId=math712&comp=comp002&currentStd=c004&grade=grade7-12&subject=math';
+  return { preview: `/practice-loop?${q}`, paywall: `/practice-loop?${q}&phase=paywall` };
+}
 
 // ─── Ensure assignment records exist for games on a class ─────
 function ensureAssignmentRecords(cls) {
@@ -578,6 +590,10 @@ const Student = () => {
   const [assignments, setAssignments] = useState([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const focusParam = searchParams.get('focus');
+  const examIdParam = (searchParams.get('examId') || '').trim().toLowerCase();
+  const selfStudyExamId = examIdParam === 'math48' || examIdParam === 'math712' ? examIdParam : 'math712';
+  const focusTexesSelfStudy = focusParam === 'texes-signup';
+  const [showTeacherClassJoin, setShowTeacherClassJoin] = useState(false);
   const tabParam = searchParams.get('tab');
   const validTabs = ['overview', 'skill-graph', 'feed', 'modules', 'chat', 'meet', 'studio', 'live', 'spaces', 'concept-map', 'progress', 'warmups', 'games', 'practice', 'awards', 'gamification', 'ai-tutor'];
   const [tab, setTabState] = useState(validTabs.includes(tabParam) ? tabParam : 'overview');
@@ -595,7 +611,11 @@ const Student = () => {
     if (tabParam && validTabs.includes(tabParam) && tabParam !== tab) setTabState(tabParam);
   }, [tabParam]);
   useEffect(() => {
-    if (isJoined || focusParam !== 'texes-signup') return undefined;
+    if (focusParam !== 'texes-signup') setShowTeacherClassJoin(false);
+  }, [focusParam]);
+
+  useEffect(() => {
+    if (isJoined || focusParam !== 'texes-signup' || showTeacherClassJoin) return undefined;
     const scrollTimer = setTimeout(() => {
       texesSignupRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       setHighlightTexesSignup(true);
@@ -605,7 +625,7 @@ const Student = () => {
       clearTimeout(scrollTimer);
       clearTimeout(clearHighlightTimer);
     };
-  }, [isJoined, focusParam]);
+  }, [isJoined, focusParam, showTeacherClassJoin]);
   const [joinError, setJoinError] = useState('');
   const [activeLecture, setActiveLecture] = useState(null);
   const [activeConceptCheck, setActiveConceptCheck] = useState(null); // Learn→Check→Game when no lecture
@@ -853,9 +873,78 @@ const Student = () => {
       }}>
         {!isJoined ? (
           /* ═══════════════════════════════════════════════
-             JOIN CLASS FORM
+             TExES self-study (from pricing / pay flow) OR join class
              ═══════════════════════════════════════════════ */
           <div>
+            {focusTexesSelfStudy && !showTeacherClassJoin ? (
+              <div ref={texesSignupRef} style={{
+                marginBottom: 28,
+                textAlign: 'center', padding: '36px 24px 32px',
+                background: 'linear-gradient(135deg, #1e3a5f 0%, #2563eb 55%, #6d28d9 100%)',
+                borderRadius: 24, color: '#fff',
+                boxShadow: highlightTexesSignup ? '0 0 0 4px rgba(139,92,246,0.35), 0 8px 32px rgba(37,99,235,0.25)' : '0 8px 32px rgba(37,99,235,0.2)',
+                border: highlightTexesSignup ? '2px solid rgba(255,255,255,0.5)' : 'none',
+                transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
+              }}>
+                <div style={{
+                  width: 72, height: 72, borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.15)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  margin: '0 auto 12px', fontSize: 36,
+                }}>
+                  📐
+                </div>
+                <h1 style={{ margin: '0 0 8px', fontSize: 26, fontWeight: 800 }}>
+                  {getExamLabel(selfStudyExamId)} prep
+                </h1>
+                <p style={{ margin: '0 auto 20px', fontSize: 15, opacity: 0.92, maxWidth: 400, lineHeight: 1.5 }}>
+                  You&rsquo;re signing up for the adaptive practice loop for this exam. No class code is required unless your teacher gave you one.
+                </p>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
+                  <Link to={getSelfStudyPracticePaths(selfStudyExamId).preview} style={{
+                    display: 'inline-block', padding: '12px 22px',
+                    background: 'rgba(255,255,255,0.95)', color: '#1d4ed8', borderRadius: 12,
+                    textDecoration: 'none', fontWeight: 800, fontSize: 15,
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
+                  }}>
+                    Start free preview
+                  </Link>
+                  <Link to={getSelfStudyPracticePaths(selfStudyExamId).paywall} style={{
+                    display: 'inline-block', padding: '12px 22px',
+                    background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', color: '#1c1917', borderRadius: 12,
+                    textDecoration: 'none', fontWeight: 800, fontSize: 15,
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
+                  }}>
+                    Create account &amp; pay
+                  </Link>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setShowTeacherClassJoin(true); setHighlightTexesSignup(false); }}
+                  style={{
+                    background: 'transparent', border: '1px solid rgba(255,255,255,0.45)', color: '#fff',
+                    padding: '10px 18px', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                  }}
+                >
+                  I have a class code from my teacher
+                </button>
+              </div>
+            ) : (
+              <>
+            {focusTexesSelfStudy && showTeacherClassJoin && (
+              <div style={{ marginBottom: 16, textAlign: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowTeacherClassJoin(false)}
+                  style={{
+                    background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#334155',
+                    padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                  }}
+                >
+                  ← Back to {getExamLabel(selfStudyExamId)} self-study
+                </button>
+              </div>
+            )}
             {/* Hero */}
             <div style={{
               textAlign: 'center', padding: '40px 24px 36px', marginBottom: 28,
@@ -997,25 +1086,35 @@ const Student = () => {
                 Start a free adaptive learning loop — no class code needed.
               </p>
               <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                <Link to="/practice-loop?examId=math712&comp=comp002&currentStd=c004&grade=grade7-12&subject=math" style={{
+                <Link to={getSelfStudyPracticePaths('math712').preview} style={{
                 display: 'inline-block', padding: '10px 22px',
                 background: 'linear-gradient(135deg, #7c3aed, #5b21b6)', color: '#fff', borderRadius: 10,
                 textDecoration: 'none', fontWeight: 700, fontSize: 14,
                 border: 'none', transition: 'all 0.15s',
                 boxShadow: '0 2px 10px rgba(124,58,237,0.25)',
               }}>
-                Start Free Preview
+                Start free preview (7–12)
                 </Link>
-                <Link to="/practice-loop?examId=math712&comp=comp002&currentStd=c004&grade=grade7-12&subject=math&phase=paywall" style={{
+                <Link to={getSelfStudyPracticePaths('math712').paywall} style={{
                   display: 'inline-block', padding: '10px 22px',
                   background: '#ffffff', color: '#5b21b6', borderRadius: 10,
                   textDecoration: 'none', fontWeight: 700, fontSize: 14,
                   border: '1px solid #a78bfa', transition: 'all 0.15s',
                 }}>
-                  Create TExES 7-12 Account
+                  Sign up &amp; pay (7–12)
+                </Link>
+                <Link to={getSelfStudyPracticePaths('math48').preview} style={{
+                  display: 'inline-block', padding: '10px 22px',
+                  background: '#fff', color: '#0369a1', borderRadius: 10,
+                  textDecoration: 'none', fontWeight: 700, fontSize: 14,
+                  border: '1px solid #7dd3fc', transition: 'all 0.15s',
+                }}>
+                  Math 4–8 preview
                 </Link>
               </div>
             </div>
+              </>
+            )}
           </div>
         ) : (
           /* ═══════════════════════════════════════════════

@@ -311,8 +311,34 @@ export async function createStudentCheckout(examId, planType = 'student_exam_one
   );
   if (data.success && data.url) {
     window.location.href = data.url;
+    return data;
+  }
+  if (data.success && !data.url) {
+    return { success: false, error: 'Checkout started but no redirect URL was returned. Please try again.' };
   }
   return data;
+}
+
+/**
+ * After Stripe redirects back with ?session_id=…, sync entitlements if the webhook was slow.
+ */
+export async function confirmStudentCheckoutSession(sessionId) {
+  const token = localStorage.getItem(TOKEN_KEY);
+  const decoded = token ? decodeJwt(token) : null;
+  if (!decoded?.studentId || decoded?.local) {
+    return { success: false, error: 'Sign in with your student account to finish activating access.' };
+  }
+  const sid = String(sessionId || '').trim();
+  if (!sid) return { success: false, error: 'Missing checkout session.' };
+  return fetchJsonWithTimeout(
+    `${ACTIVE_API_BASE}/api/billing/student/confirm-checkout`,
+    {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ sessionId: sid }),
+    },
+    20000,
+  );
 }
 
 /**

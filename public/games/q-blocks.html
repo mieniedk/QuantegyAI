@@ -126,7 +126,7 @@ body:has(#game.screen.active) #menu{display:none!important;visibility:hidden!imp
 
 .q-panel{width:100%;min-height:0;padding:8px 12px;background:linear-gradient(180deg,rgba(0,245,255,.12),rgba(0,245,255,.06));border-bottom:2px solid rgba(0,245,255,.3);flex-shrink:0;text-align:center;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;box-sizing:border-box;}
 .q-panel-top{border-top:none;}
-#qText{font-size:1em;color:#fff;margin:0;line-height:1.3;font-weight:700;white-space:normal;word-break:break-word;max-width:100%;max-height:2.6em;overflow-y:auto;text-shadow:0 1px 4px rgba(0,0,0,.9);padding:6px 10px;background:rgba(0,0,0,.35);border-radius:8px;border:1px solid rgba(0,245,255,.4);flex-shrink:0;}
+#qText{font-size:1em;color:#fff;margin:0;line-height:1.35;font-weight:700;white-space:normal;word-break:break-word;max-width:100%;min-height:2.2em;max-height:min(28vh,7.5em);overflow-y:auto;text-shadow:0 1px 4px rgba(0,0,0,.9);padding:6px 10px;background:rgba(0,0,0,.35);border-radius:8px;border:1px solid rgba(0,245,255,.4);flex-shrink:0;}
 .q-question-wrap{width:100%;flex-shrink:0;}
 .q-panel .answers{display:flex;gap:10px;justify-content:center;flex-shrink:0;margin:0;}
 .q-panel .abtn{flex:1;min-width:80px;max-width:160px;min-height:48px;padding:14px 16px;border:3px solid rgba(0,245,255,.6);border-radius:12px;background:rgba(0,245,255,.2);color:#fff;font-size:1.4em;font-weight:800;cursor:pointer;transition:all .15s;}
@@ -295,6 +295,7 @@ body:has(#game.screen.active) #menu{display:none!important;visibility:hidden!imp
 
 /* Math notation */
 .mq-sup{font-size:.72em;vertical-align:super;line-height:0;font-weight:700;}
+.mq-log-base{font-size:.72em;line-height:0;vertical-align:sub;font-weight:600;}
 .mq-sqrt{white-space:nowrap;}
 .mq-sqrt::before{content:'√';font-size:1.1em;}
 .mq-vin{border-top:1.5px solid currentColor;padding:0 2px 0 1px;margin-left:1px;}
@@ -714,7 +715,38 @@ const QBLOCKS_STD_BANK={
     ]
   },
   c008:{easy:[{q:'Solve: 2ˣ = 32',ans:5}],medium:[{q:'Evaluate log₁₀(1000)',ans:3}],hard:[{q:'If 3ˣ = 81, find x',ans:4}]},
-  c009:{easy:[{q:'sin(30°) as decimal hundredths',ans:50}],medium:[{q:'If right triangle has sides 3,4,5, value of sin(theta) opposite 3 (hundredths)',ans:60}],hard:[{q:'cos(60°) as decimal hundredths',ans:50}]},
+  c009:{
+    easy:[
+      {q:'For any angle θ, sin²θ + cos²θ = ?',ans:1},
+      {q:'cos²θ + sin²θ = ?',ans:1},
+      {q:'Pythagorean identity: sin²θ + cos²θ equals what number?',ans:1},
+      {q:'On the unit circle, x = cos θ and y = sin θ. Then x² + y² = ?',ans:1},
+      {q:'sec²θ − tan²θ on the unit circle equals?',ans:1},
+      {q:'tan(45°) as decimal hundredths (100 = 1.00)',ans:100},
+      {q:'sin(0°) as decimal hundredths',ans:0},
+      {q:'cos(0°) as decimal hundredths',ans:100}
+    ],
+    medium:[
+      {q:'Right triangle 3-4-5: sin(angle opposite 3), as hundredths',ans:60},
+      {q:'Right triangle 3-4-5: cos(angle adjacent to 3), as hundredths',ans:80},
+      {q:'sin(60°) as decimal hundredths (nearest)',ans:87},
+      {q:'cos(30°) as decimal hundredths (nearest)',ans:87},
+      {q:'sin(45°) as decimal hundredths (nearest)',ans:71},
+      {q:'cos(45°) as decimal hundredths (nearest)',ans:71},
+      {q:'tan(30°) as decimal hundredths (nearest)',ans:58},
+      {q:'On the unit circle, cos²θ + sin²θ = ? (always)',ans:1}
+    ],
+    hard:[
+      {q:'sec²θ − tan²θ = ?',ans:1},
+      {q:'Identity: 1 + cot²θ = csc²θ. For acute θ, csc²θ − cot²θ = ?',ans:1},
+      {q:'sin(150°) as decimal hundredths',ans:50},
+      {q:'cos(120°) as hundredths (nearest; −50 means −0.50)',ans:-50},
+      {q:'3-4-5 triangle: hypotenuse length',ans:5},
+      {q:'If cot θ = 1, tan θ as hundredths',ans:100},
+      {q:'sin²(30°) + cos²(30°) = ?',ans:1},
+      {q:'cos²(60°) + sin²(60°) = ?',ans:1}
+    ]
+  },
   c010:{easy:[{q:'Derivative of x² at x = 3',ans:6}],medium:[{q:'Derivative of x³ at x = 2',ans:12}],hard:[{q:'Integral of 2x from 0 to 3',ans:9}]},
   c011:{easy:[{q:'Area of circle radius 3 using π ≈ 3.14 (nearest whole)',ans:28}],medium:[{q:'Volume of cylinder r = 2, h = 5 using π ≈ 3.14 (nearest whole)',ans:63}],hard:[{q:'Surface area of cube side 6',ans:216}]},
   c012:{easy:[{q:'Sum of supplementary angles',ans:180}],medium:[{q:'Triangle angle sum in Euclidean plane',ans:180}],hard:[{q:'How many points determine a line?',ans:2}]},
@@ -1073,7 +1105,11 @@ const USED_GENERATED_QUESTIONS=Object.create(null);
 
 function keyForQuestion(item){
   if(!item)return '';
-  return String(item.q||item.question||item.prompt||item.text||'').trim();
+  var base=String(item.q||item.question||item.prompt||item.text||'').replace(/\s+/g,' ').trim();
+  if(base)return base;
+  var a=Number(item.ans);
+  if(Number.isFinite(a))return'__noprompt__:ans:'+a;
+  return'__noprompt__:raw';
 }
 
 function getOrCreateSet(store,key){
@@ -1086,10 +1122,13 @@ function selectUniqueFromPool(pool,poolKey){
   if(!poolKey)return pool[Math.floor(Math.random()*pool.length)];
   const used=getOrCreateSet(USED_POOL_QUESTIONS,poolKey);
   const unseen=pool.filter(function(item){return !used.has(keyForQuestion(item));});
-  if(!unseen.length)return null; // Let caller generate fresh scoped items instead of repeating.
-  const picked=unseen[Math.floor(Math.random()*unseen.length)];
-  if(picked)used.add(keyForQuestion(picked));
-  return picked;
+  if(!unseen.length)return null;
+  return unseen[Math.floor(Math.random()*unseen.length)];
+}
+
+function markPoolQuestionUsed(poolKey,item){
+  if(!poolKey||!item)return;
+  getOrCreateSet(USED_POOL_QUESTIONS,poolKey).add(keyForQuestion(item));
 }
 
 function buildChoiceFromPool(pool,diff,type,poolKey){
@@ -1103,6 +1142,7 @@ function buildChoiceFromPool(pool,diff,type,poolKey){
   const offsets=(diff==='hard'?[2,-2,3,-3,5,-5,7,-7]:[1,-1,2,-2,3,-3]).filter(function(d){return ans+d!==ans;});
   const wrong=ans+offsets[Math.floor(Math.random()*offsets.length)];
   if(!Number.isFinite(wrong))return null;
+  if(poolKey)markPoolQuestionUsed(poolKey,item);
   return {type:type,q:prompt,ans:ans,wrong:wrong,diff:diff};
 }
 
@@ -1136,6 +1176,13 @@ function gcd(a,b){
   a=Math.abs(a);b=Math.abs(b);
   while(b){const t=b;b=a%b;a=t;}
   return a||1;
+}
+
+/** Inclusive integer random; used by generated standard/comp questions. */
+function rand(lo,hi){
+  const a=Math.ceil(Number(lo)),b=Math.floor(Number(hi));
+  if(!Number.isFinite(a)||!Number.isFinite(b)||b<a)return a;
+  return a+Math.floor(Math.random()*(b-a+1));
 }
 
 function makeWrongFromAnswer(ans,diff){
@@ -1180,7 +1227,12 @@ function paintQuestionUI(question,isEquation){
   var qEl=$('qText');
   if(qEl){
     var safePrompt=normalizePromptText(payload.q)||'Solve to drop: choose the correct answer.';
-    qEl.innerHTML=mathRender(isEquation?(safePrompt+' → x = ?'):safePrompt);
+    var qRaw=isEquation?(safePrompt+' → x = ?'):safePrompt;
+    var qHtml;
+    try{qHtml=mathRender(qRaw);}catch(e){qHtml=escHtml(qRaw);}
+    if(!String(qHtml||'').replace(/\s/g,'').length)qHtml=escHtml(qRaw);
+    qEl.innerHTML=qHtml;
+    if(!String(qEl.textContent||'').replace(/\s/g,'').length)qEl.textContent=qRaw;
   }
   const btns=[$('ansA'),$('ansB')];
   if(Math.random()<.5){
@@ -1224,6 +1276,37 @@ function generateQuestionFromStd(std,diff){
     if(style===1){const x=rand(1,4);return makeQuestionObject('Evaluate log₁₀('+(10**x)+').',x);}
     const x=rand(2,6),a=rand(2,4);
     return makeQuestionObject('If '+a+'ˣ = '+(a**x)+', what is x?',x);
+  }
+  if(std==='c009'){
+    // Bias toward Pythagorean identity and related facts (user feedback: avoid repeating "sin 30 hundredths").
+    const r=Math.random();
+    let style;
+    if(r<0.55){
+      style=Math.floor(Math.random()*12);
+      if(style===0)return makeQuestionObject('For any θ, sin²θ + cos²θ = ?',1);
+      if(style===1)return makeQuestionObject('cos²θ + sin²θ = ?',1);
+      if(style===2)return makeQuestionObject('Unit circle: sin²θ + cos²θ equals?',1);
+      if(style===3)return makeQuestionObject('sin²α + cos²α for any angle α equals?',1);
+      if(style===4)return makeQuestionObject('If x = cos θ and y = sin θ, then x² + y² = ?',1);
+      if(style===5)return makeQuestionObject('sec²θ − tan²θ = ?',1);
+      if(style===6)return makeQuestionObject('csc²θ − cot²θ = ?',1);
+      if(style===7)return makeQuestionObject('sin²(15°) + cos²(15°) = ?',1);
+      if(style===8)return makeQuestionObject('cos²(75°) + sin²(75°) = ?',1);
+      if(style===9)return makeQuestionObject('sin²(π/6) + cos²(π/6) = ?',1);
+      if(style===10)return makeQuestionObject('1 − sin²θ equals cos²θ: what is sin²θ + cos²θ?',1);
+      return makeQuestionObject('tan²θ + 1 = sec²θ. What is sec²θ − tan²θ?',1);
+    }
+    style=Math.floor(Math.random()*10);
+    if(style===0)return makeQuestionObject('tan(45°) as hundredths (100 = 1.00)',100);
+    if(style===1)return makeQuestionObject('sin(60°) as hundredths (nearest)',87);
+    if(style===2)return makeQuestionObject('cos(30°) as hundredths (nearest)',87);
+    if(style===3)return makeQuestionObject('sin(45°) as hundredths (nearest)',71);
+    if(style===4){const t=[[3,4,5],[5,12,13],[8,15,17]][rand(0,2)];return makeQuestionObject('Right triangle legs '+t[0]+' and '+t[1]+': hypotenuse length?',t[2]);}
+    if(style===5){const o=3,h=5;return makeQuestionObject('3-4-5 triangle: sin θ with opposite 3 (answer as hundredths)',Math.round(100*o/h));}
+    if(style===6){const a=4,h=5;return makeQuestionObject('3-4-5 triangle: cos θ with adjacent 4 (answer as hundredths)',Math.round(100*a/h));}
+    if(style===7)return makeQuestionObject('sin(0°) as hundredths',0);
+    if(style===8)return makeQuestionObject('cos(0°) as hundredths',100);
+    return makeQuestionObject('sin(30°) as hundredths (50 = 0.50)',50);
   }
   if(std==='c006'){
     const style=Math.floor(Math.random()*3);
@@ -1280,7 +1363,7 @@ function generateQuestionFromComp(comp,diff){
 }
 
 function buildGeneratedScopedQuestion(kind,id,diff,type,scopeKey){
-  for(let i=0;i<40;i++){
+  for(let i=0;i<80;i++){
     const item=(kind==='standard')?generateQuestionFromStd(id,diff):generateQuestionFromComp(id,diff);
     if(!item||!markGeneratedUnique(scopeKey,item.q))continue;
     const wrong=makeWrongFromAnswer(item.ans,diff);
@@ -1300,6 +1383,7 @@ function buildStdQuestion(diff){
   // Never drift to a broader scope when a standard is active; recycle this standard pool.
   if(pool.length){
     delete USED_POOL_QUESTIONS[scopeKey];
+    delete USED_GENERATED_QUESTIONS[scopeKey];
     return buildChoiceFromPool(pool,diff,'standard',scopeKey);
   }
   return null;
@@ -1315,6 +1399,7 @@ function buildCompQuestion(diff){
   if(generated)return generated;
   if(pool.length){
     delete USED_POOL_QUESTIONS[scopeKey];
+    delete USED_GENERATED_QUESTIONS[scopeKey];
     return buildChoiceFromPool(pool,diff,'competency',scopeKey);
   }
   return null;
@@ -1330,6 +1415,7 @@ function buildStdQuestion48(diff){
   if(generated)return generated;
   if(pool.length){
     delete USED_POOL_QUESTIONS[scopeKey];
+    delete USED_GENERATED_QUESTIONS[scopeKey];
     return buildChoiceFromPool(pool,diff,'standard',scopeKey);
   }
   return null;
@@ -1345,6 +1431,7 @@ function buildCompQuestion48(diff){
   if(generated)return generated;
   if(pool.length){
     delete USED_POOL_QUESTIONS[scopeKey];
+    delete USED_GENERATED_QUESTIONS[scopeKey];
     return buildChoiceFromPool(pool,diff,'competency',scopeKey);
   }
   return null;
@@ -1914,6 +2001,8 @@ function startGame(){
     createBoard();
     score=0;level=1;lines=0;combo=0;over=false;paused=false;
     wrongAnswers=[];
+    for(var uk in USED_POOL_QUESTIONS)delete USED_POOL_QUESTIONS[uk];
+    for(var gk in USED_GENERATED_QUESTIONS)delete USED_GENERATED_QUESTIONS[gk];
     stats={mathCorrect:0,mathWrong:0,mathPts:0,rowPts:0,rowsCleared:0,blocksPlaced:0,maxCombo:0,singleClears:0,doubleClears:0,tripleClears:0,quadClears:0,byDifficulty:{easy:{correct:0,wrong:0},medium:{correct:0,wrong:0},hard:{correct:0,wrong:0}}};
     var sv=$('scoreVal'),lv=$('levelVal'),cv=$('comboVal');
     if(sv)sv.textContent='0';if(lv)lv.textContent='1';if(cv)cv.textContent='0';
@@ -2216,9 +2305,18 @@ function mathRender(raw){
   s=s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   var subMap={'0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉','a':'ₐ','e':'ₑ','h':'ₕ','i':'ᵢ','j':'ⱼ','k':'ₖ','l':'ₗ','m':'ₘ','n':'ₙ','o':'ₒ','p':'ₚ','r':'ᵣ','s':'ₛ','t':'ₜ','u':'ᵤ','v':'ᵥ','x':'ₓ'};
   var subscript=function(base){return String(base||'').split('').map(function(ch){return subMap[ch]||subMap[ch.toLowerCase()]||ch;}).join('');};
+  function logBaseHtml(base){
+    var b=String(base||'');
+    for(var i=0;i<b.length;i++){
+      var ch=b[i];
+      if(subMap[ch]===undefined&&subMap[ch.toLowerCase()]===undefined)
+        return '<sub class="mq-log-base">'+escHtml(b)+'</sub>';
+    }
+    return subscript(b);
+  }
   s=s.replace(/\bsqrt\s*\(/gi,'√(');
-  s=s.replace(/\blog_([A-Za-z0-9]+)\s*\(/g,function(_,base){return 'log₍'+subscript(base)+'₎('});
-  s=s.replace(/\blog_([A-Za-z0-9]+)/g,function(_,base){return 'log₍'+subscript(base)+'₎';});
+  s=s.replace(/\blog_([A-Za-z0-9]+)\s*\(/g,function(_,base){return 'log'+logBaseHtml(base)+'('});
+  s=s.replace(/\blog_([A-Za-z0-9]+)/g,function(_,base){return 'log'+logBaseHtml(base);});
   s=s.replace(/!=/g,'≠').replace(/<=/g,'≤').replace(/>=/g,'≥').replace(/->/g,'→');
   s=s.replace(/sqrt\(([^)]+)\)/g,'<span class="mq-sqrt"><span class="mq-vin">$1</span></span>');
   s=s.replace(/√\(([^)]+)\)/g,'<span class="mq-sqrt"><span class="mq-vin">$1</span></span>');

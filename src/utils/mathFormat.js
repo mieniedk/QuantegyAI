@@ -126,12 +126,22 @@ const SUBSCRIPT_MAP = {
   s: 'ₛ', t: 'ₜ', u: 'ᵤ', v: 'ᵥ', x: 'ₓ',
 };
 
+/** Reverse of subscript digits (for legacy log₍₁₀₎-style authoring). */
+const UNICODE_SUBSCRIPT_DIGIT_TO_ASCII = {
+  '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4',
+  '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9',
+};
+
 function toSubscript(text) {
   return String(text || '')
     .split('')
     .map((ch) => SUBSCRIPT_MAP[ch] || SUBSCRIPT_MAP[ch.toLowerCase()] || ch)
     .join('');
 }
+
+/** Private-use sentinels: log base rendered as true subscript after parseMath (not log₍b₎, which is wrong). */
+const LOGSUB_START = '\uFFF0';
+const LOGSUB_END = '\uFFF1';
 
 function normalizeMathNotation(str) {
   return String(str || '')
@@ -142,10 +152,11 @@ function normalizeMathNotation(str) {
     .replace(/->/g, '→')
     // sqrt(...) authored text -> radical.
     .replace(/\bsqrt\s*\(/gi, '√(')
-    // log_b(x) and log_3(81) -> log₍b₎(x), log₍3₎(81)
-    .replace(/\blog_([A-Za-z0-9]+)\s*\(/g, (_, base) => `log₍${toSubscript(base)}₎(`)
-    // log_b without immediate parentheses.
-    .replace(/\blog_([A-Za-z0-9]+)/g, (_, base) => `log₍${toSubscript(base)}₎`)
+    // Legacy wrong notation log₍b₎(x) -> same pipeline as log_b(x)
+    .replace(/\blog\u208D([A-Za-z0-9\u2080-\u2089]+)\u208E/g, (_, inner) => `${LOGSUB_START}${inner.replace(/[\u2080-\u2089]/g, (d) => UNICODE_SUBSCRIPT_DIGIT_TO_ASCII[d] || d)}${LOGSUB_END}`)
+    // log_b(x) and log_3(81) -> sentinels; formatMathHtml expands to <sub>base</sub>
+    .replace(/\blog_([A-Za-z0-9]+)\s*\(/g, (_, base) => `log${LOGSUB_START}${base}${LOGSUB_END}(`)
+    .replace(/\blog_([A-Za-z0-9]+)/g, (_, base) => `log${LOGSUB_START}${base}${LOGSUB_END}`)
     // Prefer symbolic infinity over text.
     .replace(/\binfinity\b/gi, '∞')
     // Render the common set-union token.
@@ -387,6 +398,21 @@ export function speechifyForNarration(str) {
   s = s.replace(/\bsummative\b/gi, 'sum-uh-tiv');
   s = s.replace(/\bdiscriminant\b/gi, 'dis-crim-in-ant');
 
+  // Trig with Unicode superscripts (e.g. sin²θ) — must run before generic "letter + superscript digit" rule
+  // so we do not read "…n to the power of 2…".
+  s = s.replace(/sin²/gi, 'sine squared ');
+  s = s.replace(/cos²/gi, 'cosine squared ');
+  s = s.replace(/tan²/gi, 'tangent squared ');
+  s = s.replace(/sin³/gi, 'sine cubed ');
+  s = s.replace(/cos³/gi, 'cosine cubed ');
+  s = s.replace(/tan³/gi, 'tangent cubed ');
+  s = s.replace(/\bsin\s*\^\s*2/gi, 'sine squared ');
+  s = s.replace(/\bcos\s*\^\s*2/gi, 'cosine squared ');
+  s = s.replace(/\btan\s*\^\s*2/gi, 'tangent squared ');
+  s = s.replace(/\bsin\s*\^\s*3/gi, 'sine cubed ');
+  s = s.replace(/\bcos\s*\^\s*3/gi, 'cosine cubed ');
+  s = s.replace(/\btan\s*\^\s*3/gi, 'tangent cubed ');
+
   // Math symbol pronunciation
   s = s.replace(/√/g, 'square root of ');
   s = s.replace(/π/g, 'pi');
@@ -433,7 +459,12 @@ export function formatMathHtml(str) {
   const normalized = normalizeMathNotation(str)
     // "√ 2" -> "√2" so radicals parse correctly.
     .replace(/([√\u221A])\s+(?=[(\[]|[A-Za-z0-9])/g, '$1');
-  return parseMath(normalized);
+  const logSubRe = new RegExp(`${LOGSUB_START}([A-Za-z0-9]+)${LOGSUB_END}`, 'g');
+  return parseMath(normalized).replace(
+    logSubRe,
+    (_, base) =>
+      `<sub style="font-size:0.72em;line-height:0;vertical-align:sub;font-weight:600">${escapeHtml(base)}</sub>`,
+  );
 }
 
 /**
