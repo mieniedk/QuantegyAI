@@ -2165,12 +2165,11 @@ export default function PracticeLoop() {
     }
     const targetIdx = PHASES.indexOf(normalizedPhase);
     const willAdvance = !skipProgress && targetIdx > highWatermark;
-    const projectedTilesCompleted = willAdvance ? tilesCompleted + 1 : tilesCompleted;
     if (willAdvance) {
       setHighWatermark(targetIdx);
       setTilesCompleted((n) => n + 1);
     }
-    if (!isPaid && normalizedPhase !== 'paywall' && normalizedPhase !== 'diagnostic' && projectedTilesCompleted > FREE_TILE_LIMIT) {
+    if (!isPaid && normalizedPhase !== 'paywall' && normalizedPhase !== 'diagnostic' && targetIdx >= FREE_TILE_LIMIT) {
       pendingPaywallPhaseRef.current = normalizedPhase;
       setPendingPaywallPhase(normalizedPhase);
       setPhase('paywall');

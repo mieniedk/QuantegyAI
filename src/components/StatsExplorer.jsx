@@ -3,8 +3,11 @@
  *
  * Modes (rotated by activityIndex):
  *   0  "mean-builder"     Drag dots on a number line to hit a target mean.
- *   1  "line-fit"         Drag slope & intercept to fit a regression line to scatter points.
- *   2  "prob-sim"         Spin a visual probability wheel and predict outcomes.
+ *   1  "median-sorter"    Sort scrambled data and identify the median.
+ *   2  "box-plot"         Build a box-and-whisker plot from a five-number summary.
+ *   3  "bell-curve"       Explore the normal distribution with sliders (68-95-99.7 rule).
+ *   4  "line-fit"         Drag slope & intercept to fit a regression line to scatter points.
+ *   5  "prob-sim"         Spin a visual probability wheel and predict outcomes.
  */
 import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { COLOR, CARD, BTN_PRIMARY, BADGE } from '../utils/loopStyles';
@@ -830,13 +833,560 @@ function ProbSim({ onComplete, continueLabel, badgeLabel, embedded }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   MODE 4 — Median Sorter
+   Sort a scrambled data set, then identify the median.
+   ═══════════════════════════════════════════════════════════════════════════ */
+function getMedianQBotMsg(phase, isEven) {
+  if (phase === 'sort') return { msg: 'First, put the numbers in order from smallest to largest. Tap two cards to swap them!', mood: 'wave' };
+  if (phase === 'pick') {
+    if (isEven) return { msg: 'The data has an even count, so the median is the average of the two middle values. Tap both middle cards!', mood: 'think' };
+    return { msg: 'Great — now find the middle value! That\'s your median. Tap it!', mood: 'encourage' };
+  }
+  return { msg: 'You found the median! Remember: the median splits the sorted data into two equal halves. It\'s resistant to outliers, unlike the mean.', mood: 'celebrate' };
+}
+
+function MedianSorter({ onComplete, continueLabel, badgeLabel, embedded }) {
+  const [round, setRound] = useState(0);
+  const count = useMemo(() => rand(0, 1) === 0 ? 7 : 8, [round]); // eslint-disable-line react-hooks/exhaustive-deps
+  const isEven = count % 2 === 0;
+
+  const sortedData = useMemo(() => {
+    const arr = Array.from({ length: count }, () => rand(1, 50));
+    arr.sort((a, b) => a - b);
+    return arr;
+  }, [round, count]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const trueMedian = isEven
+    ? (sortedData[count / 2 - 1] + sortedData[count / 2]) / 2
+    : sortedData[Math.floor(count / 2)];
+
+  const shuffled = useMemo(() => {
+    const arr = [...sortedData];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }, [sortedData]);
+
+  const [cards, setCards] = useState(shuffled);
+  const [phase, setPhase] = useState('sort');
+  const [selected, setSelected] = useState(null);
+  const [pickedIndices, setPickedIndices] = useState([]);
+  const [showHelp, setShowHelp] = useState(false);
+
+  useEffect(() => { setCards(shuffled); setPhase('sort'); setSelected(null); setPickedIndices([]); setShowHelp(false); }, [shuffled]);
+
+  const isSorted = cards.every((v, i) => i === 0 || cards[i - 1] <= v);
+
+  useEffect(() => {
+    if (isSorted && phase === 'sort') setPhase('pick');
+  }, [isSorted, phase]);
+
+  const handleCardTap = useCallback((idx) => {
+    if (phase === 'sort') {
+      if (selected === null) { setSelected(idx); return; }
+      setCards((prev) => {
+        const n = [...prev];
+        [n[selected], n[idx]] = [n[idx], n[selected]];
+        return n;
+      });
+      setSelected(null);
+    } else if (phase === 'pick') {
+      setPickedIndices((prev) => {
+        if (prev.includes(idx)) return prev.filter((i) => i !== idx);
+        if (isEven && prev.length < 2) return [...prev, idx];
+        if (!isEven) return [idx];
+        return prev;
+      });
+    }
+  }, [phase, selected, isEven]);
+
+  const checkMedian = useCallback(() => {
+    if (!isEven && pickedIndices.length === 1) {
+      if (cards[pickedIndices[0]] === trueMedian) setPhase('done');
+    } else if (isEven && pickedIndices.length === 2) {
+      const vals = pickedIndices.map((i) => cards[i]).sort((a, b) => a - b);
+      const avg = (vals[0] + vals[1]) / 2;
+      if (Math.abs(avg - trueMedian) < 0.01) setPhase('done');
+    }
+  }, [pickedIndices, cards, trueMedian, isEven]);
+
+  const qbot = useMemo(() => getMedianQBotMsg(phase, isEven), [phase, isEven]);
+
+  const midIdx = Math.floor(count / 2);
+  const CARD_COLORS = { sort: '#eff6ff', pick: '#f0fdf4', done: '#f0fdf4' };
+
+  return (
+    <div style={embedded ? {} : CARD}>
+      {!embedded && (
+        <div style={{ ...BADGE, background: `${COLOR.purple}14`, color: COLOR.purple }}>{badgeLabel}</div>
+      )}
+      <p style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 800, color: COLOR.text }}>
+        Find the Median
+      </p>
+      <p style={{ margin: '0 0 8px', fontSize: 13, color: COLOR.textSecondary }}>
+        {phase === 'sort' && 'Tap two cards to swap them. Sort smallest to largest.'}
+        {phase === 'pick' && (isEven ? 'Sorted! Now tap the two middle values.' : 'Sorted! Now tap the middle value.')}
+        {phase === 'done' && `The median is ${trueMedian}!`}
+        <button type="button" onClick={() => setShowHelp((p) => !p)} style={{ background: 'none', border: 'none', color: COLOR.blue, fontWeight: 700, cursor: 'pointer', padding: 0, fontSize: 13, marginLeft: 6, textDecoration: 'underline', textUnderlineOffset: 2 }}>
+          {showHelp ? 'Hide help' : 'What is the median?'}
+        </button>
+      </p>
+
+      <QBotBubble message={qbot.msg} mood={qbot.mood} />
+
+      {showHelp && (
+        <div style={{ marginBottom: 12, background: '#faf5ff', borderRadius: 14, border: '1px solid #ddd6fe', padding: '12px 16px' }}>
+          <p style={{ margin: '0 0 6px', fontSize: 13, fontWeight: 700, color: '#4c1d95' }}>The Median</p>
+          <p style={{ margin: 0, fontSize: 12, color: COLOR.textSecondary, lineHeight: 1.6 }}>
+            <strong>Step 1:</strong> Sort the data from smallest to largest.<br />
+            <strong>Step 2:</strong> If there is an <strong>odd</strong> number of values, the median is the single middle value.<br />
+            If there is an <strong>even</strong> number of values, the median is the <strong>average</strong> of the two middle values.<br />
+            The median is more resistant to outliers than the mean.
+          </p>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: 6, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 14 }}>
+        {cards.map((v, i) => {
+          const isPicked = pickedIndices.includes(i);
+          const isSelSort = selected === i;
+          const isMiddle = phase !== 'sort' && (isEven ? (i === midIdx - 1 || i === midIdx) : i === midIdx);
+          let bg = CARD_COLORS[phase];
+          if (isSelSort) bg = '#dbeafe';
+          if (isPicked) bg = '#bbf7d0';
+          if (phase === 'done' && isMiddle) bg = '#86efac';
+          return (
+            <button key={i} type="button" onClick={() => handleCardTap(i)}
+              style={{
+                width: 44, height: 52, borderRadius: 10,
+                border: isSelSort ? '2px solid #2563eb' : isPicked ? '2px solid #16a34a' : `1.5px solid ${COLOR.border}`,
+                background: bg, cursor: phase === 'done' ? 'default' : 'pointer',
+                fontSize: 17, fontWeight: 800, color: COLOR.text,
+                transition: 'all 0.15s',
+                transform: isSelSort ? 'scale(1.1)' : 'scale(1)',
+              }}>
+              {v}
+            </button>
+          );
+        })}
+      </div>
+
+      {phase === 'pick' && (
+        <div style={{ textAlign: 'center', marginBottom: 12 }}>
+          <button type="button" onClick={checkMedian}
+            disabled={isEven ? pickedIndices.length !== 2 : pickedIndices.length !== 1}
+            style={{
+              ...BTN_PRIMARY,
+              opacity: (isEven ? pickedIndices.length === 2 : pickedIndices.length === 1) ? 1 : 0.4,
+              cursor: (isEven ? pickedIndices.length === 2 : pickedIndices.length === 1) ? 'pointer' : 'not-allowed',
+            }}>
+            Check Median
+          </button>
+        </div>
+      )}
+
+      {phase === 'done' && (
+        <div style={{ margin: '0 0 12px', padding: '10px 14px', borderRadius: 12, background: COLOR.greenLight, border: `1px solid ${COLOR.greenBorder}`, textAlign: 'center' }}>
+          <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: COLOR.green }}>
+            {'\u2713'} Median = {trueMedian}
+          </p>
+          <p style={{ margin: '6px 0 0', fontSize: 12, color: COLOR.textSecondary, lineHeight: 1.5 }}>
+            {isEven
+              ? `With ${count} values, the median is the average of positions ${midIdx} and ${midIdx + 1}: (${sortedData[midIdx - 1]} + ${sortedData[midIdx]}) \u00F7 2 = ${trueMedian}.`
+              : `With ${count} values, the median is the value at position ${midIdx + 1}: ${trueMedian}.`}
+            {' '}Unlike the mean, the median is not pulled by extreme values.
+          </p>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <button type="button" onClick={() => setRound((r) => r + 1)} style={{ ...BTN_PRIMARY, background: 'linear-gradient(135deg,#d97706,#b45309)', flex: '0 0 auto' }}>
+          {'\u{1F504}'} New Data Set
+        </button>
+        <button type="button" onClick={onComplete} style={{ ...BTN_PRIMARY, flex: '1 1 auto' }}>{continueLabel}</button>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODE 5 — Box Plot Builder
+   Given a data set, identify the five-number summary and build a box plot.
+   ═══════════════════════════════════════════════════════════════════════════ */
+function computeFiveNum(sorted) {
+  const n = sorted.length;
+  const median = n % 2 === 0 ? (sorted[n / 2 - 1] + sorted[n / 2]) / 2 : sorted[Math.floor(n / 2)];
+  const lowerHalf = sorted.slice(0, Math.floor(n / 2));
+  const upperHalf = sorted.slice(n % 2 === 0 ? n / 2 : Math.floor(n / 2) + 1);
+  const q1 = lowerHalf.length % 2 === 0
+    ? (lowerHalf[lowerHalf.length / 2 - 1] + lowerHalf[lowerHalf.length / 2]) / 2
+    : lowerHalf[Math.floor(lowerHalf.length / 2)];
+  const q3 = upperHalf.length % 2 === 0
+    ? (upperHalf[upperHalf.length / 2 - 1] + upperHalf[upperHalf.length / 2]) / 2
+    : upperHalf[Math.floor(upperHalf.length / 2)];
+  return { min: sorted[0], q1, median, q3, max: sorted[n - 1], iqr: q3 - q1 };
+}
+
+const FIVE_NUM_STEPS = ['min', 'q1', 'median', 'q3', 'max'];
+const FIVE_NUM_LABELS = { min: 'Minimum', q1: 'Q1 (25th %ile)', median: 'Median (Q2)', q3: 'Q3 (75th %ile)', max: 'Maximum' };
+
+function getBoxQBotMsg(step, total) {
+  if (step === 0) return { msg: 'Let\'s build a box plot! Start by finding the minimum \u2014 the smallest value in the sorted data.', mood: 'wave' };
+  if (step === 1) return { msg: 'Now find Q1. Split the lower half of the data and find its median.', mood: 'think' };
+  if (step === 2) return { msg: 'Find the overall median \u2014 the middle of the entire data set.', mood: 'think' };
+  if (step === 3) return { msg: 'Now Q3 \u2014 the median of the upper half.', mood: 'encourage' };
+  if (step === 4) return { msg: 'Last one! What\'s the maximum value?', mood: 'encourage' };
+  return { msg: `You built the box plot! IQR = Q3 \u2212 Q1. The box shows the middle 50% of the data. Values beyond 1.5\u00D7IQR from the box are outliers.`, mood: 'celebrate' };
+}
+
+function BoxPlotBuilder({ onComplete, continueLabel, badgeLabel, embedded }) {
+  const [round, setRound] = useState(0);
+
+  const sortedData = useMemo(() => {
+    const arr = Array.from({ length: rand(9, 13) }, () => rand(2, 48));
+    arr.sort((a, b) => a - b);
+    return arr;
+  }, [round]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const fiveNum = useMemo(() => computeFiveNum(sortedData), [sortedData]);
+  const [stepIdx, setStepIdx] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [input, setInput] = useState('');
+  const [feedback, setFeedback] = useState('');
+
+  useEffect(() => { setStepIdx(0); setAnswers({}); setInput(''); setFeedback(''); }, [round]);
+
+  const currentKey = FIVE_NUM_STEPS[stepIdx];
+  const isDone = stepIdx >= 5;
+
+  const handleSubmit = useCallback(() => {
+    const val = parseFloat(input);
+    if (isNaN(val)) { setFeedback('Enter a number.'); return; }
+    const expected = fiveNum[currentKey];
+    if (Math.abs(val - expected) < 0.01) {
+      setAnswers((prev) => ({ ...prev, [currentKey]: val }));
+      setStepIdx((s) => s + 1);
+      setInput('');
+      setFeedback('');
+    } else {
+      setFeedback(`Not quite \u2014 check the sorted data again. Hint: the ${FIVE_NUM_LABELS[currentKey]} is ${expected}.`);
+    }
+  }, [input, fiveNum, currentKey]);
+
+  const qbot = useMemo(() => getBoxQBotMsg(stepIdx, sortedData.length), [stepIdx, sortedData.length]);
+
+  const W = 340, H = 80, PAD = 30;
+  const dataMin = sortedData[0] - 2, dataMax = sortedData[sortedData.length - 1] + 2;
+  const sx = (v) => PAD + ((v - dataMin) / (dataMax - dataMin)) * (W - 2 * PAD);
+  const boxY = 20, boxH = 36;
+  const lowerFence = fiveNum.q1 - 1.5 * fiveNum.iqr;
+  const upperFence = fiveNum.q3 + 1.5 * fiveNum.iqr;
+  const outliers = sortedData.filter((v) => v < lowerFence || v > upperFence);
+
+  return (
+    <div style={embedded ? {} : CARD}>
+      {!embedded && (
+        <div style={{ ...BADGE, background: `${COLOR.purple}14`, color: COLOR.purple }}>{badgeLabel}</div>
+      )}
+      <p style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 800, color: COLOR.text }}>
+        Build a Box Plot
+      </p>
+      <p style={{ margin: '0 0 8px', fontSize: 13, color: COLOR.textSecondary }}>
+        Find each part of the five-number summary to construct the box-and-whisker plot.
+      </p>
+
+      <QBotBubble message={qbot.msg} mood={qbot.mood} />
+
+      {/* Sorted data display */}
+      <div style={{ marginBottom: 12, background: '#f0f9ff', borderRadius: 10, border: '1px solid #bae6fd', padding: '8px 12px' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#0369a1', marginBottom: 4 }}>Sorted Data ({sortedData.length} values):</div>
+        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+          {sortedData.map((v, i) => (
+            <span key={i} style={{ padding: '2px 8px', borderRadius: 6, background: '#fff', border: '1px solid #bae6fd', fontSize: 13, fontWeight: 600, color: '#1e40af' }}>
+              {v}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Input for current step */}
+      {!isDone && (
+        <div style={{ marginBottom: 14, textAlign: 'center' }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: COLOR.text, marginBottom: 6 }}>
+            Step {stepIdx + 1}/5: Find the <span style={{ color: COLOR.purple }}>{FIVE_NUM_LABELS[currentKey]}</span>
+          </div>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', alignItems: 'center' }}>
+            <input type="number" value={input} onChange={(e) => { setInput(e.target.value); setFeedback(''); }}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
+              style={{ width: 80, padding: '8px 12px', borderRadius: 10, border: `1.5px solid ${COLOR.border}`, fontSize: 16, fontWeight: 700, textAlign: 'center' }}
+              placeholder="?" />
+            <button type="button" onClick={handleSubmit} style={{ ...BTN_PRIMARY, padding: '8px 18px' }}>Check</button>
+          </div>
+          {feedback && <p style={{ margin: '6px 0 0', fontSize: 12, color: feedback.startsWith('Not') ? '#dc2626' : COLOR.green, fontWeight: 600 }}>{feedback}</p>}
+        </div>
+      )}
+
+      {/* Five-number summary progress */}
+      <div style={{ display: 'flex', gap: 6, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 14 }}>
+        {FIVE_NUM_STEPS.map((key, i) => (
+          <div key={key} style={{
+            padding: '4px 10px', borderRadius: 8, fontSize: 12, fontWeight: 700,
+            background: answers[key] != null ? COLOR.greenLight : i === stepIdx ? '#eff6ff' : '#f3f4f6',
+            border: answers[key] != null ? `1px solid ${COLOR.greenBorder}` : i === stepIdx ? '1px solid #93c5fd' : `1px solid ${COLOR.border}`,
+            color: answers[key] != null ? COLOR.green : i === stepIdx ? COLOR.blue : COLOR.textSecondary,
+          }}>
+            {FIVE_NUM_LABELS[key]}: {answers[key] != null ? answers[key] : '?'}
+          </div>
+        ))}
+      </div>
+
+      {/* Box plot SVG */}
+      <div style={{ background: '#f8fafc', borderRadius: 14, border: `1px solid ${COLOR.border}`, padding: '8px', marginBottom: 12 }}>
+        <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
+          <line x1={PAD} y1={boxY + boxH / 2} x2={W - PAD} y2={boxY + boxH / 2} stroke="#e5e7eb" strokeWidth={1} />
+          {/* tick marks */}
+          {Array.from({ length: 6 }, (_, i) => {
+            const v = dataMin + ((dataMax - dataMin) / 5) * i;
+            return <g key={i}>
+              <line x1={sx(v)} y1={boxY + boxH + 2} x2={sx(v)} y2={boxY + boxH + 6} stroke="#9ca3af" strokeWidth={1} />
+              <text x={sx(v)} y={boxY + boxH + 16} fontSize={8} fill="#6b7280" textAnchor="middle">{Math.round(v)}</text>
+            </g>;
+          })}
+          {isDone && <>
+            {/* whiskers */}
+            <line x1={sx(fiveNum.min)} y1={boxY + boxH / 2} x2={sx(fiveNum.q1)} y2={boxY + boxH / 2} stroke="#2563eb" strokeWidth={2} />
+            <line x1={sx(fiveNum.q3)} y1={boxY + boxH / 2} x2={sx(fiveNum.max)} y2={boxY + boxH / 2} stroke="#2563eb" strokeWidth={2} />
+            <line x1={sx(fiveNum.min)} y1={boxY + 6} x2={sx(fiveNum.min)} y2={boxY + boxH - 6} stroke="#2563eb" strokeWidth={2} />
+            <line x1={sx(fiveNum.max)} y1={boxY + 6} x2={sx(fiveNum.max)} y2={boxY + boxH - 6} stroke="#2563eb" strokeWidth={2} />
+            {/* box */}
+            <rect x={sx(fiveNum.q1)} y={boxY} width={sx(fiveNum.q3) - sx(fiveNum.q1)} height={boxH} rx={4}
+              fill="rgba(37,99,235,0.15)" stroke="#2563eb" strokeWidth={2} />
+            {/* median line */}
+            <line x1={sx(fiveNum.median)} y1={boxY} x2={sx(fiveNum.median)} y2={boxY + boxH} stroke="#dc2626" strokeWidth={2.5} />
+            {/* outliers */}
+            {outliers.map((v, i) => (
+              <circle key={i} cx={sx(v)} cy={boxY + boxH / 2} r={4} fill="none" stroke="#d97706" strokeWidth={2} />
+            ))}
+            {/* labels */}
+            <text x={sx(fiveNum.min)} y={boxY - 4} fontSize={8} fill="#1e40af" textAnchor="middle" fontWeight={700}>{fiveNum.min}</text>
+            <text x={sx(fiveNum.q1)} y={boxY - 4} fontSize={8} fill="#1e40af" textAnchor="middle" fontWeight={700}>Q1={fiveNum.q1}</text>
+            <text x={sx(fiveNum.median)} y={boxY - 4} fontSize={8} fill="#dc2626" textAnchor="middle" fontWeight={700}>Med={fiveNum.median}</text>
+            <text x={sx(fiveNum.q3)} y={boxY - 4} fontSize={8} fill="#1e40af" textAnchor="middle" fontWeight={700}>Q3={fiveNum.q3}</text>
+            <text x={sx(fiveNum.max)} y={boxY - 4} fontSize={8} fill="#1e40af" textAnchor="middle" fontWeight={700}>{fiveNum.max}</text>
+          </>}
+          {/* partial build: show pieces as they're answered */}
+          {!isDone && Object.keys(answers).map((key) => {
+            const v = answers[key];
+            const c = key === 'median' ? '#dc2626' : '#2563eb';
+            return <g key={key}>
+              <line x1={sx(v)} y1={boxY + 4} x2={sx(v)} y2={boxY + boxH - 4} stroke={c} strokeWidth={2} />
+              <text x={sx(v)} y={boxY - 4} fontSize={8} fill={c} textAnchor="middle" fontWeight={700}>{key === 'median' ? 'Med' : key.toUpperCase()}={v}</text>
+            </g>;
+          })}
+        </svg>
+      </div>
+
+      {isDone && (
+        <div style={{ margin: '0 0 12px', padding: '10px 14px', borderRadius: 12, background: COLOR.greenLight, border: `1px solid ${COLOR.greenBorder}` }}>
+          <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: COLOR.green, textAlign: 'center' }}>
+            {'\u2713'} Box plot complete!
+          </p>
+          <p style={{ margin: '6px 0 0', fontSize: 12, color: COLOR.textSecondary, lineHeight: 1.6, textAlign: 'center' }}>
+            <strong>IQR</strong> = Q3 {'\u2212'} Q1 = {fiveNum.q3} {'\u2212'} {fiveNum.q1} = <strong>{roundTo(fiveNum.iqr, 1)}</strong>.<br />
+            The <strong>box</strong> contains the middle 50% of the data. The <strong>whiskers</strong> extend to min and max.<br />
+            Outlier fences: below {roundTo(lowerFence, 1)} or above {roundTo(upperFence, 1)} (1.5{'\u00D7'}IQR from box).
+            {outliers.length > 0
+              ? <><br />Outliers detected: {outliers.join(', ')}</>
+              : <><br />No outliers in this data set.</>}
+          </p>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <button type="button" onClick={() => setRound((r) => r + 1)} style={{ ...BTN_PRIMARY, background: 'linear-gradient(135deg,#d97706,#b45309)', flex: '0 0 auto' }}>
+          {'\u{1F504}'} New Data
+        </button>
+        <button type="button" onClick={onComplete} style={{ ...BTN_PRIMARY, flex: '1 1 auto' }}>{continueLabel}</button>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODE 6 — Bell Curve Explorer
+   Adjust mean & standard deviation to see how the normal distribution
+   changes. Visualizes the 68-95-99.7 rule (Empirical Rule).
+   ═══════════════════════════════════════════════════════════════════════════ */
+function normalPDF(x, mu, sigma) {
+  const z = (x - mu) / sigma;
+  return Math.exp(-0.5 * z * z) / (sigma * Math.sqrt(2 * Math.PI));
+}
+
+function getBellQBotMsg(showRule, sd) {
+  if (!showRule) return { msg: 'Use the sliders to change the mean (center) and standard deviation (spread). Watch how the bell curve reshapes!', mood: 'wave' };
+  if (sd <= 3) return { msg: 'Small standard deviation \u2014 the data is tightly clustered around the mean. Almost all values fall within a narrow range.', mood: 'think' };
+  if (sd >= 8) return { msg: 'Large standard deviation \u2014 the data is spread out. The curve is wider and flatter.', mood: 'think' };
+  return { msg: 'The 68-95-99.7 rule: about 68% of data falls within 1 SD of the mean, 95% within 2 SDs, and 99.7% within 3 SDs. This is the Empirical Rule!', mood: 'celebrate' };
+}
+
+function BellCurveExplorer({ onComplete, continueLabel, badgeLabel, embedded }) {
+  const [mean, setMean] = useState(50);
+  const [sd, setSd] = useState(5);
+  const [showRule, setShowRule] = useState(true);
+  const [showHelp, setShowHelp] = useState(false);
+
+  const qbot = useMemo(() => getBellQBotMsg(showRule, sd), [showRule, sd]);
+
+  const W = 360, H = 180, PAD = 30;
+  const xMin = 20, xMax = 80;
+  const yMax = normalPDF(mean, mean, sd) * 1.15;
+  const sx = (v) => PAD + ((v - xMin) / (xMax - xMin)) * (W - 2 * PAD);
+  const sy = (v) => H - PAD - (v / yMax) * (H - 2 * PAD);
+
+  const curvePts = useMemo(() => {
+    const pts = [];
+    for (let x = xMin; x <= xMax; x += 0.5) {
+      pts.push({ x, y: normalPDF(x, mean, sd) });
+    }
+    return pts;
+  }, [mean, sd]);
+
+  const curvePath = curvePts.map((p, i) => `${i === 0 ? 'M' : 'L'}${sx(p.x).toFixed(1)},${sy(p.y).toFixed(1)}`).join(' ');
+  const fillPath = `${curvePath} L${sx(xMax).toFixed(1)},${sy(0).toFixed(1)} L${sx(xMin).toFixed(1)},${sy(0).toFixed(1)} Z`;
+
+  const sdBands = [
+    { label: '68%', from: mean - sd, to: mean + sd, color: 'rgba(37,99,235,0.2)', border: '#93c5fd' },
+    { label: '95%', from: mean - 2 * sd, to: mean + 2 * sd, color: 'rgba(124,58,237,0.1)', border: '#c4b5fd' },
+    { label: '99.7%', from: mean - 3 * sd, to: mean + 3 * sd, color: 'rgba(234,179,8,0.08)', border: '#fde68a' },
+  ];
+
+  return (
+    <div style={embedded ? {} : CARD}>
+      {!embedded && (
+        <div style={{ ...BADGE, background: `${COLOR.purple}14`, color: COLOR.purple }}>{badgeLabel}</div>
+      )}
+      <p style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 800, color: COLOR.text }}>
+        Normal Distribution Explorer
+      </p>
+      <p style={{ margin: '0 0 8px', fontSize: 13, color: COLOR.textSecondary }}>
+        Adjust the mean and standard deviation to see how the bell curve changes.
+        <button type="button" onClick={() => setShowHelp((p) => !p)} style={{ background: 'none', border: 'none', color: COLOR.blue, fontWeight: 700, cursor: 'pointer', padding: 0, fontSize: 13, marginLeft: 6, textDecoration: 'underline', textUnderlineOffset: 2 }}>
+          {showHelp ? 'Hide' : 'What is this?'}
+        </button>
+      </p>
+
+      <QBotBubble message={qbot.msg} mood={qbot.mood} />
+
+      {showHelp && (
+        <div style={{ marginBottom: 12, background: '#faf5ff', borderRadius: 14, border: '1px solid #ddd6fe', padding: '12px 16px' }}>
+          <p style={{ margin: '0 0 6px', fontSize: 13, fontWeight: 700, color: '#4c1d95' }}>The Normal (Bell) Curve</p>
+          <p style={{ margin: 0, fontSize: 12, color: COLOR.textSecondary, lineHeight: 1.6 }}>
+            Many natural phenomena (test scores, heights, measurement errors) follow a <strong>normal distribution</strong>.<br />
+            <strong>Mean ({'\u03BC'})</strong> = center of the curve. <strong>Standard Deviation ({'\u03C3'})</strong> = how spread out the data is.<br />
+            <strong>68-95-99.7 Rule:</strong> ~68% within 1{'\u03C3'}, ~95% within 2{'\u03C3'}, ~99.7% within 3{'\u03C3'} of the mean.<br />
+            A smaller {'\u03C3'} = taller, narrower curve. A larger {'\u03C3'} = shorter, wider curve.
+          </p>
+        </div>
+      )}
+
+      {/* SVG bell curve */}
+      <div style={{ background: '#f8fafc', borderRadius: 14, border: `1px solid ${COLOR.border}`, padding: '8px', marginBottom: 12 }}>
+        <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
+          {/* x-axis */}
+          <line x1={PAD} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke="#d1d5db" strokeWidth={1.5} />
+          {Array.from({ length: 7 }, (_, i) => {
+            const v = xMin + ((xMax - xMin) / 6) * i;
+            return <g key={i}>
+              <line x1={sx(v)} y1={H - PAD} x2={sx(v)} y2={H - PAD + 4} stroke="#9ca3af" strokeWidth={1} />
+              <text x={sx(v)} y={H - PAD + 14} fontSize={8} fill="#6b7280" textAnchor="middle">{Math.round(v)}</text>
+            </g>;
+          })}
+          {/* SD bands */}
+          {showRule && sdBands.slice().reverse().map((band, i) => {
+            const x1 = Math.max(xMin, band.from), x2 = Math.min(xMax, band.to);
+            if (x1 >= x2) return null;
+            return <g key={i}>
+              <rect x={sx(x1)} y={PAD} width={sx(x2) - sx(x1)} height={H - 2 * PAD} fill={band.color} />
+              <line x1={sx(x1)} y1={PAD} x2={sx(x1)} y2={H - PAD} stroke={band.border} strokeWidth={1} strokeDasharray="3 2" />
+              <line x1={sx(x2)} y1={PAD} x2={sx(x2)} y2={H - PAD} stroke={band.border} strokeWidth={1} strokeDasharray="3 2" />
+              <text x={(sx(x1) + sx(x2)) / 2} y={H - PAD - 6} fontSize={9} fill={i === 2 ? '#2563eb' : i === 1 ? '#7c3aed' : '#b45309'} textAnchor="middle" fontWeight={700}>{band.label}</text>
+            </g>;
+          })}
+          {/* curve fill */}
+          <path d={fillPath} fill="rgba(37,99,235,0.12)" />
+          {/* curve line */}
+          <path d={curvePath} fill="none" stroke="#2563eb" strokeWidth={2.5} />
+          {/* mean line */}
+          <line x1={sx(mean)} y1={PAD} x2={sx(mean)} y2={H - PAD} stroke="#dc2626" strokeWidth={1.5} strokeDasharray="4 2" />
+          <text x={sx(mean)} y={PAD - 4} fontSize={9} fill="#dc2626" textAnchor="middle" fontWeight={700}>{'\u03BC'}={mean}</text>
+        </svg>
+      </div>
+
+      {/* Sliders */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+        <div>
+          <label style={{ fontSize: 12, fontWeight: 700, color: COLOR.text, display: 'block', marginBottom: 4 }}>
+            Mean ({'\u03BC'}): <span style={{ color: '#dc2626' }}>{mean}</span>
+          </label>
+          <input type="range" min={30} max={70} value={mean} onChange={(e) => setMean(Number(e.target.value))}
+            style={{ width: '100%', accentColor: '#dc2626' }} />
+        </div>
+        <div>
+          <label style={{ fontSize: 12, fontWeight: 700, color: COLOR.text, display: 'block', marginBottom: 4 }}>
+            Std Dev ({'\u03C3'}): <span style={{ color: COLOR.purple }}>{sd}</span>
+          </label>
+          <input type="range" min={1} max={12} value={sd} onChange={(e) => setSd(Number(e.target.value))}
+            style={{ width: '100%', accentColor: '#7c3aed' }} />
+        </div>
+      </div>
+
+      {/* SD bands toggle */}
+      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 14, flexWrap: 'wrap' }}>
+        <button type="button" onClick={() => setShowRule((p) => !p)}
+          style={{ padding: '6px 14px', borderRadius: 10, background: showRule ? '#eff6ff' : '#f3f4f6', border: `1px solid ${showRule ? '#93c5fd' : COLOR.border}`, fontSize: 12, fontWeight: 700, color: showRule ? COLOR.blue : COLOR.textSecondary, cursor: 'pointer' }}>
+          {showRule ? '\u2713 68-95-99.7 Rule' : 'Show 68-95-99.7 Rule'}
+        </button>
+      </div>
+
+      {/* Key stats */}
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 14 }}>
+        <div style={{ padding: '6px 12px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fca5a5', fontSize: 12, fontWeight: 700, color: '#dc2626' }}>
+          {'\u03BC'} = {mean}
+        </div>
+        <div style={{ padding: '6px 12px', borderRadius: 10, background: '#f5f3ff', border: '1px solid #c4b5fd', fontSize: 12, fontWeight: 700, color: COLOR.purple }}>
+          {'\u03C3'} = {sd}
+        </div>
+        <div style={{ padding: '6px 12px', borderRadius: 10, background: '#eff6ff', border: '1px solid #93c5fd', fontSize: 12, fontWeight: 600, color: COLOR.blue }}>
+          68%: [{mean - sd}, {mean + sd}]
+        </div>
+        <div style={{ padding: '6px 12px', borderRadius: 10, background: '#f5f3ff', border: '1px solid #c4b5fd', fontSize: 12, fontWeight: 600, color: COLOR.purple }}>
+          95%: [{mean - 2 * sd}, {mean + 2 * sd}]
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <button type="button" onClick={() => { setMean(50); setSd(5); setShowRule(true); }} style={{ ...BTN_PRIMARY, background: 'linear-gradient(135deg,#d97706,#b45309)', flex: '0 0 auto' }}>
+          {'\u{1F504}'} Reset
+        </button>
+        <button type="button" onClick={onComplete} style={{ ...BTN_PRIMARY, flex: '1 1 auto' }}>{continueLabel}</button>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    Main export — rotates mode by activityIndex
    ═══════════════════════════════════════════════════════════════════════════ */
-const MODES = ['mean-builder', 'line-fit', 'prob-sim'];
+const MODES = ['mean-builder', 'median-sorter', 'box-plot', 'bell-curve', 'line-fit', 'prob-sim'];
 
 export default function StatsExplorer({ activityIndex = 0, onComplete, continueLabel = 'Continue', badgeLabel = 'Interactive activity', embedded = false }) {
   const mode = MODES[activityIndex % MODES.length];
   if (mode === 'mean-builder') return <MeanBuilder onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+  if (mode === 'median-sorter') return <MedianSorter onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+  if (mode === 'box-plot') return <BoxPlotBuilder onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+  if (mode === 'bell-curve') return <BellCurveExplorer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'line-fit') return <LineFit onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   return <ProbSim onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
 }

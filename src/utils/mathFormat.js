@@ -449,6 +449,18 @@ export function speechifyForNarration(str) {
   s = s.replace(/\u2212/g, ' minus ');
   s = s.replace(/°/g, ' degrees ');
 
+  // Unicode subscript digits (₀–₉) → spoken digits so "x₂−x₁" reads as "x 2 minus x 1"
+  s = s.replace(/₀/g, ' 0');
+  s = s.replace(/₁/g, ' 1');
+  s = s.replace(/₂/g, ' 2');
+  s = s.replace(/₃/g, ' 3');
+  s = s.replace(/₄/g, ' 4');
+  s = s.replace(/₅/g, ' 5');
+  s = s.replace(/₆/g, ' 6');
+  s = s.replace(/₇/g, ' 7');
+  s = s.replace(/₈/g, ' 8');
+  s = s.replace(/₉/g, ' 9');
+
   const superDigits = {
     '\u2070': '0', '\u00B9': '1', '\u00B2': '2', '\u00B3': '3', '\u2074': '4',
     '\u2075': '5', '\u2076': '6', '\u2077': '7', '\u2078': '8', '\u2079': '9',

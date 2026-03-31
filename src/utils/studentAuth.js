@@ -115,6 +115,13 @@ function authHeaders() {
   return t ? { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
 }
 
+function storeCredentials(email, password) {
+  try {
+    localStorage.setItem('quantegyai-auth-email', email);
+    localStorage.setItem('quantegyai-auth-password', password);
+  } catch { /* best-effort */ }
+}
+
 function decodeJwt(token) {
   try {
     const payload = token.split('.')[1];
@@ -161,6 +168,7 @@ export async function studentSignup({
       if (data?.success && data.token) {
         setActiveApiBase(base);
         localStorage.setItem(TOKEN_KEY, data.token);
+        storeCredentials(email, password);
         return data;
       }
 
@@ -218,6 +226,7 @@ export async function studentLogin({ email, password, allowLocalFallback = true 
       if (data?.success && data.token) {
         setActiveApiBase(base);
         localStorage.setItem(TOKEN_KEY, data.token);
+        storeCredentials(email, password);
         return data;
       }
 
@@ -244,6 +253,10 @@ export async function studentLogin({ email, password, allowLocalFallback = true 
 
 export function studentLogout() {
   localStorage.removeItem(TOKEN_KEY);
+  try {
+    localStorage.removeItem('quantegyai-auth-email');
+    localStorage.removeItem('quantegyai-auth-password');
+  } catch { /* best-effort */ }
 }
 
 export function isStudentLoggedIn() {
@@ -300,15 +313,30 @@ export async function createStudentCheckout(examId, planType = 'student_exam_one
   const resolvedExam = String(examId || '').trim() || 'math712';
   const origin = window.location.origin;
   const returnSearch = typeof options.returnSearch === 'string' ? options.returnSearch : '';
-  const data = await fetchJsonWithTimeout(
-    `${ACTIVE_API_BASE}/api/billing/student/create-checkout-session`,
-    {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify({ planId: planType, examId: resolvedExam, origin, returnSearch }),
-    },
-    30000,
-  );
+
+  function doCheckout() {
+    return fetchJsonWithTimeout(
+      `${ACTIVE_API_BASE}/api/billing/student/create-checkout-session`,
+      {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ planId: planType, examId: resolvedExam, origin, returnSearch }),
+      },
+      30000,
+    );
+  }
+
+  let data = await doCheckout();
+
+  if (!data.success && isTokenError(data.error)) {
+    const ok = await reAuthFromStored();
+    if (ok) {
+      data = await doCheckout();
+    } else {
+      return { success: false, error: 'Your session expired. Please sign up or log in again.', needsReAuth: true };
+    }
+  }
+
   if (data.success && data.url) {
     window.location.href = data.url;
     return data;
@@ -317,6 +345,23 @@ export async function createStudentCheckout(examId, planType = 'student_exam_one
     return { success: false, error: 'Checkout started but no redirect URL was returned. Please try again.' };
   }
   return data;
+}
+
+function isTokenError(errMsg) {
+  if (!errMsg) return false;
+  const lower = String(errMsg).toLowerCase();
+  return lower.includes('invalid session') || lower.includes('invalid token')
+    || lower.includes('session expired') || lower.includes('authentication required');
+}
+
+async function reAuthFromStored() {
+  try {
+    const email = localStorage.getItem('quantegyai-auth-email');
+    const pw = localStorage.getItem('quantegyai-auth-password');
+    if (!email || !pw) return false;
+    const res = await studentLogin({ email, password: pw, allowLocalFallback: false });
+    return !!(res?.success && !res?.local);
+  } catch { return false; }
 }
 
 /**

@@ -202,6 +202,11 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked, check
 
       if (autoCheckoutPlanId) {
         const checkoutResult = await createStudentCheckout(effectiveExamId, autoCheckoutPlanId, { returnSearch: checkoutReturnSearch });
+        if (checkoutResult?.needsReAuth) {
+          setMode('login');
+          setError(checkoutResult.error || 'Session expired. Please log in again.');
+          return;
+        }
         if (checkoutResult?.offline) {
           setIsOffline(true);
           setMode('pricing');
@@ -258,7 +263,10 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked, check
         return;
       }
       const result = await createStudentCheckout(effectiveExamId, planId, { returnSearch: checkoutReturnSearch });
-      if (result?.offline) {
+      if (result?.needsReAuth) {
+        setMode('login');
+        setError(result.error || 'Session expired. Please log in again.');
+      } else if (result?.offline) {
         setIsOffline(true);
         setError(result.error || 'Payment server is starting up. Please retry in a moment.');
       } else if (!result?.success) {

@@ -88,8 +88,9 @@ function validateProductionEnv() {
   }
 }
 
-// JWT secret — in production, use a strong random secret from env
-const JWT_SECRET = process.env.JWT_SECRET || 'quantegy-ai-jwt-secret-change-in-production-' + Date.now();
+// JWT secret — MUST be set via JWT_SECRET env var on production (Render).
+// The fallback is deterministic so tokens survive dev-server restarts.
+const JWT_SECRET = process.env.JWT_SECRET || 'quantegy-ai-dev-jwt-secret-not-for-production';
 const JWT_EXPIRY = '24h';
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
@@ -1481,33 +1482,28 @@ app.post('/api/billing/student/create-checkout-session', requireStudent, asyncHa
   const plan = STUDENT_BILLING_PLANS[planId];
   if (!plan) return res.status(400).json({ success: false, error: 'Invalid plan.' });
 
+  if (!stripe) {
+    console.warn('[billing] Stripe not configured (STRIPE_SECRET_KEY missing) — cannot process payment.');
+    return res.status(503).json({ success: false, error: 'Payment processing is not available. Please contact support.' });
+  }
+
+  if (!plan.priceId) {
+    const envKey = planId === 'student_exam_onetime'
+      ? 'STRIPE_PRICE_STUDENT_EXAM_ONETIME'
+      : 'STRIPE_PRICE_STUDENT_MONTHLY';
+    console.error(`[billing] ${envKey} env var not set — cannot create Stripe checkout for plan "${planId}".`);
+    return res.status(503).json({
+      success: false,
+      error: 'This plan is not yet configured for payment. Please contact support or check server environment variables.',
+    });
+  }
+
   const examId = resolveStudentCheckoutExamId(req.body, planId);
 
   const existing = getStudentSubscription(studentId) || {};
   const origin = req.body?.origin || `${req.protocol}://${req.get('host')}`;
   const returnSearch = req.body?.returnSearch;
-  const { successDemo: successUrlDemo, successStripe: successUrlStripe, cancel: cancelUrl } = studentCheckoutReturnUrls(origin, examId, returnSearch);
-
-  if (!stripe || !plan.priceId) {
-    const now = new Date();
-    const isOneTime = planId === 'student_exam_onetime';
-    const existingExams = Array.isArray(existing.examIds) ? existing.examIds : [];
-    const examForOneTime = isOneTime ? (examId || 'math712') : '';
-    const paidUntil = isOneTime
-      ? new Date(now.getTime() + 100 * 365.25 * 24 * 3600 * 1000)
-      : new Date(now.getTime() + 30 * 24 * 3600 * 1000);
-    const subscription = {
-      ...existing,
-      plan: planId,
-      status: 'active',
-      examIds: isOneTime && examForOneTime ? [...new Set([...existingExams, examForOneTime])] : existingExams,
-      paidUntil: paidUntil.toISOString(),
-      billingCycle: plan.interval,
-      updatedAt: now.toISOString(),
-    };
-    saveStudentSubscription(studentId, subscription);
-    return res.json({ success: true, demo: true, url: successUrlDemo });
-  }
+  const { successStripe: successUrlStripe, cancel: cancelUrl } = studentCheckoutReturnUrls(origin, examId, returnSearch);
 
   let customerId = existing.stripeCustomerId || '';
   if (!customerId) {
@@ -1538,11 +1534,11 @@ app.post('/api/billing/student/create-checkout-session', requireStudent, asyncHa
   } catch (err) {
     console.error('[billing] student checkout session create failed:', err?.message || err);
     const hint = err?.message || 'Stripe checkout could not be created. Check STRIPE_PRICE_STUDENT_EXAM_ONETIME / STRIPE_PRICE_STUDENT_MONTHLY in server env.';
-    return res.status(200).json({ success: false, error: hint });
+    return res.status(502).json({ success: false, error: hint });
   }
 
   if (!session?.url) {
-    return res.status(200).json({ success: false, error: 'Checkout session created but Stripe returned no redirect URL.' });
+    return res.status(502).json({ success: false, error: 'Checkout session created but Stripe returned no redirect URL.' });
   }
 
   res.json({ success: true, url: session.url, sessionId: session.id });
@@ -3380,10 +3376,13 @@ app.get('/api/verify/:verifyId', (req, res) => {
 
 app.get('/api/health', (req, res) => {
   const hasStripe = !!stripe;
+  const hasStudentPriceIds = !!(STUDENT_BILLING_PLANS.student_exam_onetime?.priceId
+    && STUDENT_BILLING_PLANS.student_monthly?.priceId);
   res.json({
     ok: true,
     hasKey: hasValidKey,
     hasStripe,
+    hasStudentPriceIds,
     hasAnthropic: !!anthropic,
     uptimeSeconds: Math.floor(process.uptime()),
     sloEndpoint: '/api/sre/slos',

@@ -220,6 +220,14 @@ body:has(#game.screen.active) #menu{display:none!important;visibility:hidden!imp
 .rv-card{width:100%;max-width:480px;margin:0 auto;background:rgba(0,0,0,.28);border:1px solid rgba(0,245,255,.1);border-radius:14px;overflow:hidden;}
 .rv-card-head{display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(0,245,255,.04);border-bottom:1px solid rgba(0,245,255,.08);}
 .rv-card-head .rv-num{width:24px;height:24px;border-radius:50%;background:rgba(255,68,102,.15);color:#ff4466;font-size:.72em;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.rv-card.rv-correct .rv-card-head .rv-num{background:rgba(0,255,136,.15);color:#00ff88;}
+.rv-card.rv-correct{border-color:rgba(0,255,136,.12);}
+.rv-score-bar{width:100%;max-width:480px;margin:0 auto 6px;display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(0,0,0,.28);border-radius:12px;border:1px solid rgba(0,245,255,.1);}
+.rv-score-bar .rv-sb-pct{font-size:1.3em;font-weight:800;min-width:52px;}
+.rv-score-bar .rv-sb-detail{font-size:.78em;color:#94a3b8;font-weight:600;line-height:1.4;}
+.rv-ans-right{background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.2);}
+.rv-ans-right .rv-ans-lbl{color:#00ff88;}
+.rv-ans-right .rv-ans-val{color:#00ff88;text-decoration:none;}
 .rv-card-head .rv-q{flex:1;font-size:.88em;font-weight:600;color:#e0e0e0;line-height:1.35;}
 .rv-card-head .rv-diff{font-size:.58em;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:2px 7px;border-radius:6px;flex-shrink:0;}
 .rv-diff-easy{background:rgba(0,255,136,.12);color:#00ff88;}
@@ -513,7 +521,7 @@ if(location.hash==='#play'){location.hash='';setTimeout(function(){window.__qbSt
   </div>
 
   <div class="go-actions">
-    <button class="review-btn" id="reviewBtn" style="display:none">Review Mistakes — See Solutions</button>
+    <button class="review-btn" id="reviewBtn" style="display:none">Review All Questions — See Solutions</button>
     <button class="retry-btn" id="retryBtn">Play Again</button>
     <button class="back-btn" id="goBackBtn">Back to Menu</button>
     <div id="continueToQuizWrap">
@@ -525,7 +533,7 @@ if(location.hash==='#play'){location.hash='';setTimeout(function(){window.__qbSt
 <!-- Review Screen -->
 <div id="reviewScreen" class="screen">
   <div class="rv-header">
-    <h2>Let's Learn From These</h2>
+    <h2>Full Review</h2>
     <div class="review-info" id="reviewInfo"></div>
     <div class="review-scope" id="reviewScopeMap" style="display:none"></div>
   </div>
@@ -592,6 +600,7 @@ let leaderboardData=[];
 let dropInterval=null;
 let soundOn=true;
 let wrongAnswers=[];
+let allAnswers=[];
 let currentQuestion=null;
 let lockDelay=null;
 const LOCK_DELAY_MS=500;
@@ -2438,6 +2447,11 @@ function checkAnswer(btn){
   if(!currentQuestion||btn.disabled)return;
   const isCorrect=btn.dataset.correct==='1';
   $('ansA').disabled=true;$('ansB').disabled=true;
+  var qStrAll=currentQuestion.type==='equation'
+    ?currentQuestion.q
+    :(currentQuestion.type==='competency'||currentQuestion.type==='standard'
+      ?currentQuestion.q
+      :currentQuestion.a+' '+currentQuestion.op+' '+currentQuestion.b);
   if(isCorrect){
     btn.classList.add('correct-flash');
     combo++;
@@ -2445,6 +2459,7 @@ function checkAnswer(btn){
     const pts=50*combo;
     score+=pts;stats.mathPts+=pts;stats.mathCorrect++;
     stats.byDifficulty[currentQuestion.diff].correct++;
+    allAnswers.push({q:qStrAll,correct:currentQuestion.ans,given:currentQuestion.ans,wasCorrect:true,a:currentQuestion.a,b:currentQuestion.b,op:currentQuestion.op,type:currentQuestion.type||'arithmetic',diff:currentQuestion.diff||'easy',fullQ:currentQuestion.q||qStrAll});
     $('scoreVal').textContent=score;
     $('comboVal').textContent=combo;
     playSfx('correct');
@@ -2452,7 +2467,6 @@ function checkAnswer(btn){
     mb.textContent=`+${pts} Correct! (${combo}x combo!)`;
     mb.classList.add('show');
     setTimeout(()=>mb.classList.remove('show'),1500);
-    // UNLOCK the piece — it starts falling
     unlocked=true;
     $('qText').textContent='GO! Move & place the block!';
     $('qText').style.animation='none';
@@ -2464,14 +2478,9 @@ function checkAnswer(btn){
     $('comboVal').textContent='0';
     stats.mathWrong++;
     stats.byDifficulty[currentQuestion.diff].wrong++;
-    const qStr=currentQuestion.type==='equation'
-      ?currentQuestion.q
-      :(currentQuestion.type==='competency'||currentQuestion.type==='standard'
-        ?currentQuestion.q
-        :`${currentQuestion.a} ${currentQuestion.op} ${currentQuestion.b}`);
-    wrongAnswers.push({q:qStr,correct:currentQuestion.ans,given:Number(btn.textContent),a:currentQuestion.a,b:currentQuestion.b,op:currentQuestion.op,type:currentQuestion.type||'arithmetic',diff:currentQuestion.diff||'easy',fullQ:currentQuestion.q||qStr});
+    wrongAnswers.push({q:qStrAll,correct:currentQuestion.ans,given:Number(btn.textContent),a:currentQuestion.a,b:currentQuestion.b,op:currentQuestion.op,type:currentQuestion.type||'arithmetic',diff:currentQuestion.diff||'easy',fullQ:currentQuestion.q||qStrAll});
+    allAnswers.push({q:qStrAll,correct:currentQuestion.ans,given:Number(btn.textContent),wasCorrect:false,a:currentQuestion.a,b:currentQuestion.b,op:currentQuestion.op,type:currentQuestion.type||'arithmetic',diff:currentQuestion.diff||'easy',fullQ:currentQuestion.q||qStrAll});
     playSfx('wrong');
-    // PENALTY: drop the piece one row (if possible)
     if(piece&&!hit(px,py+1,piece)){py++;renderBoard();}
     const mb=$('mathBonus');
     mb.textContent='Wrong! Try again...';
@@ -2491,6 +2500,7 @@ function startGame(){
     createBoard();
     score=0;level=1;lines=0;combo=0;over=false;paused=false;
     wrongAnswers=[];
+    allAnswers=[];
     for(var uk in USED_POOL_QUESTIONS)delete USED_POOL_QUESTIONS[uk];
     for(var gk in USED_GENERATED_QUESTIONS)delete USED_GENERATED_QUESTIONS[gk];
     stats={mathCorrect:0,mathWrong:0,mathPts:0,rowPts:0,rowsCleared:0,blocksPlaced:0,maxCombo:0,singleClears:0,doubleClears:0,tripleClears:0,quadClears:0,byDifficulty:{easy:{correct:0,wrong:0},medium:{correct:0,wrong:0},hard:{correct:0,wrong:0}}};
@@ -2610,7 +2620,7 @@ function showGameOver(){
     qbotMsg='Wow — nearly perfect! Your math skills are rock-solid. Let\'s see if harder questions can challenge you.';
   }else if(accuracy>=70){
     qbotMsg='Strong result! You know the concepts well. A few tricky ones slipped through — review them and you\'ll ace it.';
-    if(wrongAnswers.length>0) qbotTip='Tip: Tap "Review Mistakes" to see exactly where you tripped up.';
+    if(allAnswers.length>0) qbotTip='Tip: Tap "Review All Questions" to see step-by-step solutions for every problem.';
   }else if(accuracy>=50){
     qbotMsg='You\'re getting there! More than half right is a good foundation. Focus on the ones you missed.';
     qbotTip='Tip: Play again — you\'ll see similar questions and your speed will improve.';
@@ -2634,7 +2644,7 @@ function showGameOver(){
     }else if(types.standard||types.competency){
       qbotTip='Tip: Review the concept questions in the learning loop — they target the same ideas.';
     }else if(topOp&&opNames[topOp]){
-      qbotTip='Tip: Most mistakes were in '+opNames[topOp]+'. Tap "Review Mistakes" to see step-by-step solutions.';
+      qbotTip='Tip: Most mistakes were in '+opNames[topOp]+'. Tap "Review All Questions" to see step-by-step solutions.';
     }
   }
   $('goQBotText').textContent=qbotMsg;
@@ -2664,7 +2674,7 @@ function showGameOver(){
   $('goDetailsToggle').classList.remove('open');
   $('goDetailsBody').classList.remove('open');
 
-  $('reviewBtn').style.display=wrongAnswers.length>0?'block':'none';
+  $('reviewBtn').style.display=allAnswers.length>0?'block':'none';
   var inIframe = window.parent && window.parent !== window;
   var showContinue = !inIframe && !!(practiceReturnUrl || fromLoop);
   var wrap = document.getElementById('continueToQuizWrap');
@@ -2978,6 +2988,80 @@ function explainStdComp(q,correct,given){
     else s.push('Rule: <span class="math-hl">(x, y) → (−x, y)</span> — the x-coordinate flips sign.');
     s.push('Result: <span class="math-hl"><b>'+correct+'</b></span>');
     t='Reflection over x-axis: negate y. Reflection over y-axis: negate x.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Rr]otate\s+\((-?\d+),\s*(-?\d+)\)\s+90[°\s]*(?:degrees?\s+)?clockwise.*?[Nn]ew\s+(x|y)/))) {
+    var x0=Number(m[1]),y0=Number(m[2]),coord=m[3];
+    s.push('Rule: <span class="math-hl">90° clockwise about origin: (x, y) → (y, −x)</span>');
+    s.push('Apply to ('+x0+', '+y0+'): <span class="math-hl">('+y0+', '+(−x0)+')</span>');
+    s.push('The new '+coord+'-coordinate is <span class="math-hl"><b>'+correct+'</b></span>');
+    t='90° CW rotation: swap x and y, then negate the new y.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Rr]otate\s+\((-?\d+),\s*(-?\d+)\)\s+90[°\s]*(?:degrees?\s+)?(?:CCW|counterclockwise|counter-clockwise).*?[Nn]ew\s+(x|y)/i))) {
+    var x0=Number(m[1]),y0=Number(m[2]),coord=m[3];
+    s.push('Rule: <span class="math-hl">90° CCW about origin: (x, y) → (−y, x)</span>');
+    s.push('Apply to ('+x0+', '+y0+'): <span class="math-hl">('+(−y0)+', '+x0+')</span>');
+    s.push('The new '+coord+'-coordinate is <span class="math-hl"><b>'+correct+'</b></span>');
+    t='90° CCW rotation: swap x and y, then negate the new x.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Vv]ector\s+from\s+\((-?\d+),\s*(-?\d+)\)\s+to\s+\((-?\d+),\s*(-?\d+)\)\s+length/))) {
+    var x1=Number(m[1]),y1=Number(m[2]),x2=Number(m[3]),y2=Number(m[4]);
+    var dx=x2-x1,dy=y2-y1;
+    s.push('The vector from ('+x1+','+y1+') to ('+x2+','+y2+') is <span class="math-hl">&lt;'+dx+', '+dy+'&gt;</span>');
+    s.push('Formula: <span class="math-hl">|v| = √('+dx+'² + '+dy+'²) = √('+(dx*dx)+' + '+(dy*dy)+') = √'+(dx*dx+dy*dy)+'</span>');
+    s.push('Calculate: <span class="math-hl"><b>'+Math.round(Math.sqrt(dx*dx+dy*dy))+'</b></span>');
+    t='Vector magnitude (length) = √(Δx² + Δy²), the same as the distance formula.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/<(-?\d+),\s*(-?\d+)>\s*[·.]\s*<(-?\d+),\s*(-?\d+)>/))) {
+    var a=Number(m[1]),b=Number(m[2]),c=Number(m[3]),d=Number(m[4]);
+    s.push('Formula: <span class="math-hl">&lt;a,b&gt; · &lt;c,d&gt; = ac + bd</span>');
+    s.push('Substitute: <span class="math-hl">('+a+')('+c+') + ('+b+')('+d+') = '+(a*c)+' + '+(b*d)+' = <b>'+(a*c+b*d)+'</b></span>');
+    if(a*c+b*d===0) s.push('Since the dot product is 0, these vectors are <b>perpendicular</b>.');
+    t='The dot product multiplies corresponding components and sums the results. If 0, vectors are perpendicular.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ss]lope.*?(?:line|y)\s*=\s*(-?\d+)x/))) {
+    var slope=Number(m[1]);
+    s.push('In slope-intercept form <span class="math-hl">y = mx + b</span>, the slope is <b>m</b>.');
+    s.push('Here m = <span class="math-hl"><b>'+slope+'</b></span>');
+    t='The coefficient of x in y = mx + b is the slope.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ll]ine\s+through\s+\((-?\d+),\s*(-?\d+)\)\s+and\s+\((-?\d+),\s*(-?\d+)\)\.?\s*[Ss]lope/))) {
+    var x1=Number(m[1]),y1=Number(m[2]),x2=Number(m[3]),y2=Number(m[4]);
+    s.push('Formula: <span class="math-hl">slope = (y₂ − y₁) / (x₂ − x₁)</span>');
+    s.push('Substitute: <span class="math-hl">('+ y2+' − '+y1+') / ('+x2+' − '+x1+') = '+(y2-y1)+' / '+(x2-x1)+'</span>');
+    s.push('Simplify: <span class="math-hl">slope = <b>'+correct+'</b></span>');
+    t='Slope = rise ÷ run = (change in y) ÷ (change in x).';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ss]lope\s+(?:of\s+(?:the\s+)?(?:line\s+)?)?(?:between|from|through)\s+\((-?\d+),\s*(-?\d+)\)\s+and\s+\((-?\d+),\s*(-?\d+)\)/))) {
+    var x1=Number(m[1]),y1=Number(m[2]),x2=Number(m[3]),y2=Number(m[4]);
+    s.push('Formula: <span class="math-hl">slope = (y₂ − y₁) / (x₂ − x₁)</span>');
+    s.push('Substitute: <span class="math-hl">('+y2+' − '+y1+') / ('+x2+' − '+x1+') = '+(y2-y1)+' / '+(x2-x1)+'</span>');
+    s.push('Simplify: <span class="math-hl">slope = <b>'+correct+'</b></span>');
+    t='Slope = rise ÷ run = (change in y) ÷ (change in x).';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Dd]istance\s+\((-?\d+),\s*(-?\d+)\)\s+to\s+\((-?\d+),\s*(-?\d+)\)/))) {
+    var x1=Number(m[1]),y1=Number(m[2]),x2=Number(m[3]),y2=Number(m[4]);
+    var dx=x2-x1,dy=y2-y1;
+    s.push('Formula: <span class="math-hl">d = √((x₂−x₁)² + (y₂−y₁)²)</span>');
+    s.push('Substitute: <span class="math-hl">Δx = '+x2+' − '+(y1<0?'('+x1+')':x1)+' = '+dx+', Δy = '+y2+' − '+(y1<0?'('+y1+')':y1)+' = '+dy+'</span>');
+    s.push('Square each: <span class="math-hl">'+dx+'² + '+dy+'² = '+(dx*dx)+' + '+(dy*dy)+' = '+(dx*dx+dy*dy)+'</span>');
+    s.push('Take the square root: <span class="math-hl">d = √'+(dx*dx+dy*dy)+' ≈ <b>'+Math.round(Math.sqrt(dx*dx+dy*dy))+'</b></span>');
+    t='The distance formula comes from the Pythagorean theorem applied to the coordinate plane.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ff]ind\s+(?:the\s+)?slope\s+(?:m\s+)?(?:of\s+)?(?:the\s+)?(?:line\s+)?through\s+\((-?\d+),\s*(-?\d+)\)\s+and\s+\((-?\d+),\s*(-?\d+)\)/))) {
+    var x1=Number(m[1]),y1=Number(m[2]),x2=Number(m[3]),y2=Number(m[4]);
+    s.push('Formula: <span class="math-hl">slope m = (y₂ − y₁) / (x₂ − x₁)</span>');
+    s.push('Substitute: <span class="math-hl">('+y2+' − '+y1+') / ('+x2+' − '+x1+') = '+(y2-y1)+' / '+(x2-x1)+'</span>');
+    s.push('Simplify: <span class="math-hl">m = <b>'+correct+'</b></span>');
+    t='Slope = rise/run = Δy/Δx. A positive slope goes up-right; negative goes down-right.';
     return{steps:s,takeaway:t};
   }
 
@@ -3340,9 +3424,13 @@ function generateExplanation(w){
     if(stdExp){
       steps=stdExp.steps;
       takeaway=stdExp.takeaway;
-      if(given!==correct&&given!=='—'){
+      if(!w.wasCorrect&&given!==correct&&given!=='—'){
         steps.push('<span style="color:#ff4466">You answered '+given+', but the correct answer is <b>'+correct+'</b>.</span>');
       }
+    }else if(w.wasCorrect){
+      steps.push('The question: <span class="math-hl">'+mathRender(w.fullQ||w.q)+'</span>');
+      steps.push('The correct answer is <b>'+correct+'</b>.');
+      takeaway='Great job getting this one right!';
     }else{
       steps.push('The question: <span class="math-hl">'+mathRender(w.fullQ||w.q)+'</span>');
       steps.push('The correct answer is <b>'+correct+'</b>, but you answered <span style="color:#ff4466">'+given+'</span>.');
@@ -3408,6 +3496,9 @@ function generateExplanation(w){
       }else if(offBy===10&&steps.filter(function(s){return s.indexOf('color:#ff4466')>=0;}).length===0){
         steps.push('<span style="color:#ff4466">Off by 10 — check if you carried or borrowed correctly.</span>');
       }
+    }else if(w.wasCorrect){
+      steps.push('The correct answer is <b>'+correct+'</b>.');
+      takeaway='Nice work!';
     }else{
       steps.push('The correct answer is <b>'+correct+'</b>, you answered <span style="color:#ff4466">'+given+'</span>.');
       takeaway='Take an extra moment to double-check your work.';
@@ -3451,31 +3542,53 @@ function mathRender(raw){
 function showReviewScreen(){
   updateScopeDebugLabels();
   var cards=$('reviewCards');cards.innerHTML='';
-  var n=wrongAnswers.length;
-  $('reviewInfo').textContent=n+' question'+(n!==1?'s':'')+' to review — read each explanation carefully';
-  wrongAnswers.forEach(function(w,i){
+  var total=allAnswers.length;
+  var correctCount=allAnswers.filter(function(a){return a.wasCorrect;}).length;
+  var wrongCount=total-correctCount;
+  var accuracy=total>0?Math.round((correctCount/total)*100):0;
+  var ringColor=accuracy>=80?'#00ff88':accuracy>=50?'#ffcc00':'#ff4466';
+
+  $('reviewInfo').textContent=total+' question'+(total!==1?'s':'')+' answered — full review with solutions';
+
+  var scoreBar='<div class="rv-score-bar">';
+  scoreBar+='<div class="rv-sb-pct" style="color:'+ringColor+'">'+accuracy+'%</div>';
+  scoreBar+='<div class="rv-sb-detail">'+correctCount+' correct, '+wrongCount+' wrong out of '+total+' questions</div>';
+  scoreBar+='</div>';
+  cards.appendChild(createElementFromHTML(scoreBar));
+
+  allAnswers.forEach(function(w,i){
+    var isRight=!!w.wasCorrect;
     var exp=generateExplanation(w);
     var diffClass='rv-diff-'+(w.diff||'easy');
     var diffLabel=(w.diff||'easy').charAt(0).toUpperCase()+(w.diff||'easy').slice(1);
-    var html='<div class="rv-card">';
+    var cardClass=isRight?'rv-card rv-correct':'rv-card';
+    var html='<div class="'+cardClass+'">';
     html+='<div class="rv-card-head">';
     html+='<span class="rv-num">'+(i+1)+'</span>';
     html+='<span class="rv-q">'+mathRender(w.q)+'</span>';
     html+='<span class="rv-diff '+diffClass+'">'+diffLabel+'</span>';
     html+='</div>';
     html+='<div class="rv-card-body">';
-    html+='<div class="rv-answers">';
-    html+='<div class="rv-ans-box rv-ans-yours"><div class="rv-ans-lbl">Your Answer</div><div class="rv-ans-val">'+w.given+'</div></div>';
-    html+='<div class="rv-ans-box rv-ans-correct"><div class="rv-ans-lbl">Correct</div><div class="rv-ans-val">'+w.correct+'</div></div>';
-    html+='</div>';
+    if(isRight){
+      html+='<div class="rv-answers">';
+      html+='<div class="rv-ans-box rv-ans-right"><div class="rv-ans-lbl">Your Answer</div><div class="rv-ans-val">'+w.correct+' ✓</div></div>';
+      html+='</div>';
+    }else{
+      html+='<div class="rv-answers">';
+      html+='<div class="rv-ans-box rv-ans-yours"><div class="rv-ans-lbl">Your Answer</div><div class="rv-ans-val">'+(w.skipped?'Skipped':w.given)+'</div></div>';
+      html+='<div class="rv-ans-box rv-ans-correct"><div class="rv-ans-lbl">Correct</div><div class="rv-ans-val">'+w.correct+'</div></div>';
+      html+='</div>';
+    }
     html+='<div class="rv-explain">';
     html+='<div class="rv-explain-title">Step-by-Step Solution</div>';
     html+='<div class="rv-steps">';
-    exp.steps.forEach(function(step,si){
-      html+='<div class="rv-step"><span class="step-n">'+(si+1)+'</span><span class="step-text">'+step+'</span></div>';
-    });
+    if(exp&&exp.steps){
+      exp.steps.forEach(function(step,si){
+        html+='<div class="rv-step"><span class="step-n">'+(si+1)+'</span><span class="step-text">'+step+'</span></div>';
+      });
+    }
     html+='</div>';
-    if(exp.takeaway){
+    if(exp&&exp.takeaway){
       html+='<div class="rv-takeaway">'+exp.takeaway+'</div>';
     }
     html+='</div>';
@@ -3648,6 +3761,19 @@ function init(){
             q:qSkipStr,
             correct:currentQuestion.ans,
             given:'—',
+            skipped:true,
+            a:currentQuestion.a,
+            b:currentQuestion.b,
+            op:currentQuestion.op,
+            type:currentQuestion.type||'arithmetic',
+            diff:currentQuestion.diff||'easy',
+            fullQ:currentQuestion.q||qSkipStr
+          });
+          allAnswers.push({
+            q:qSkipStr,
+            correct:currentQuestion.ans,
+            given:'—',
+            wasCorrect:false,
             skipped:true,
             a:currentQuestion.a,
             b:currentQuestion.b,
