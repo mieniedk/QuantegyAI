@@ -8,6 +8,7 @@ import {
   hasExamAccess, createStudentCheckout,
   retryServerConnection,
   reAuthenticateWithServer,
+  isLocalToken,
 } from '../utils/studentAuth';
 
 const EXAM_LABELS = {
@@ -35,9 +36,9 @@ const PLANS = [
   },
 ];
 /** Billing/subscription check after login — allow for API cold start. */
-const ACCESS_TIMEOUT_MS = 35000;
-const WAKE_RETRY_TOTAL_MS = 70000;
-const WAKE_RETRY_STEP_MS = 5000;
+const ACCESS_TIMEOUT_MS = 45000;
+const WAKE_RETRY_TOTAL_MS = 120000;
+const WAKE_RETRY_STEP_MS = 8000;
 
 const INPUT_STYLE = {
   width: '100%',
@@ -121,6 +122,19 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked, check
   }, [busy]);
 
   const sleep = useCallback((ms) => new Promise((resolve) => setTimeout(resolve, ms)), []);
+
+  // On mount: if user has a stale local token, mark offline and proactively wake server
+  useEffect(() => {
+    if (!isStudentLoggedIn() || !isLocalToken()) return;
+    setIsOffline(true);
+    let cancelled = false;
+    (async () => {
+      const online = await retryServerConnection();
+      if (cancelled) return;
+      if (online) setIsOffline(false);
+    })();
+    return () => { cancelled = true; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const recoverServerAndCheckout = useCallback(async (planId) => {
     const started = Date.now();
@@ -353,7 +367,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked, check
               )}
               {busy && busyLong && (
                 <p style={{ color: COLOR.textSecondary, fontSize: 12, lineHeight: 1.45, marginBottom: 12 }}>
-                  Still working… this usually means the payment backend is still starting. Please wait a bit longer.
+                  Still connecting to the server — this can take up to 60 seconds on the first visit. Please wait…
                 </p>
               )}
 

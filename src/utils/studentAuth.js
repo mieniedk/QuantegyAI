@@ -7,11 +7,11 @@ const isLocalHost = typeof window !== 'undefined'
   && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 const API_BASE = envApiBase || (isLocalHost ? '' : DEFAULT_PROD_API_BASE);
 let ACTIVE_API_BASE = API_BASE;
-const REQUEST_TIMEOUT_MS = 12000;
-const SIGNUP_TIMEOUT_MS = 10000;
-const AUTH_FLOW_MAX_MS = 25000;
-const WAKE_REMOTE_FIRE_AND_FORGET_MS = 5000;
-const WAKE_RETRY_MS = 6000;
+const REQUEST_TIMEOUT_MS = 30000;
+const SIGNUP_TIMEOUT_MS = 45000;
+const AUTH_FLOW_MAX_MS = 90000;
+const WAKE_REMOTE_FIRE_AND_FORGET_MS = 8000;
+const WAKE_RETRY_MS = 10000;
 
 function createLocalDemoToken(email, displayName) {
   const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }));
@@ -132,33 +132,23 @@ export async function studentSignup({
   const payload = { username: email, password, displayName: displayName || email.split('@')[0] };
   const baseCandidates = getApiBaseCandidates(ACTIVE_API_BASE);
   const remotes = remoteBasesFromCandidates(baseCandidates);
+
+  // Block on the wake call so Render has time to cold-start before we attempt signup
   if (remotes.length > 0) {
-    wakeRemoteApiBase(remotes[0], WAKE_REMOTE_FIRE_AND_FORGET_MS).catch(() => {});
+    await wakeRemoteApiBase(remotes[0], WAKE_REMOTE_FIRE_AND_FORGET_MS);
   }
 
   let lastResult = { success: false, error: 'Signup failed.' };
   const startedAt = Date.now();
+  const MAX_RETRIES = 3;
+
   for (const base of baseCandidates) {
     if (Date.now() - startedAt > AUTH_FLOW_MAX_MS) break;
-    let data = await fetchJsonWithTimeout(
-      `${base}/api/auth/student/signup`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      },
-      timeoutMs,
-    );
 
-    if (data?.success && data.token) {
-      setActiveApiBase(base);
-      localStorage.setItem(TOKEN_KEY, data.token);
-      return data;
-    }
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      if (Date.now() - startedAt > AUTH_FLOW_MAX_MS) break;
 
-    if (!data?.success && isTimedOutError(data?.error)) {
-      await wakeRemoteApiBase(base, WAKE_RETRY_MS);
-      data = await fetchJsonWithTimeout(
+      let data = await fetchJsonWithTimeout(
         `${base}/api/auth/student/signup`,
         {
           method: 'POST',
@@ -167,17 +157,23 @@ export async function studentSignup({
         },
         timeoutMs,
       );
+
       if (data?.success && data.token) {
         setActiveApiBase(base);
         localStorage.setItem(TOKEN_KEY, data.token);
         return data;
       }
-    }
 
-    if (data && !data.success) lastResult = data;
+      if (data && !data.success && !isTimedOutError(data?.error)) {
+        lastResult = data;
+        break;
+      }
+
+      // Timed out — wake the server and retry
+      await wakeRemoteApiBase(base, WAKE_RETRY_MS);
+    }
   }
 
-  // Optional local fallback for non-paywall flows.
   if (!allowLocalFallback) {
     return {
       success: false,
@@ -194,32 +190,22 @@ export async function studentLogin({ email, password, allowLocalFallback = true 
   const payload = { username: email, password };
   const baseCandidates = getApiBaseCandidates(ACTIVE_API_BASE);
   const remotes = remoteBasesFromCandidates(baseCandidates);
+
   if (remotes.length > 0) {
-    wakeRemoteApiBase(remotes[0], WAKE_REMOTE_FIRE_AND_FORGET_MS).catch(() => {});
+    await wakeRemoteApiBase(remotes[0], WAKE_REMOTE_FIRE_AND_FORGET_MS);
   }
+
   let lastResult = { success: false, error: 'Login failed.' };
   const startedAt = Date.now();
+  const MAX_RETRIES = 3;
+
   for (const base of baseCandidates) {
     if (Date.now() - startedAt > AUTH_FLOW_MAX_MS) break;
-    let data = await fetchJsonWithTimeout(
-      `${base}/api/auth/student/login`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      },
-      SIGNUP_TIMEOUT_MS,
-    );
 
-    if (data?.success && data.token) {
-      setActiveApiBase(base);
-      localStorage.setItem(TOKEN_KEY, data.token);
-      return data;
-    }
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      if (Date.now() - startedAt > AUTH_FLOW_MAX_MS) break;
 
-    if (!data?.success && isTimedOutError(data?.error)) {
-      await wakeRemoteApiBase(base, WAKE_RETRY_MS);
-      data = await fetchJsonWithTimeout(
+      let data = await fetchJsonWithTimeout(
         `${base}/api/auth/student/login`,
         {
           method: 'POST',
@@ -228,17 +214,22 @@ export async function studentLogin({ email, password, allowLocalFallback = true 
         },
         SIGNUP_TIMEOUT_MS,
       );
+
       if (data?.success && data.token) {
         setActiveApiBase(base);
         localStorage.setItem(TOKEN_KEY, data.token);
         return data;
       }
-    }
 
-    if (data && !data.success) lastResult = data;
+      if (data && !data.success && !isTimedOutError(data?.error)) {
+        lastResult = data;
+        break;
+      }
+
+      await wakeRemoteApiBase(base, WAKE_RETRY_MS);
+    }
   }
 
-  // Optional local fallback for non-paywall flows.
   if (!allowLocalFallback) {
     return {
       success: false,
@@ -269,6 +260,13 @@ export function getStudentInfo() {
   const decoded = decodeJwt(token);
   if (!decoded || decoded.exp * 1000 < Date.now()) return null;
   return { id: decoded.studentId, username: decoded.username, displayName: decoded.displayName, role: decoded.role };
+}
+
+export function isLocalToken() {
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) return false;
+  const decoded = decodeJwt(token);
+  return !!decoded?.local;
 }
 
 export async function getStudentSubscription() {
@@ -309,7 +307,7 @@ export async function createStudentCheckout(examId, planType = 'student_exam_one
     headers: authHeaders(),
     body: JSON.stringify({ planId: planType, examId: resolvedExam, origin, returnSearch }),
     },
-    15000,
+    30000,
   );
   if (data.success && data.url) {
     window.location.href = data.url;
@@ -357,11 +355,11 @@ export async function retryServerConnection() {
 
   for (const base of remotes) {
     try {
-      await wakeRemoteApiBase(base, 8000);
+      await wakeRemoteApiBase(base, 30000);
       const res = await fetchJsonWithTimeout(
         `${base}/api/health`,
         { method: 'GET' },
-        10000,
+        30000,
       );
       if (res?.success || res?.status === 'ok' || res?.ok) {
         setActiveApiBase(base);

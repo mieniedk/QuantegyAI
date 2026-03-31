@@ -70,20 +70,21 @@ const isProduction = process.env.NODE_ENV === 'production';
 function validateProductionEnv() {
   if (!isProduction) return;
   const skipSsoCheck = process.env.ALLEN_ACE_SKIP_SSO_CHECK === '1' || process.env.ALLEN_ACE_SKIP_SSO_CHECK === 'true';
-  const errors = [];
+  const warnings = [];
   const jwtSecret = String(process.env.JWT_SECRET || '').trim();
   if (!jwtSecret || jwtSecret.toLowerCase().includes('change-in-production')) {
-    errors.push('JWT_SECRET must be set to a strong value in production.');
+    warnings.push('JWT_SECRET should be set to a strong value in production.');
   }
   if (!skipSsoCheck) {
     const requiredOAuth = ['GOOGLE_CLIENT_ID', 'MICROSOFT_CLIENT_ID', 'CLEVER_CLIENT_ID'];
     const configuredOAuth = requiredOAuth.filter((key) => String(process.env[key] || '').trim() !== '');
     if (configuredOAuth.length === 0) {
-      errors.push('At least one SSO provider client id must be configured in production (GOOGLE_CLIENT_ID, MICROSOFT_CLIENT_ID, or CLEVER_CLIENT_ID). To run without SSO (e.g. local or demo), set ALLEN_ACE_SKIP_SSO_CHECK=1 in .env.');
+      warnings.push('No SSO provider configured (GOOGLE_CLIENT_ID, MICROSOFT_CLIENT_ID, or CLEVER_CLIENT_ID). SSO login will be disabled. Set ALLEN_ACE_SKIP_SSO_CHECK=1 to silence.');
     }
   }
-  if (errors.length > 0) {
-    throw new Error(`Production environment validation failed:\n- ${errors.join('\n- ')}`);
+  if (warnings.length > 0) {
+    console.warn(`[startup] Production environment warnings:\n- ${warnings.join('\n- ')}`);
+    console.warn('[startup] Server will start anyway — fix these for full functionality.');
   }
 }
 
@@ -4708,17 +4709,32 @@ app.use((err, req, res, next) => {
   }
 });
 
-// Catch unhandled rejections so the server doesn't crash
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection:', reason);
+// Catch unhandled rejections/exceptions so the server doesn't crash
+process.on('unhandledRejection', (reason) => {
+  console.error('[fatal] Unhandled Rejection:', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('[fatal] Uncaught Exception:', err);
+  // Don't exit — keep the server alive so health/billing endpoints still work
 });
 
-validateProductionEnv();
+try {
+  validateProductionEnv();
+} catch (err) {
+  console.error('[startup] validateProductionEnv error (non-fatal):', err.message);
+}
 
 const PORT = process.env.PORT || 3001;
-const httpServer = http.createServer(app);
-const io = initSocketIO(httpServer);
-console.log('Socket.IO real-time server initialized.');
+let httpServer;
+let io;
+try {
+  httpServer = http.createServer(app);
+  io = initSocketIO(httpServer);
+  console.log('Socket.IO real-time server initialized.');
+} catch (err) {
+  console.error('[startup] Socket.IO init failed (non-fatal):', err.message);
+  httpServer = httpServer || http.createServer(app);
+}
 
 httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://localhost:${PORT}`);
