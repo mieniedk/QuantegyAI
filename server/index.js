@@ -756,6 +756,13 @@ app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), asyn
 }));
 
 app.use(express.json());
+app.use(express.text({ type: 'text/plain' }));
+app.use((req, res, next) => {
+  if (typeof req.body === 'string' && req.body.length > 0) {
+    try { req.body = JSON.parse(req.body); } catch { /* leave as-is */ }
+  }
+  next();
+});
 app.use(createSREMetricsMiddleware());
 
 const apiRateLimiter = createInMemoryRateLimiter({
@@ -4714,7 +4721,7 @@ if (distExists) {
 app.use((err, req, res, next) => {
   console.error('Express error middleware caught:', err);
   if (!res.headersSent) {
-    res.status(200).json({ success: false, error: extractErrorMessage(err) });
+    res.status(500).json({ success: false, error: extractErrorMessage(err) });
   }
 });
 

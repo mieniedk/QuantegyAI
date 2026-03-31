@@ -59,12 +59,20 @@ function extractNavigationTargets(filePath) {
   return matches;
 }
 
+const PUBLIC_ROOT = path.resolve(process.cwd(), 'public');
+
 function isInternalAppPath(target) {
   if (!target) return false;
   if (!target.startsWith('/')) return false;
   if (target.startsWith('//')) return false;
   if (target.startsWith('/api/')) return false;
   return true;
+}
+
+function isStaticPublicFile(target) {
+  const cleaned = target.split('?')[0].split('#')[0];
+  const filePath = path.join(PUBLIC_ROOT, cleaned);
+  try { return fs.statSync(filePath).isFile(); } catch { return false; }
 }
 
 describe('Navigation paths', () => {
@@ -86,6 +94,7 @@ describe('Navigation paths', () => {
         const target = normalizePath(rawTarget);
         if (routeSet.has(target)) continue;
         if (dynamicRouteRegexes.some((regex) => regex.test(target))) continue;
+        if (isStaticPublicFile(rawTarget)) continue;
         invalidTargets.push({ file: relPath, target: rawTarget });
       }
     }

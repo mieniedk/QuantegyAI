@@ -147,6 +147,7 @@ function cleanExpiredStates() {
 
 export function createLTIRouter(express, { requireAdminForPlatformWrites } = {}) {
   const router = express.Router();
+  router.use(express.json({ type: ['application/json', 'text/plain'] }));
   router.use(express.urlencoded({ extended: true }));
   const requireLTIAdmin = typeof requireAdminForPlatformWrites === 'function'
     ? requireAdminForPlatformWrites

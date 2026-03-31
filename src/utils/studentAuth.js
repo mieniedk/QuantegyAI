@@ -10,7 +10,7 @@ let ACTIVE_API_BASE = API_BASE;
 const REQUEST_TIMEOUT_MS = 30000;
 const SIGNUP_TIMEOUT_MS = 45000;
 const AUTH_FLOW_MAX_MS = 90000;
-const WAKE_REMOTE_FIRE_AND_FORGET_MS = 8000;
+const WAKE_REMOTE_FIRE_AND_FORGET_MS = 30000;
 const WAKE_RETRY_MS = 10000;
 
 function createLocalDemoToken(email, displayName) {
@@ -42,7 +42,7 @@ try {
 
 function setActiveApiBase(base) {
   ACTIVE_API_BASE = typeof base === 'string' ? base : API_BASE;
-  try { localStorage.setItem(STUDENT_API_BASE_KEY, ACTIVE_API_BASE); } catch {}
+  try { localStorage.setItem(STUDENT_API_BASE_KEY, ACTIVE_API_BASE); } catch { /* best-effort */ }
 }
 
 function getApiBaseCandidates(preferredBase) {
@@ -175,10 +175,10 @@ export async function studentSignup({
   }
 
   if (!allowLocalFallback) {
-    return {
+    return lastResult.offline ? lastResult : {
       success: false,
       offline: true,
-      error: 'Cannot reach the payment/auth server right now. Please wait a moment and retry.',
+      error: lastResult.error || 'Cannot reach the payment/auth server right now. Please wait a moment and retry.',
     };
   }
   const token = createLocalDemoToken(email, displayName || email.split('@')[0]);
@@ -231,10 +231,10 @@ export async function studentLogin({ email, password, allowLocalFallback = true 
   }
 
   if (!allowLocalFallback) {
-    return {
+    return lastResult.offline ? lastResult : {
       success: false,
       offline: true,
-      error: 'Cannot reach the payment/auth server right now. Please wait a moment and retry.',
+      error: lastResult.error || 'Cannot reach the payment/auth server right now. Please wait a moment and retry.',
     };
   }
   const token = createLocalDemoToken(email, email.split('@')[0]);

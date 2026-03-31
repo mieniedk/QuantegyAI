@@ -110,9 +110,10 @@ function matchBrace(s, i) {
 }
 
 /* ── Exponent-char test ── */
-const EXP_CHAR = /[a-zA-Z0-9\u00B2\u00B3\u2070-\u2079\u00BD+\-]/;
+const EXP_CHAR = /[a-zA-Z0-9\u00B2\u00B3\u2070-\u2079\u00BD+\u002D]/;
 
 /* ── Chars that continue a bare radicand (digits, letters, subscripts) ── */
+// eslint-disable-next-line no-misleading-character-class -- combining diacritical range is intentional
 const RADICAL_CHAR = /[a-zA-Z0-9\u2080-\u2089\u2090-\u209C\u0300-\u036F]/;
 
 /* ── Unicode superscript digits used as nth-root index (², ³, etc.) ── */
@@ -132,7 +133,7 @@ const UNICODE_SUBSCRIPT_DIGIT_TO_ASCII = {
   '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9',
 };
 
-function toSubscript(text) {
+function _toSubscript(text) {
   return String(text || '')
     .split('')
     .map((ch) => SUBSCRIPT_MAP[ch] || SUBSCRIPT_MAP[ch.toLowerCase()] || ch)
@@ -294,7 +295,7 @@ function parseMath(s) {
     /* ── 4. Limit notation: lim_(sub), lim(sub), or lim_{sub} ── */
     if (
       s.slice(i, i + 3) === 'lim' &&
-      (i === 0 || /[\s(=,;:+\-]/.test(s[i - 1])) &&
+      (i === 0 || /[\s(=,;:+\u002D]/.test(s[i - 1])) &&
       i + 3 < s.length
     ) {
       let j = i + 3;
@@ -452,7 +453,7 @@ export function speechifyForNarration(str) {
     '\u2070': '0', '\u00B9': '1', '\u00B2': '2', '\u00B3': '3', '\u2074': '4',
     '\u2075': '5', '\u2076': '6', '\u2077': '7', '\u2078': '8', '\u2079': '9',
   };
-  s = s.replace(/([\w\)\]\}])\s*([\u2070\u00B9\u00B2\u00B3\u2074-\u2079]+)/g, (_, base, sup) => {
+  s = s.replace(/([\w)\]}])\s*([\u2070\u00B9\u00B2\u00B3\u2074-\u2079]+)/g, (_, base, sup) => {
     const digits = [...sup].map((c) => superDigits[c] || c).join('');
     if (digits === '2') return `${base} squared`;
     if (digits === '3') return `${base} cubed`;
@@ -476,7 +477,7 @@ export function formatMathHtml(str) {
   // Normalize common authoring patterns into standard math notation.
   const normalized = normalizeMathNotation(str)
     // "√ 2" -> "√2" so radicals parse correctly.
-    .replace(/([√\u221A])\s+(?=[(\[]|[A-Za-z0-9])/g, '$1');
+    .replace(/([√\u221A])\s+(?=[([]|[A-Za-z0-9])/g, '$1');
   const logSubRe = new RegExp(`${LOGSUB_START}([A-Za-z0-9]+)${LOGSUB_END}`, 'g');
   return parseMath(normalized).replace(
     logSubRe,

@@ -70,7 +70,7 @@ const SUPPORT_EMAIL = (import.meta.env.VITE_SUPPORT_EMAIL || '').trim();
 
 export default function PaywallGate({ examId, diagnosticScore, onUnlocked, checkoutReturnSearch = '' }) {
   const [viewportWidth, setViewportWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1200));
-  const [mode, setMode] = useState(isStudentLoggedIn() ? 'pricing' : 'signup');
+  const [mode, setMode] = useState(isStudentLoggedIn() && !isLocalToken() ? 'pricing' : 'signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -123,17 +123,11 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked, check
 
   const sleep = useCallback((ms) => new Promise((resolve) => setTimeout(resolve, ms)), []);
 
-  // On mount: if user has a stale local token, mark offline and proactively wake server
+  // On mount: if user has a stale local token, proactively wake the server
+  // so the subsequent signup/login call against the real API is fast.
   useEffect(() => {
-    if (!isStudentLoggedIn() || !isLocalToken()) return;
-    setIsOffline(true);
-    let cancelled = false;
-    (async () => {
-      const online = await retryServerConnection();
-      if (cancelled) return;
-      if (online) setIsOffline(false);
-    })();
-    return () => { cancelled = true; };
+    if (!isLocalToken()) return;
+    retryServerConnection().catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const recoverServerAndCheckout = useCallback(async (planId) => {
@@ -245,6 +239,11 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked, check
   }, [mode, email, password, displayName, effectiveExamId, onUnlocked, withTimeout, checkoutReturnSearch]);
 
   const handleCheckout = useCallback(async (planId) => {
+    if (isLocalToken()) {
+      setMode('signup');
+      setError('Please sign up or log in first — your previous session was offline-only.');
+      return;
+    }
     setBusy(true);
     setError('');
     setWakeStatus('');

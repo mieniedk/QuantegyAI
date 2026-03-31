@@ -52,7 +52,7 @@ export default function NotificationBell() {
 
   const markRead = async (id) => {
     try {
-      await fetch(`/api/notifications/${id}/read`, { method: 'POST', headers: headers() });
+      await apiRequest(`/api/notifications/${id}/read`, { method: 'POST' });
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
       setUnread(prev => Math.max(0, prev - 1));
     } catch (err) {

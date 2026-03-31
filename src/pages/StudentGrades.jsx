@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Breadcrumb from '../components/Breadcrumb';
 import {
-  getClasses, getGrades, getAssignments,
+  getClasses, getGrades, getAssignments, getAuthToken,
   getGradeCategories, getLetterGrade, computeWeightedAverage, getGradeScheme,
   formatGrade, fetchStudentGradesFromServer,
 } from '../utils/storage';

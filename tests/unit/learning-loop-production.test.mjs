@@ -67,7 +67,7 @@ describe('masteryEngine migration + retry', () => {
     expect(migrated).toBe(true);
     expect(persist.ok).toBe(true);
 
-    const all = JSON.parse(ls.getItem('allen-ace-mastery'));
+    const all = JSON.parse(ls.getItem('quantegyai-mastery') || ls.getItem('allen-ace-mastery'));
     expect(all[exam]['comp001::c006'].score).toBe(40);
     expect(all[exam]['__mig__comp001::c006']).toBe(true);
   });
@@ -83,7 +83,7 @@ describe('masteryEngine migration + retry', () => {
     const entry = { score: 55, gameHistory: [], lastSeen: 't', mistakes: [], postQuizMediumCorrect: false };
     const r = retryMasteryPersist(exam, key, entry);
     expect(r.ok).toBe(true);
-    const all = JSON.parse(ls.getItem('allen-ace-mastery'));
+    const all = JSON.parse(ls.getItem('quantegyai-mastery') || ls.getItem('allen-ace-mastery'));
     expect(all[exam][key].score).toBe(55);
   });
 });
@@ -142,7 +142,7 @@ describe('learningExperienceStorage session cap', () => {
     for (let i = 0; i < 60; i++) {
       touchLoopSessionStart(`seed-${i}`);
     }
-    const raw = JSON.parse(ls.getItem('allen-ace-learning-experience'));
+    const raw = JSON.parse(ls.getItem('quantegyai-learning-experience') || ls.getItem('allen-ace-learning-experience'));
     const count = Object.keys(raw.loopSessions || {}).length;
     expect(count).toBeLessThanOrEqual(50);
   });

@@ -49,9 +49,11 @@ const ClassWizard = () => {
     if (!username) navigate('/teacher');
   }, [username, navigate]);
 
+  const isTexesEc6 = texesExamType === 'ec6';
+  const isTexesMath48 = texesExamType === 'math48';
   const standards = getStandardsByGrade(gradeLevel);
   const availableGames = getGamesByGrade(gradeLevel);
-  const staarGrades = useMemo(
+  const staarGrades = React.useMemo(
     () => TEKS_GRADES.filter((g) => !['grade-ec6', 'grade4-8', 'grade7-12'].includes(g.id)),
     [],
   );
