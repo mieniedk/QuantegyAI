@@ -186,12 +186,12 @@ export const MICRO_CONCEPTS = {
   },
   'math712:c010': {
     title: 'Calculus Concepts',
-    conceptText: 'Limit: lim(x→a) f(x) = L. Derivative: f′(x) = lim(h→0) [f(x+h)−f(x)]/(h); measures instantaneous rate of change. Power rule: d/dx[x^n] = nx^(n−1). Chain rule: d/dx[f(g(x))] = f′(g(x))·g′(x). Fundamental Theorem: ∫_a^b f(x)dx = F(b)−F(a) where F′=f. Applications: optimization (set f′=0), area under curve, related rates.',
+    conceptText: 'Limit: lim(x→a) f(x) = L. Derivative: f′(x) = lim(h→0) [f(x+h)−f(x)]/(h); measures instantaneous rate of change. Power rule: d/dx[x^n] = nx^(n−1). Chain rule: d/dx[f(g(x))] = f′(g(x))·g′(x). Fundamental Theorem (Part 2): if F′ = f, then ∫_(a)^(b) f(x) dx = F(b) − F(a). Applications: optimization (set f′=0), area under curve, related rates.',
     workedExample: 'f(x) = x³ − 3x. f′(x) = 3x² − 3 = 0 → x = ±1. f″(x) = 6x: min at x=1, max at x=−1.',
     misconception: 'The derivative of a product requires the product rule: (fg)′ = f′g + fg′. You cannot simply multiply the individual derivatives.',
     variants: [
-      { conceptText: 'Integration: the reverse of differentiation. Indefinite: ∫x^n dx = x^(n+1)/(n+1) + C (n≠−1). Definite integral = signed area under curve. Fundamental Theorem Part 1: d/dx[∫_a^x f(t)dt] = f(x). Part 2: ∫_a^b f(x)dx = F(b)−F(a). Substitution (u-sub): reverse chain rule. Area between curves: ∫(top − bottom)dx.',
-        workedExample: '∫_0^2 (3x²−2x)dx = [x³−x²]_0^2 = (8−4)−(0−0) = 4.',
+      { conceptText: 'Integration: the reverse of differentiation. Indefinite: ∫x^n dx = x^(n+1)/(n+1) + C (n≠−1). Definite integral = signed area under the curve. Fundamental Theorem — Part 1: if A(x) = ∫_(a)^(x) f(t) dt, then A′(x) = f(x); equivalently (d)/(dx)[∫_(a)^(x) f(t) dt] = f(x). Part 2: if F′ = f, then ∫_(a)^(b) f(x) dx = F(b) − F(a). Substitution (u-sub): reverse chain rule. Area between curves: ∫(top − bottom) dx.',
+        workedExample: '∫_(0)^(2) (3x²−2x) dx = [x³−x²]_(0)^(2) = (8−4)−(0−0) = 4.',
         misconception: 'The integral of 1/x is ln|x| + C (with absolute value). The absolute value is essential because ln is only defined for positive arguments, and 1/x exists for x < 0 too.' },
       { conceptText: 'Continuity: f is continuous at a if lim(x→a) f(x) = f(a). Differentiability implies continuity (but not vice versa). Mean Value Theorem: if f is continuous on [a,b] and differentiable on (a,b), then ∃c in (a,b) with f′(c) = (f(b)−f(a))/(b−a). Related rates: differentiate an equation with respect to time, substitute known rates. L\'Hôpital\'s Rule: 0/0 or ∞/∞ → differentiate top and bottom.',
         workedExample: 'Balloon: V = (4)/(3)πr³. dV/dt = 4πr²·dr/dt. If dr/dt = 2 cm/s when r = 5: dV/dt = 4π(25)(2) = 200π cm³/s.',

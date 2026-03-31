@@ -2122,6 +2122,18 @@ export default function PracticeLoop() {
   const [revisitReturnPhase, setRevisitReturnPhase] = useState(null);
   const revisitReturnRef = React.useRef(null);
 
+  /** Preserved on Stripe return so comp/std/grade/teks and resume phase match (avoids landing on tile 1). */
+  const checkoutReturnSearch = useMemo(() => {
+    const p = new URLSearchParams(searchParams);
+    ['paid', 'session_id', 'cancelled'].forEach((k) => p.delete(k));
+    const resume =
+      pendingPaywallPhase && PHASES.includes(pendingPaywallPhase)
+        ? pendingPaywallPhase
+        : (PHASES[Math.min(FREE_TILE_LIMIT, PHASES.length - 1)] || 'check-quiz-2');
+    p.set('phase', resume);
+    return p.toString();
+  }, [searchParams, pendingPaywallPhase]);
+
   const goToPhase = useCallback((p, options = {}) => {
     setReviewPoolEpoch((n) => n + 1);
     const { skipProgress = false } = options;
@@ -4159,6 +4171,7 @@ export default function PracticeLoop() {
         {phase === 'paywall' && (
           <PaywallGate
             examId={examId}
+            checkoutReturnSearch={checkoutReturnSearch}
             diagnosticScore={diagnosticPctForRecap != null ? Math.round(diagnosticPctForRecap * 100) : undefined}
             onUnlocked={() => {
               setIsPaid(true);

@@ -931,11 +931,11 @@ const LECTURES = {
     title: 'Differential & Integral Calculus',
     video: 'https://www.youtube.com/embed/WUvTyaaNkzM',
     objective: 'You will compute limits, derivatives, and integrals and apply them to optimization and area problems.',
-    keyIdea: 'The derivative measures instantaneous rate of change. The integral accumulates area. The Fundamental Theorem of Calculus links them: ∫(a)^(b) f(x) dx = F(b) − F(a).',
+    keyIdea: 'The derivative is instantaneous rate of change; the definite integral is net signed area. Fundamental Theorem — Part 1: (d)/(dx)[∫_(a)^(x) f(t) dt] = f(x). Part 2: if F′ = f, then ∫_(a)^(b) f(x) dx = F(b) − F(a).',
     steps: [
       { title: 'Limits', content: 'lim(x→a) f(x) = L means f(x) approaches L as x approaches a. Factor or rationalize to evaluate 0/0 forms.' },
       { title: 'Derivatives', content: 'Power rule: d/dx[x^(n)] = nx^(n−1). Product, quotient, and chain rules handle compositions. f′(x) = 0 at critical points.' },
-      { title: 'Integrals', content: 'Antiderivative reverses differentiation. ∫x^(n) dx = (x^(n+1))/(n+1) + C. Definite integrals compute net area.' },
+      { title: 'Integrals', content: 'An antiderivative F satisfies F′ = f. Indefinite: ∫x^(n) dx = (x^(n+1))/(n+1) + C. Definite: ∫_(a)^(b) f(x) dx = F(b) − F(a). Part 1: differentiating ∫_(a)^(x) f(t) dt gives f(x).' },
     ],
     example: { problem: 'Find d/dx[3x^(4) − 2x + 7].', solution: ['Power rule: 4·3x^(3) − 2 + 0.', '= 12x^(3) − 2.'], answer: '12x^(3) − 2' },
     tip: 'Derivative = slope of tangent. Integral = area under curve. They undo each other!',

@@ -289,23 +289,25 @@ export async function hasExamAccess(examId) {
   return false;
 }
 
-export async function createStudentCheckout(examId, planType = 'student_exam_onetime') {
+export async function createStudentCheckout(examId, planType = 'student_exam_onetime', options = {}) {
   const token = localStorage.getItem(TOKEN_KEY);
   const decoded = token ? decodeJwt(token) : null;
   if (decoded?.local) {
     return {
       success: false,
       offline: true,
-      error: 'Payment server is not ready yet. Please retry in a moment.',
+      error: 'Signed in offline-only mode — payment needs a live connection. Use “Retry” on the pricing screen or wait and try Sign up + Pay again.',
     };
   }
+  const resolvedExam = String(examId || '').trim() || 'math712';
   const origin = window.location.origin;
+  const returnSearch = typeof options.returnSearch === 'string' ? options.returnSearch : '';
   const data = await fetchJsonWithTimeout(
     `${ACTIVE_API_BASE}/api/billing/student/create-checkout-session`,
     {
     method: 'POST',
     headers: authHeaders(),
-    body: JSON.stringify({ planId: planType, examId, origin }),
+    body: JSON.stringify({ planId: planType, examId: resolvedExam, origin, returnSearch }),
     },
     15000,
   );

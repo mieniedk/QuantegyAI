@@ -1420,25 +1420,71 @@ app.get('/api/billing/student/subscription/me', requireStudent, (req, res) => {
   res.json({ success: true, studentId, subscription, entitlements });
 });
 
+/** Rebuild /practice-loop query after Stripe so comp/std/grade/phase match the session (avoids reset to tile 1). */
+function sanitizeStudentCheckoutReturnSearch(raw, examIdFallback) {
+  const allowed = new Set(['examId', 'exam', 'grade', 'comp', 'currentStd', 'std', 'label', 'teks', 'subject', 'phase', 'sid', 'cid']);
+  const phaseOk = (v) => /^[a-z][a-z0-9-]{0,63}$/.test(String(v || ''));
+  const p = new URLSearchParams();
+  try {
+    const q = new URLSearchParams(String(raw || '').replace(/^\?/, ''));
+    for (const [k, v] of q.entries()) {
+      if (!allowed.has(k) || String(v).length > 512) continue;
+      if (k === 'paid' || k === 'session_id' || k === 'cancelled') continue;
+      if (k === 'phase' && !phaseOk(v)) continue;
+      p.set(k, v);
+    }
+  } catch (_) { /* ignore */ }
+  const ex = String(examIdFallback || '').trim();
+  if (ex && !p.get('examId')) {
+    p.set('examId', ex);
+    p.set('exam', ex);
+  }
+  return p.toString();
+}
+
+function studentCheckoutReturnUrls(origin, examId, returnSearchRaw) {
+  const tail = sanitizeStudentCheckoutReturnSearch(returnSearchRaw, examId);
+  const mid = tail ? `&${tail}` : '';
+  return {
+    successDemo: `${origin}/practice-loop?paid=1${mid}`,
+    successStripe: `${origin}/practice-loop?paid=1${mid}&session_id={CHECKOUT_SESSION_ID}`,
+    cancel: `${origin}/practice-loop?cancelled=1${mid}`,
+  };
+}
+
+/** Ensures one-time exam purchase always records an exam id (fixes paid-but-still-locked if client omitted examId). */
+function resolveStudentCheckoutExamId(body, planId) {
+  let examId = String(body?.examId ?? '').trim();
+  if (examId) return examId;
+  const raw = String(body?.returnSearch ?? '').trim();
+  try {
+    const q = new URLSearchParams(raw.startsWith('?') ? raw.slice(1) : raw);
+    examId = String(q.get('examId') || q.get('exam') || '').trim();
+  } catch (_) { /* ignore */ }
+  if (examId) return examId;
+  if (planId === 'student_exam_onetime') return 'math712';
+  return '';
+}
+
 app.post('/api/billing/student/create-checkout-session', requireStudent, asyncHandler(async (req, res) => {
   const studentId = studentIdFromReq(req);
   if (!studentId) return res.status(401).json({ success: false, error: 'Invalid student session.' });
   const planId = String(req.body?.planId || '');
-  const examId = String(req.body?.examId || '');
   const plan = STUDENT_BILLING_PLANS[planId];
   if (!plan) return res.status(400).json({ success: false, error: 'Invalid plan.' });
 
+  const examId = resolveStudentCheckoutExamId(req.body, planId);
+
   const existing = getStudentSubscription(studentId) || {};
   const origin = req.body?.origin || `${req.protocol}://${req.get('host')}`;
-  const examQuery = examId ? `&examId=${encodeURIComponent(examId)}&exam=${encodeURIComponent(examId)}` : '';
-  const successUrlDemo = `${origin}/practice-loop?paid=1${examQuery}`;
-  const successUrlStripe = `${successUrlDemo}&session_id={CHECKOUT_SESSION_ID}`;
-  const cancelUrl = `${origin}/practice-loop?cancelled=1${examQuery}`;
+  const returnSearch = req.body?.returnSearch;
+  const { successDemo: successUrlDemo, successStripe: successUrlStripe, cancel: cancelUrl } = studentCheckoutReturnUrls(origin, examId, returnSearch);
 
   if (!stripe || !plan.priceId) {
     const now = new Date();
     const isOneTime = planId === 'student_exam_onetime';
     const existingExams = Array.isArray(existing.examIds) ? existing.examIds : [];
+    const examForOneTime = isOneTime ? (examId || 'math712') : '';
     const paidUntil = isOneTime
       ? new Date(now.getTime() + 100 * 365.25 * 24 * 3600 * 1000)
       : new Date(now.getTime() + 30 * 24 * 3600 * 1000);
@@ -1446,7 +1492,7 @@ app.post('/api/billing/student/create-checkout-session', requireStudent, asyncHa
       ...existing,
       plan: planId,
       status: 'active',
-      examIds: isOneTime && examId ? [...new Set([...existingExams, examId])] : existingExams,
+      examIds: isOneTime && examForOneTime ? [...new Set([...existingExams, examForOneTime])] : existingExams,
       paidUntil: paidUntil.toISOString(),
       billingCycle: plan.interval,
       updatedAt: now.toISOString(),
@@ -1466,18 +1512,30 @@ app.post('/api/billing/student/create-checkout-session', requireStudent, asyncHa
   }
 
   const isOneTime = planId === 'student_exam_onetime';
-  const session = await stripe.checkout.sessions.create({
-    mode: isOneTime ? 'payment' : 'subscription',
-    customer: customerId,
-    success_url: successUrlStripe,
-    cancel_url: cancelUrl,
-    line_items: [{ price: plan.priceId, quantity: 1 }],
-    allow_promotion_codes: true,
-    metadata: { studentId, planId, examId },
-    ...(isOneTime ? {} : {
-      subscription_data: { metadata: { studentId, planId, examId } },
-    }),
-  });
+  const examMeta = isOneTime ? (examId || 'math712') : examId;
+  let session;
+  try {
+    session = await stripe.checkout.sessions.create({
+      mode: isOneTime ? 'payment' : 'subscription',
+      customer: customerId,
+      success_url: successUrlStripe,
+      cancel_url: cancelUrl,
+      line_items: [{ price: plan.priceId, quantity: 1 }],
+      allow_promotion_codes: true,
+      metadata: { studentId, planId, examId: examMeta },
+      ...(isOneTime ? {} : {
+        subscription_data: { metadata: { studentId, planId, examId: examMeta } },
+      }),
+    });
+  } catch (err) {
+    console.error('[billing] student checkout session create failed:', err?.message || err);
+    const hint = err?.message || 'Stripe checkout could not be created. Check STRIPE_PRICE_STUDENT_EXAM_ONETIME / STRIPE_PRICE_STUDENT_MONTHLY in server env.';
+    return res.status(200).json({ success: false, error: hint });
+  }
+
+  if (!session?.url) {
+    return res.status(200).json({ success: false, error: 'Checkout session created but Stripe returned no redirect URL.' });
+  }
 
   res.json({ success: true, url: session.url, sessionId: session.id });
 }));

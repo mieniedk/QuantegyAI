@@ -413,6 +413,20 @@ export function speechifyForNarration(str) {
   s = s.replace(/\bcos\s*\^\s*3/gi, 'cosine cubed ');
   s = s.replace(/\btan\s*\^\s*3/gi, 'tangent cubed ');
 
+  // Identifier or digit with exponent 2 / 3 — "k squared" not "k to the power of 2"
+  s = s.replace(/([A-Za-z_][A-Za-z0-9_']*)\^\{2\}/g, '$1 squared');
+  s = s.replace(/([A-Za-z_][A-Za-z0-9_']*)\^\{3\}/g, '$1 cubed');
+  s = s.replace(/(\d+)\^\{2\}/g, '$1 squared');
+  s = s.replace(/(\d+)\^\{3\}/g, '$1 cubed');
+  s = s.replace(/([A-Za-z_][A-Za-z0-9_']*)\^\(2\)/g, '$1 squared');
+  s = s.replace(/([A-Za-z_][A-Za-z0-9_']*)\^\(3\)/g, '$1 cubed');
+  s = s.replace(/(\d+)\^\(2\)/g, '$1 squared');
+  s = s.replace(/(\d+)\^\(3\)/g, '$1 cubed');
+  s = s.replace(/([A-Za-z_][A-Za-z0-9_']*)\^2(?![0-9])/g, '$1 squared');
+  s = s.replace(/([A-Za-z_][A-Za-z0-9_']*)\^3(?![0-9])/g, '$1 cubed');
+  s = s.replace(/(\d+)\^2(?![0-9])/g, '$1 squared');
+  s = s.replace(/(\d+)\^3(?![0-9])/g, '$1 cubed');
+
   // Math symbol pronunciation
   s = s.replace(/√/g, 'square root of ');
   s = s.replace(/π/g, 'pi');
@@ -438,6 +452,8 @@ export function speechifyForNarration(str) {
   };
   s = s.replace(/([\w\)\]\}])\s*([\u2070\u00B9\u00B2\u00B3\u2074-\u2079]+)/g, (_, base, sup) => {
     const digits = [...sup].map((c) => superDigits[c] || c).join('');
+    if (digits === '2') return `${base} squared`;
+    if (digits === '3') return `${base} cubed`;
     return `${base} to the power of ${digits}`;
   });
 

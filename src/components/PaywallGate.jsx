@@ -67,7 +67,7 @@ const VALID_COUPONS = new Set(['ALLEN100', 'FREEACCESS', 'TEXES2025', 'MATHPREP'
 /** Set VITE_SUPPORT_EMAIL in env so paywall errors include a contact path. */
 const SUPPORT_EMAIL = (import.meta.env.VITE_SUPPORT_EMAIL || '').trim();
 
-export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
+export default function PaywallGate({ examId, diagnosticScore, onUnlocked, checkoutReturnSearch = '' }) {
   const [viewportWidth, setViewportWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1200));
   const [mode, setMode] = useState(isStudentLoggedIn() ? 'pricing' : 'signup');
   const [email, setEmail] = useState('');
@@ -84,7 +84,9 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
   const [authPassword, setAuthPassword] = useState('');
   const [wakeStatus, setWakeStatus] = useState('');
 
-  const examLabel = EXAM_LABELS[examId] || examId;
+  /** Always send a concrete exam to checkout so one-time entitlements match hasExamAccess (URL sometimes omits examId). */
+  const effectiveExamId = (examId && String(examId).trim()) || 'math712';
+  const examLabel = EXAM_LABELS[effectiveExamId] || effectiveExamId;
   const isMobile = viewportWidth < MOBILE_BP;
   const withTimeout = useCallback((promise, timeoutMs, timeoutError) => {
     let timerId;
@@ -144,7 +146,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
       }
 
       setIsOffline(false);
-      const checkoutResult = await createStudentCheckout(examId, planId);
+      const checkoutResult = await createStudentCheckout(effectiveExamId, planId, { returnSearch: checkoutReturnSearch });
       if (checkoutResult?.success) return { success: true };
       if (checkoutResult?.offline) {
         lastError = checkoutResult?.error || 'Payment server not ready yet.';
@@ -157,7 +159,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
       success: false,
       error: lastError || 'Payment server is still starting. Please wait a bit and try again.',
     };
-  }, [authEmail, authPassword, examId, sleep]);
+  }, [authEmail, authPassword, effectiveExamId, checkoutReturnSearch, sleep]);
 
   const runAuthFlow = useCallback(async ({ autoCheckoutPlanId = '' } = {}) => {
     setError('');
@@ -191,7 +193,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
       }
 
       if (autoCheckoutPlanId) {
-        const checkoutResult = await createStudentCheckout(examId, autoCheckoutPlanId);
+        const checkoutResult = await createStudentCheckout(effectiveExamId, autoCheckoutPlanId, { returnSearch: checkoutReturnSearch });
         if (checkoutResult?.offline) {
           setIsOffline(true);
           setMode('pricing');
@@ -206,7 +208,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
       }
 
       const accessResult = await withTimeout(
-        hasExamAccess(examId).then((ok) => ({ success: true, ok })),
+        hasExamAccess(effectiveExamId).then((ok) => ({ success: true, ok })),
         ACCESS_TIMEOUT_MS,
         'We created your account, but access check timed out. Please continue to pricing.',
       );
@@ -226,7 +228,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
     } finally {
       setBusy(false);
     }
-  }, [mode, email, password, displayName, examId, onUnlocked, withTimeout]);
+  }, [mode, email, password, displayName, effectiveExamId, onUnlocked, withTimeout, checkoutReturnSearch]);
 
   const handleCheckout = useCallback(async (planId) => {
     setBusy(true);
@@ -242,7 +244,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
         setBusy(false);
         return;
       }
-      const result = await createStudentCheckout(examId, planId);
+      const result = await createStudentCheckout(effectiveExamId, planId, { returnSearch: checkoutReturnSearch });
       if (result?.offline) {
         setIsOffline(true);
         setError(result.error || 'Payment server is starting up. Please retry in a moment.');
@@ -253,19 +255,19 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked }) {
       setError(err.message || 'Network error.');
     }
     setBusy(false);
-  }, [examId, isOffline, authEmail, authPassword, recoverServerAndCheckout]);
+  }, [effectiveExamId, isOffline, authEmail, authPassword, recoverServerAndCheckout, checkoutReturnSearch]);
 
   const handleCoupon = useCallback(() => {
     setCouponError('');
     const code = couponCode.trim().toUpperCase();
     if (!code) { setCouponError('Please enter a coupon code.'); return; }
     if (VALID_COUPONS.has(code)) {
-      try { localStorage.setItem(`coupon-redeemed:${examId}`, code); } catch {}
+      try { localStorage.setItem(`coupon-redeemed:${effectiveExamId}`, code); } catch {}
       onUnlocked?.();
     } else {
       setCouponError('Invalid coupon code. Please check and try again.');
     }
-  }, [couponCode, examId, onUnlocked]);
+  }, [couponCode, effectiveExamId, onUnlocked]);
 
   const studentInfo = getStudentInfo();
 

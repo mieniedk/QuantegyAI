@@ -678,7 +678,38 @@ const QBLOCKS_STD_BANK={
   c001:{easy:[{q:'Evaluate: |−8| + 1',ans:9}],medium:[{q:'Compute: 2⁴ ÷ 2²',ans:4}],hard:[{q:'Find gcd(84,30)',ans:6}]},
   c002:{easy:[{q:'Evaluate i²',ans:-1}],medium:[{q:'Compute (2 + 3i)(2 − 3i)',ans:13}],hard:[{q:'Magnitude |3 + 4i|',ans:5}]},
   c003:{easy:[{q:'Compute lcm(6,8)',ans:24}],medium:[{q:'Compute gcd(48,18)',ans:6}],hard:[{q:'How many positive factors does 36 have?',ans:9}]},
-  c004:{easy:[{q:'Arithmetic: 4,7,10,... term 6',ans:19}],medium:[{q:'Geometric: 3,6,12,... term 5',ans:48}],hard:[{q:'Sum of first 5 terms of arithmetic 2,5,8,...',ans:40}]},
+  c004:{
+    easy:[
+      {q:'Arithmetic: 4, 7, 10, … what is term 6?',ans:19},
+      {q:'Arithmetic: 5, 9, 13, … common difference d?',ans:4},
+      {q:'Next term: 2, 5, 8, 11, ___',ans:14},
+      {q:'Next term: 10, 7, 4, 1, ___',ans:-2},
+      {q:'Pattern: 3, 6, 12, 24, ___ (double each time)',ans:48},
+      {q:'Squares: 1, 4, 9, 16, ___',ans:25},
+      {q:'Arithmetic: first term 6, add 3 each time. Term 5?',ans:18},
+      {q:'Geometric: 2, 6, 18, … next term after 18',ans:54}
+    ],
+    medium:[
+      {q:'Geometric: 3, 6, 12, … term 5',ans:48},
+      {q:'Arithmetic: first term 8, d = −2. Term 6?',ans:-2},
+      {q:'Sum of first 4 terms: 1 + 3 + 5 + 7',ans:16},
+      {q:'Geometric: start 4, ratio 3. Term 4?',ans:108},
+      {q:'Next term: 1, 2, 4, 8, ___',ans:16},
+      {q:'Arithmetic: a₁ = 11, d = 4. Term 3?',ans:19},
+      {q:'Pattern: 5, 10, 20, 40, ___',ans:80},
+      {q:'Triangular: 1, 3, 6, 10, ___',ans:15}
+    ],
+    hard:[
+      {q:'Sum of first 5 terms of arithmetic 2, 5, 8, …',ans:40},
+      {q:'Arithmetic: a₁ = 7, d = 5. Sum of first 4 terms',ans:58},
+      {q:'Geometric: 5, 15, 45, … term 4',ans:135},
+      {q:'Sum 2 + 4 + 6 + 8 + 10',ans:30},
+      {q:'Arithmetic: 20, 17, 14, … term 5 (still subtract 3)',ans:8},
+      {q:'Next: 2, 3, 5, 8, 12, ___ (add +1,+2,+3,+4,+5)',ans:17},
+      {q:'Geometric: first term 3, ratio 2. Term 6',ans:96},
+      {q:'Pattern: 1, 8, 27, 64, ___ (cubes)',ans:125}
+    ]
+  },
   c005:{easy:[{q:'Evaluate f(x) = 2x + 3 at x = 4',ans:11}],medium:[{q:'If f(x) = x², g(x) = x + 1, find (f∘g)(2)',ans:9}],hard:[{q:'If f(x) = 3x − 6, solve f(x) = 0 for x',ans:2}]},
   c006:{
     easy:[
@@ -747,11 +778,124 @@ const QBLOCKS_STD_BANK={
       {q:'cos²(60°) + sin²(60°) = ?',ans:1}
     ]
   },
-  c010:{easy:[{q:'Derivative of x² at x = 3',ans:6}],medium:[{q:'Derivative of x³ at x = 2',ans:12}],hard:[{q:'Integral of 2x from 0 to 3',ans:9}]},
-  c011:{easy:[{q:'Area of circle radius 3 using π ≈ 3.14 (nearest whole)',ans:28}],medium:[{q:'Volume of cylinder r = 2, h = 5 using π ≈ 3.14 (nearest whole)',ans:63}],hard:[{q:'Surface area of cube side 6',ans:216}]},
-  c012:{easy:[{q:'Sum of supplementary angles',ans:180}],medium:[{q:'Triangle angle sum in Euclidean plane',ans:180}],hard:[{q:'How many points determine a line?',ans:2}]},
-  c013:{easy:[{q:'Interior angle sum of hexagon',ans:720}],medium:[{q:'Inscribed angle intercepts 80° arc. Angle measure?',ans:40}],hard:[{q:'Regular octagon interior angle',ans:135}]},
-  c014:{easy:[{q:'Distance from (0,0) to (6,8)',ans:10}],medium:[{q:'Midpoint x-coordinate of (2,5) and (8,1)',ans:5}],hard:[{q:'Dot product of <3,4> and <4,−3>',ans:0}]},
+  c010:{
+    easy:[
+      {q:'Derivative of x² at x = 2',ans:4},
+      {q:'Derivative of x² at x = 5',ans:10},
+      {q:'Derivative of x³ at x = 1',ans:3},
+      {q:'Derivative of x at x = 8 (slope of x)',ans:1},
+      {q:'If f(x) = 4x + 1, what is f′(x)?',ans:4},
+      {q:'If f(x) = 6x − 2, derivative f′(x)',ans:6},
+      {q:'Derivative of x⁴ at x = 1',ans:4},
+      {q:'Derivative of 2x² at x = 3',ans:12}
+    ],
+    medium:[
+      {q:'Derivative of x³ at x = 2',ans:12},
+      {q:'Derivative of x³ at x = 3',ans:27},
+      {q:'Derivative of 2x² at x = 4',ans:16},
+      {q:'If f(x) = x² − 3x, find f′(5)',ans:7},
+      {q:'If f(x) = x² + 2x, find f′(4)',ans:10},
+      {q:'Integral of 2 from 0 to 5 (rectangle area)',ans:10},
+      {q:'∫_0^4 x dx (triangle area under y=x)',ans:8},
+      {q:'∫_0^2 3x dx',ans:6}
+    ],
+    hard:[
+      {q:'Derivative of x⁴ at x = 2',ans:32},
+      {q:'Derivative of 3x³ at x = 2',ans:36},
+      {q:'Integral of 2x from 0 to 3',ans:9},
+      {q:'∫_0^2 4x dx',ans:8},
+      {q:'If f(x) = 5x² − x, find f′(3)',ans:29},
+      {q:'Derivative of 2x³ at x = 2',ans:24},
+      {q:'∫_0^3 x dx',ans:4},
+      {q:'Derivative of x⁵ at x = 1',ans:5}
+    ]
+  },
+  c011:{
+    easy:[
+      {q:'Area of circle radius 3 using π ≈ 3.14 (nearest whole)',ans:28},
+      {q:'Perimeter of square side 7',ans:28},
+      {q:'Area of rectangle 5 × 8',ans:40},
+      {q:'Volume of cube side 3',ans:27},
+      {q:'Triangle area base 12, height 5',ans:30},
+      {q:'Circle diameter when radius 6',ans:12}
+    ],
+    medium:[
+      {q:'Volume of cylinder r = 2, h = 5 using π ≈ 3.14 (nearest whole)',ans:63},
+      {q:'Area of circle radius 5 (π ≈ 3.14, nearest whole)',ans:79},
+      {q:'Surface area of cube side 4',ans:96},
+      {q:'Cylinder r = 3, h = 4 volume (π ≈ 3.14, nearest whole)',ans:113},
+      {q:'Scale factor 2 multiplies area by what factor?',ans:4},
+      {q:'Rectangular prism 2×3×5 volume',ans:30}
+    ],
+    hard:[
+      {q:'Surface area of cube side 6',ans:216},
+      {q:'Sphere radius 3 surface (π ≈ 3.14, nearest whole)',ans:113},
+      {q:'Cone r = 3, h = 4 slant ℓ = 5 lateral area (π ≈ 3.14, nearest whole)',ans:47},
+      {q:'Scale factor 3: area scales by?',ans:9},
+      {q:'Trapezoid bases 6 and 10, height 4 — area',ans:32},
+      {q:'Cube edge 5: total edge length (12 edges)',ans:60}
+    ]
+  },
+  c012:{
+    easy:[
+      {q:'Sum of supplementary angles',ans:180},
+      {q:'Complementary angles sum (degrees)',ans:90},
+      {q:'Angles 45° and 45° in a triangle — third angle?',ans:90},
+      {q:'Vertical angles are congruent: if one is 72°, the other?',ans:72}
+    ],
+    medium:[
+      {q:'Triangle angle sum in Euclidean plane',ans:180},
+      {q:'Parallel lines: corresponding angle to 58° equals?',ans:58},
+      {q:'Triangle exterior angle 120° equals remote interior 40° + ?',ans:80},
+      {q:'Linear pair: 110° and ?',ans:70}
+    ],
+    hard:[
+      {q:'How many points determine a line?',ans:2},
+      {q:'Parallel lines: alternate interior to 47° equals?',ans:47},
+      {q:'Pentagon exterior angle sum (degrees)',ans:360},
+      {q:'Each exterior angle of regular hexagon (degrees)',ans:60}
+    ]
+  },
+  c013:{
+    easy:[
+      {q:'Interior angle sum of hexagon',ans:720},
+      {q:'Interior angle sum of quadrilateral',ans:360},
+      {q:'Inscribed angle intercepts 100° arc. Measure?',ans:50},
+      {q:'Number of diagonals from one vertex of hexagon',ans:3}
+    ],
+    medium:[
+      {q:'Inscribed angle intercepts 80° arc. Angle measure?',ans:40},
+      {q:'Interior angle sum of heptagon',ans:900},
+      {q:'Central angle for 90° arc',ans:90},
+      {q:'Regular pentagon one interior angle (degrees)',ans:108}
+    ],
+    hard:[
+      {q:'Regular octagon interior angle',ans:135},
+      {q:'Inscribed angle intercepts semicircle — degrees',ans:90},
+      {q:'Interior angle sum of decagon',ans:1440},
+      {q:'Tangent–chord angle half arc: arc 100°, angle (degrees)',ans:50}
+    ]
+  },
+  c014:{
+    easy:[
+      {q:'Distance from (0,0) to (6,8)',ans:10},
+      {q:'Distance from (0,0) to (5,12)',ans:13},
+      {q:'Midpoint x of (0,4) and (8,4)',ans:4},
+      {q:'Translate (3,2) right 5. New x?',ans:8}
+    ],
+    medium:[
+      {q:'Midpoint x-coordinate of (2,5) and (8,1)',ans:5},
+      {q:'Distance from (1,1) to (4,5)',ans:5},
+      {q:'Dot product <2,3> · <1,4>',ans:14},
+      {q:'Vector from (0,0) to (9,12) length',ans:15}
+    ],
+    hard:[
+      {q:'Dot product of <3,4> and <4,−3>',ans:0},
+      {q:'Midpoint y of (2,8) and (6,0)',ans:4},
+      {q:'Distance (3,4) to (3,−4)',ans:8},
+      {q:'<1,2> · <−4,2>',ans:0}
+    ]
+  },
   c015:{easy:[{q:'Mean of 5,7,9',ans:7}],medium:[{q:'Range of 3,8,12,19',ans:16}],hard:[{q:'Median of 2,4,6,8,10,12',ans:7}]},
   c016:{easy:[{q:'Probability of drawing heart from 52-card deck denominator',ans:4}],medium:[{q:'Compute C(6,2)',ans:15}],hard:[{q:'If P(A)=0.4 and P(B)=0.5 independent, P(A and B) as percent',ans:20}]},
   c017:{easy:[{q:'95% z critical value rounded hundredths',ans:196}],medium:[{q:'Sample mean 50, sigma 10, n=25. Standard error',ans:2}],hard:[{q:'Type I error probability symbol alpha=0.05 as percent',ans:5}]},
@@ -901,9 +1045,30 @@ const QBLOCKS_STD_BANK_48={
     hard:[{q:'25% of what number is 15?',ans:60},{q:'GCF of 48 and 36',ans:12}]
   },
   m48_c004:{
-    easy:[{q:'Pattern: 2, 4, 6, 8, ___',ans:10},{q:'Pattern: 5, 10, 15, 20, ___',ans:25}],
-    medium:[{q:'Pattern: 3, 6, 12, 24, ___',ans:48},{q:'Start at 1, multiply by 3 each time. 4th term?',ans:27}],
-    hard:[{q:'Pattern: 1, 4, 9, 16, ___',ans:25},{q:'Arithmetic: first term 7, add 5 each time. 6th term?',ans:32}]
+    easy:[
+      {q:'Pattern: 2, 4, 6, 8, ___',ans:10},
+      {q:'Pattern: 5, 10, 15, 20, ___',ans:25},
+      {q:'Next: 4, 7, 10, 13, ___',ans:16},
+      {q:'Count by 3s: 3, 6, 9, 12, ___',ans:15},
+      {q:'Double: 2, 4, 8, 16, ___',ans:32},
+      {q:'Squares: 4, 9, 16, ___',ans:25}
+    ],
+    medium:[
+      {q:'Pattern: 3, 6, 12, 24, ___',ans:48},
+      {q:'Start 1, ×3 each time. 4th term?',ans:27},
+      {q:'Arithmetic: start 6, add 4. Term 5?',ans:22},
+      {q:'Next: 20, 17, 14, 11, ___',ans:8},
+      {q:'Geometric: 2, 6, 18, next?',ans:54},
+      {q:'Sum 5 + 7 + 9',ans:21}
+    ],
+    hard:[
+      {q:'Pattern: 1, 4, 9, 16, ___',ans:25},
+      {q:'Arithmetic: first 7, add 5. 6th term?',ans:32},
+      {q:'Geometric: 4, 12, 36, next?',ans:108},
+      {q:'Triangular: 1, 3, 6, 10, ___',ans:15},
+      {q:'Next: 1, 2, 4, 8, ___',ans:16},
+      {q:'Arithmetic sum: 3+7+11+15',ans:36}
+    ]
   },
   m48_c005:{
     easy:[{q:'Solve: x + 7 = 15',ans:8},{q:'Solve: x − 3 = 12',ans:15}],
@@ -1178,6 +1343,12 @@ function gcd(a,b){
   return a||1;
 }
 
+function lcm(a,b){
+  a=Math.abs(a);b=Math.abs(b);
+  if(!a||!b)return 0;
+  return Math.round((a/gcd(a,b))*b);
+}
+
 /** Inclusive integer random; used by generated standard/comp questions. */
 function rand(lo,hi){
   const a=Math.ceil(Number(lo)),b=Math.floor(Number(hi));
@@ -1308,6 +1479,305 @@ function generateQuestionFromStd(std,diff){
     if(style===8)return makeQuestionObject('cos(0°) as hundredths',100);
     return makeQuestionObject('sin(30°) as hundredths (50 = 0.50)',50);
   }
+  if(std==='c010'){
+    const r=Math.random();
+    if(r<0.42){
+      const n=rand(2,5),k=rand(1,8);
+      const ans=Math.round(n*Math.pow(k,n-1));
+      if(ans>0&&ans<=500)return makeQuestionObject('Power rule: derivative of x^'+n+' at x = '+k,ans);
+    }
+    if(r<0.58){
+      const m=rand(2,12),b=rand(0,9);
+      return makeQuestionObject('If f(x) = '+m+'x + '+b+', what is f′(x)?',m);
+    }
+    if(r<0.72){
+      const k=rand(2,6),x0=rand(1,6);
+      return makeQuestionObject('Derivative of '+k+'x² at x = '+x0,2*k*x0);
+    }
+    if(r<0.86){
+      const b=rand(2,8),c=rand(1,6);
+      const ans=Math.round((c*b*b)/2);
+      if(ans>0&&ans<=200)return makeQuestionObject('Evaluate ∫_0^'+b+' '+c+'x dx',ans);
+    }
+    if(r<0.93){
+      const x0=rand(2,8);
+      return makeQuestionObject('If f(x) = x² − 5x, find f′('+x0+')',2*x0-5);
+    }
+    const x0=rand(2,7);
+    return makeQuestionObject('If f(x) = x² + 3x, find f′('+x0+')',2*x0+3);
+  }
+  if(std==='c004'){
+    const r=Math.random();
+    if(r<0.32){
+      const a=rand(2,18),d=rand(2,9),n=rand(3,12);
+      return makeQuestionObject('Arithmetic: first term '+a+', common difference '+d+'. Term '+n+'?',a+(n-1)*d);
+    }
+    if(r<0.52){
+      const a=rand(2,6),ratio=rand(2,5),n=rand(3,7);
+      const ans=a*Math.pow(ratio,n-1);
+      if(ans>0&&ans<=2500)return makeQuestionObject('Geometric: first term '+a+', ratio '+ratio+'. Term '+n+'?',ans);
+    }
+    if(r<0.68){
+      const a=rand(2,14),d=rand(2,8),n=rand(3,9);
+      return makeQuestionObject('Sum of first '+n+' terms: arithmetic a₁='+a+', d='+d+'.',Math.round(n*(2*a+(n-1)*d)/2));
+    }
+    if(r<0.78){
+      const d=rand(2,8),t1=rand(3,16),t2=t1+d,t3=t2+d;
+      return makeQuestionObject('Next term: '+t1+', '+t2+', '+t3+', ___',t3+d);
+    }
+    if(r<0.88){
+      const k=rand(2,7);
+      return makeQuestionObject('Pattern: '+k*k+', '+(k+1)*(k+1)+', '+(k+2)*(k+2)+', '+(k+3)*(k+3)+', ___',(k+4)*(k+4));
+    }
+    if(r<0.94){
+      const s=rand(2,5);
+      const t0=s,t1=2*s,t2=4*s,t3=8*s;
+      return makeQuestionObject('Pattern: '+t0+', '+t1+', '+t2+', '+t3+', ___ (double)',16*s);
+    }
+    const a=rand(2,10),b=a+rand(2,6),c=b+rand(2,6);
+    return makeQuestionObject('Next term: '+a+', '+b+', '+c+', ___ (same gap)',c+(c-b));
+  }
+  if(std==='m48_c004'){
+    const r=Math.random();
+    if(r<0.35){
+      const a=rand(2,12),d=rand(2,6),n=rand(3,8);
+      return makeQuestionObject('Arithmetic: start '+a+', add '+d+'. Term '+n+'?',a+(n-1)*d);
+    }
+    if(r<0.55){
+      const a=rand(2,5),ratio=rand(2,4),n=rand(3,6);
+      const ans=a*Math.pow(ratio,n-1);
+      if(ans>0&&ans<=500)return makeQuestionObject('Geometric: start '+a+', ratio '+ratio+'. Term '+n+'?',ans);
+    }
+    if(r<0.72){
+      const d=rand(2,6),t1=rand(2,12),t2=t1+d,t3=t2+d;
+      return makeQuestionObject('Next: '+t1+', '+t2+', '+t3+', ___',t3+d);
+    }
+    if(r<0.85){
+      const k=rand(2,5);
+      return makeQuestionObject('Squares: '+k*k+', '+(k+1)*(k+1)+', '+(k+2)*(k+2)+', ___',(k+3)*(k+3));
+    }
+    const s=rand(2,4);
+    return makeQuestionObject('Double: '+s+', '+(2*s)+', '+(4*s)+', '+(8*s)+', ___',16*s);
+  }
+  if(std==='c001'){
+    const r=Math.random();
+    if(r<0.34){const n=rand(2,22);return makeQuestionObject('Evaluate: |−'+n+'| + 1',n+1);}
+    if(r<0.67){const a=rand(2,6),b=rand(1,Math.max(1,a-1));return makeQuestionObject('Compute: 2^'+a+' ÷ 2^'+b,Math.pow(2,a-b));}
+    const a=rand(18,96),b=rand(9,48);return makeQuestionObject('Find gcd('+a+', '+b+').',gcd(a,b));
+  }
+  if(std==='c002'){
+    const r=Math.random();
+    if(r<0.2){const n=rand(1,8)*4;return makeQuestionObject('Evaluate i^'+n,1);}
+    if(r<0.4){const n=rand(0,7)*4+2;return makeQuestionObject('Evaluate i^'+n,-1);}
+    if(r<0.7){const a=rand(1,9),b=rand(1,9);return makeQuestionObject('('+a+' + '+b+'i)('+a+' − '+b+'i) equals? (real)',a*a+b*b);}
+    const a=rand(1,8),b=rand(1,8);return makeQuestionObject('|'+a+' + '+b+'i| (nearest whole)',Math.round(Math.sqrt(a*a+b*b)));
+  }
+  if(std==='c003'){
+    const r=Math.random();
+    if(r<0.3){const a=rand(4,18),b=rand(4,18);return makeQuestionObject('Compute lcm('+a+', '+b+')',lcm(a,b));}
+    if(r<0.6){const a=rand(12,96),b=rand(8,64);return makeQuestionObject('Compute gcd('+a+', '+b+')',gcd(a,b));}
+    if(r<0.8){const a=rand(2,9),b=rand(2,9);return makeQuestionObject('LCM of '+a+' and '+b,lcm(a,b));}
+    const a=rand(6,36),b=rand(6,36);return makeQuestionObject('GCF of '+a+' and '+b,gcd(a,b));
+  }
+  if(std==='c005'){
+    const r=Math.random();
+    if(r<0.35){const m=rand(2,9),b=rand(1,14),x=rand(1,10);return makeQuestionObject('Evaluate f(x) = '+m+'x + '+b+' at x = '+x,m*x+b);}
+    if(r<0.65){const x=rand(2,9);return makeQuestionObject('If f(x) = x², g(x) = x + 1, find (f∘g)('+x+')',(x+1)*(x+1));}
+    const m=rand(2,8),x0=rand(2,10),b=m*x0;return makeQuestionObject('If f(x) = '+m+'x − '+b+', solve f(x) = 0 for x',x0);
+  }
+  if(std==='c011'){
+    const r=Math.random(),P=3.14;
+    if(r<0.2){const rad=rand(2,9);return makeQuestionObject('Area of circle radius '+rad+' (π ≈ 3.14, nearest whole)',Math.round(P*rad*rad));}
+    if(r<0.38){const r0=rand(2,5),h=rand(4,10);return makeQuestionObject('Cylinder r = '+r0+', h = '+h+' volume (π ≈ 3.14, nearest whole)',Math.round(P*r0*r0*h));}
+    if(r<0.55){const w=rand(4,14),h=rand(4,14);return makeQuestionObject('Area of rectangle '+w+' by '+h,w*h);}
+    if(r<0.7){const b=rand(6,16),h=rand(4,12);return makeQuestionObject('Triangle area base '+b+', height '+h,Math.round(b*h/2));}
+    if(r<0.85){const s=rand(3,9);return makeQuestionObject('Volume of cube side '+s,s*s*s);}
+    if(r<0.93){const s=rand(4,10);return makeQuestionObject('Surface area of cube side '+s,6*s*s);}
+    const k=rand(2,5);return makeQuestionObject('Lengths scaled by factor '+k+'; area scales by factor?',k*k);
+  }
+  if(std==='c012'){
+    const r=Math.random();
+    if(r<0.2){const a=rand(25,140);return makeQuestionObject('Supplementary to '+a+'°. The other angle?',180-a);}
+    if(r<0.4){const a=rand(12,65);return makeQuestionObject('Complementary to '+a+'°. The other angle?',90-a);}
+    if(r<0.6){
+      const a=rand(30,75),b=rand(30,Math.max(31,145-a)),c=180-a-b;
+      return makeQuestionObject('Triangle angles '+a+'° and '+b+'°. Third angle?',c);
+    }
+    if(r<0.72){const a=rand(35,145);return makeQuestionObject('Linear pair: '+a+'° and ? degrees',180-a);}
+    if(r<0.84){const a=rand(30,120);return makeQuestionObject('Vertical angle to '+a+'° equals?',a);}
+    const n=rand(3,9);return makeQuestionObject('Exterior angle sum of any convex '+n+'-gon?',360);
+  }
+  if(std==='c013'){
+    const r=Math.random();
+    if(r<0.35){const n=rand(5,9);return makeQuestionObject('Interior angle sum of '+n+'-gon (degrees)',(n-2)*180);}
+    if(r<0.6){const arc=2*rand(12,70);return makeQuestionObject('Inscribed angle intercepts '+arc+'° arc. Angle (degrees)',arc/2);}
+    const n=rand(5,10),sum=(n-2)*180;return makeQuestionObject('One interior angle of regular '+n+'-gon (nearest whole)',Math.round(sum/n));
+  }
+  if(std==='c014'){
+    const r=Math.random();
+    if(r<0.25){const x=rand(1,12),y=rand(1,12);return makeQuestionObject('Distance from (0,0) to ('+x+','+y+') nearest whole',Math.round(Math.sqrt(x*x+y*y)));}
+    if(r<0.5){const x1=rand(0,8),y1=rand(0,8),x2=rand(x1+2,x1+12),y2=rand(0,14);return makeQuestionObject('Midpoint x of ('+x1+','+y1+') and ('+x2+','+y2+')',Math.round((x1+x2)/2));}
+    if(r<0.75){const a=rand(1,7),b=rand(1,7),c=rand(1,7),d=rand(-6,6);return makeQuestionObject('Dot product <'+a+','+b+'> · <'+c+','+d+'>',a*c+b*d);}
+    const x1=rand(0,6),y1=rand(0,6),x2=rand(x1+2,x1+10),y2=rand(0,12);return makeQuestionObject('Midpoint y of ('+x1+','+y1+') and ('+x2+','+y2+')',Math.round((y1+y2)/2));
+  }
+  if(std==='c015'){
+    const r=Math.random();
+    if(r<0.34){const a=rand(4,22),b=rand(4,22),c=rand(4,22);return makeQuestionObject('Mean of '+a+', '+b+', and '+c,Math.round((a+b+c)/3));}
+    if(r<0.67){const lo=rand(2,18),hi=lo+rand(6,28);return makeQuestionObject('Range of '+lo+' and '+hi,hi-lo);}
+    const a=rand(2,10),b=rand(a+2,a+16),c=rand(b+2,b+18);return makeQuestionObject('Median of '+a+', '+b+', '+c,b);
+  }
+  if(std==='c016'){
+    const r=Math.random();
+    if(r<0.25){const n=rand(5,12);return makeQuestionObject('Compute C('+n+', 2)',(n*(n-1))/2);}
+    if(r<0.5){const pa=rand(2,8)*10,pb=rand(2,8)*10;return makeQuestionObject('Independent: P(A)='+pa+'%, P(B)='+pb+'%. P(A∩B) as percent',Math.round(pa*pb/100));}
+    if(r<0.75){const n=rand(6,14);return makeQuestionObject('Compute C('+n+', 3)',(n*(n-1)*(n-2))/6);}
+    const fav=rand(1,5),tot=rand(fav+4,fav+10);return makeQuestionObject(fav+' favorable out of '+tot+' outcomes. Probability as percent (nearest)',Math.round(100*fav/tot));
+  }
+  if(std==='c017'){
+    const r=Math.random();
+    if(r<0.3){const k=rand(3,8),m=rand(2,6);return makeQuestionObject('σ='+k*m+', n='+(k*k)+'. Standard error σ/√n?',m);}
+    if(r<0.55){const a=rand(2,9)*5;return makeQuestionObject('Significance level α = 0.'+((a<10)?'0'+a:a)+' is what percent?',a);}
+    if(r<0.8){const n=rand(20,60),s=rand(4,12);return makeQuestionObject('n='+n+', s='+s+'. SE = s/√n (nearest whole)',Math.round(s/Math.sqrt(n)));}
+    const z=rand(1,3),cl=[90,95,99][z-1];return makeQuestionObject('Which confidence level: '+cl+'% — z* nearest tenth × 10?',[16,20,26][z-1]);
+  }
+  if(std==='c018'){
+    const r=Math.random();
+    if(r<0.3){const n=rand(4,16);return makeQuestionObject('Compute n² + n for n = '+n,n*n+n);}
+    if(r<0.6){const t=rand(3,18);return makeQuestionObject('A number doubled plus 5 equals '+(2*t+5)+'. The number?',t);}
+    if(r<0.8){const n=rand(2,12);return makeQuestionObject('n³ − n for n = '+n+'. Result?',n*n*n-n);}
+    const n=rand(3,14);return makeQuestionObject('Sum of first '+n+' positive integers?',(n*(n+1))/2);
+  }
+  if(std==='c019'){
+    const r=Math.random();
+    if(r<0.3){const x2=rand(3,9),m=rand(2,6),y1=rand(2,9);const y2=y1+m*x2;return makeQuestionObject('Slope through (0,'+y1+') and ('+x2+','+y2+')',m);}
+    if(r<0.6){const m=rand(2,8),b=rand(1,14);return makeQuestionObject('y = '+m+'x + '+b+': y-intercept value',b);}
+    if(r<0.8){const m=rand(2,6),b=rand(1,10),x=rand(3,8);return makeQuestionObject('y = '+m+'x + '+b+' evaluated at x = '+x,m*x+b);}
+    const m=rand(2,7),b=rand(3,15),x=rand(2,9);return makeQuestionObject('y = '+m+'x − '+b+' at x = '+x,m*x-b);
+  }
+  if(std==='c020'){
+    const r=Math.random();
+    if(r<0.34){const lo=rand(3,8),hi=lo+rand(2,7);return makeQuestionObject('Midpoint of wait window '+lo+'–'+hi+' seconds',Math.round((lo+hi)/2));}
+    if(r<0.67){const g=rand(2,6),s=rand(2,10);return makeQuestionObject(g+' groups × '+s+' students each. Total?',g*s);}
+    const tot=rand(9,24),cor=rand(3,tot-1);return makeQuestionObject('Exit ticket '+tot+' items, class mean '+cor+' correct. Percent (nearest whole)',Math.round(100*cor/tot));
+  }
+  if(std==='c021'){
+    const r=Math.random();
+    if(r<0.34){const c=rand(6,14),t=rand(c+2,c+16);return makeQuestionObject(c+' of '+t+' correct. Percent score (nearest)',Math.round(100*c/t));}
+    if(r<0.67){const m=rand(4,18),t=rand(m+6,m+32);return makeQuestionObject(m+' missed of '+t+' on one item. Miss percent (nearest)',Math.round(100*m/t));}
+    const w1=rand(30,55),w2=100-w1,a=rand(65,95),b=rand(65,95);return makeQuestionObject('Weighted: '+w1+'% ('+a+') + '+w2+'% ('+b+'). Score (nearest whole)',Math.round((w1*a+w2*b)/100));
+  }
+  if(std==='m48_c001'){
+    const r=Math.random();
+    if(r<0.34){const n=rand(1000,9999);const tens=Math.floor(n/10)%10;return makeQuestionObject('Tens digit of '+n+'?',tens);}
+    if(r<0.67){const h=rand(12,48);return makeQuestionObject('How many hundreds in '+h+'00?',h);}
+    const w=rand(12,96),big=Math.random()<0.5,dec=big?rand(50,99):rand(10,49);
+    return makeQuestionObject('Round '+w+'.'+dec+' to the nearest whole',big?w+1:w);
+  }
+  if(std==='m48_c002'){
+    const r=Math.random();
+    if(r<0.3){const a=rand(2,9),b=rand(2,9);return makeQuestionObject(a+' + '+a+' × '+b+' = ? (order of operations)',a+a*b);}
+    if(r<0.6){const a=rand(2,8),b=rand(2,8),c=rand(2,6);return makeQuestionObject(a+' × '+b+' − '+c+' = ?',a*b-c);}
+    if(r<0.85){const d=rand(2,5),q=rand(3,9);return makeQuestionObject((d*q)+' ÷ '+d+' + '+d+' = ?',q+d);}
+    const d=rand(2,4),q=rand(3,10);return makeQuestionObject('('+d+' × '+q+') + '+d+' = ?',d*q+d);
+  }
+  if(std==='m48_c003'){
+    const r=Math.random();
+    if(r<0.34){const a=rand(8,18),b=rand(8,18);return makeQuestionObject('GCF of '+a+' and '+b,gcd(a,b));}
+    if(r<0.67){const p=rand(10,40);return makeQuestionObject('What is '+p+'% of 80?',Math.round(p*0.8));}
+    const a=rand(3,8),b=rand(4,12);return makeQuestionObject('LCM of '+a+' and '+b,lcm(a,b));
+  }
+  if(std==='m48_c005'){
+    const r=Math.random();
+    if(r<0.34){const b=rand(3,18),x=rand(2,20);return makeQuestionObject('Solve: x + '+b+' = '+(x+b),x);}
+    if(r<0.67){const m=rand(2,5),x=rand(2,10);return makeQuestionObject('Solve: '+m+'x = '+(m*x),x);}
+    const b=rand(2,12),x=rand(2,10);return makeQuestionObject('Solve: x − '+b+' = '+(x-b),x);
+  }
+  if(std==='m48_c006'){
+    const r=Math.random();
+    if(r<0.3){const m=rand(1,6),x1=rand(1,4),y1=rand(2,8),x2=x1+rand(2,5),y2=y1+m*(x2-x1);return makeQuestionObject('Slope through ('+x1+','+y1+') and ('+x2+','+y2+')',m);}
+    if(r<0.55){const m=rand(2,6),b=rand(1,12),x=rand(2,7);return makeQuestionObject('y = '+m+'x + '+b+'. Value at x = '+x,m*x+b);}
+    if(r<0.8){const m=rand(2,5),b=rand(2,12);return makeQuestionObject('y = '+m+'x + '+b+'. y-intercept?',b);}
+    const m=rand(1,5),b=rand(1,10),x=rand(2,8);return makeQuestionObject('y = '+m+'x − '+b+' at x = '+x,m*x-b);
+  }
+  if(std==='m48_c007'){
+    const r=Math.random();
+    if(r<0.25){const a=rand(30,75),b=rand(30,Math.max(31,145-a)),c=180-a-b;return makeQuestionObject('Triangle angles '+a+'° and '+b+'°. Third?',c);}
+    if(r<0.5){const n=rand(4,9);return makeQuestionObject('Interior angle sum of '+n+'-gon',(n-2)*180);}
+    if(r<0.75){const ang=rand(25,145);return makeQuestionObject('Supplement of a '+ang+'° angle',180-ang);}
+    const ang=rand(10,75);return makeQuestionObject('Complement of a '+ang+'° angle',90-ang);
+  }
+  if(std==='m48_c008'){
+    const r=Math.random(),P=3.14;
+    if(r<0.22){const s=rand(3,12);return makeQuestionObject('Perimeter of square side '+s,4*s);}
+    if(r<0.44){const w=rand(3,12),h=rand(3,12);return makeQuestionObject('Area of rectangle '+w+' × '+h,w*h);}
+    if(r<0.62){const b=rand(6,14),h=rand(4,10);return makeQuestionObject('Triangle area base '+b+', height '+h,Math.round(b*h/2));}
+    if(r<0.78){const a=rand(2,5),b=rand(3,6),c=rand(2,5);return makeQuestionObject('Volume of box '+a+'×'+b+'×'+c,a*b*c);}
+    if(r<0.9){const a=rand(3,12),b=rand(3,12);return makeQuestionObject('Hypotenuse: legs '+a+' and '+b+' (nearest whole)',Math.round(Math.sqrt(a*a+b*b)));}
+    const rad=rand(3,8);return makeQuestionObject('Circle area r = '+rad+' (π ≈ 3.14, nearest whole)',Math.round(P*rad*rad));
+  }
+  if(std==='m48_c009'){
+    const r=Math.random();
+    if(r<0.35){const t=[[3,0,3],[5,0,5],[4,0,4]][rand(0,2)];return makeQuestionObject('Distance from (0,0) to ('+t[0]+',0)',t[2]);}
+    if(r<0.6){const a=rand(2,10),b=rand(2,10);return makeQuestionObject('Distance from (0,0) to ('+a+','+b+') nearest whole',Math.round(Math.sqrt(a*a+b*b)));}
+    if(r<0.8){const x=rand(2,8),d=rand(2,7);return makeQuestionObject('Translate ('+x+',4) right '+d+'. New x?',x+d);}
+    const y0=rand(2,9),x0=rand(2,8);return makeQuestionObject('Reflect ('+x0+','+y0+') over x-axis. New y-coordinate?',-y0);
+  }
+  if(std==='m48_c010'){
+    const r=Math.random();
+    if(r<0.34){const a=rand(3,12),b=rand(3,12),c=rand(3,12);return makeQuestionObject('Mean of '+a+', '+b+', '+c,Math.round((a+b+c)/3));}
+    if(r<0.67){const lo=rand(2,14),hi=lo+rand(5,22);return makeQuestionObject('Range of data '+lo+' to '+hi,hi-lo);}
+    const a=rand(2,8),b=rand(a+1,a+12),c=rand(b+1,b+14),d=rand(c+1,c+16),e=rand(d+1,d+18);return makeQuestionObject('Median of five: '+a+','+b+','+c+','+d+','+e,c);
+  }
+  if(std==='m48_c011'){
+    const r=Math.random();
+    if(r<0.3){const a=rand(2,8),b=rand(2,8);return makeQuestionObject('Bag: '+a+' red + '+b+' blue. Total marbles?',a+b);}
+    if(r<0.55){const n=rand(2,5);return makeQuestionObject(n+' fair coins tossed. Total outcomes?',Math.pow(2,n));}
+    if(r<0.8){const fav=rand(1,5),tot=rand(fav+3,fav+8);return makeQuestionObject(fav+' winning tickets out of '+tot+'. Non-winning?',tot-fav);}
+    const r1=rand(3,8),b1=rand(3,8),g=rand(1,5);return makeQuestionObject('Bag: '+r1+' red, '+b1+' blue, '+g+' green. Total?',r1+b1+g);
+  }
+  if(std==='m48_c012'){
+    const r=Math.random();
+    if(r<0.34){const p=rand(20,80),n=rand(50,200);return makeQuestionObject(p+'% of '+n+' students. How many?',Math.round(p*n/100));}
+    if(r<0.67){const a=rand(8,28),b=rand(10,40);return makeQuestionObject('Sample: '+a+' of '+b+' chose A. Predict A in '+b*5+' (same rate)',a*5);}
+    const tot=rand(20,36),abs=rand(3,tot-5);return makeQuestionObject('Class '+tot+' students, '+abs+' absent. How many present?',tot-abs);
+  }
+  if(std==='m48_c013'){
+    const r=Math.random();
+    if(r<0.34){const n=rand(3,9),g=rand(2,8);const tot=n*g;return makeQuestionObject(tot+' stickers shared equally among '+g+' friends. Each gets?',n);}
+    if(r<0.67){const mph=rand(40,65),h=rand(2,5);return makeQuestionObject('Car '+mph+' mph for '+h+' hours. Miles?',mph*h);}
+    const cups=rand(4,9);return makeQuestionObject('3 batches × '+cups+' cups per batch. Total cups?',3*cups);
+  }
+  if(std==='m48_c014'){
+    const r=Math.random();
+    if(r<0.34){const n=rand(3,9),p=rand(3,12);return makeQuestionObject(n+' items at $'+p+' each. Total $?',n*p);}
+    if(r<0.67){const L=rand(8,14),W=rand(8,14);return makeQuestionObject('Room '+L+' ft by '+W+' ft. Area (sq ft)?',L*W);}
+    const hrs=rand(20,40),rate=rand(10,16);return makeQuestionObject('$'+rate+'/hr × '+hrs+' hours. Gross pay?',rate*hrs);
+  }
+  if(std==='m48_c015'){
+    const r=Math.random();
+    if(r<0.3){const n=rand(3,15);return makeQuestionObject('|−'+n+'| = ?',n);}
+    if(r<0.55){const names=['triangle','quadrilateral','pentagon','hexagon','heptagon','octagon'];const i=rand(0,5);return makeQuestionObject('How many sides does a '+names[i]+' have?',[3,4,5,6,7,8][i]);}
+    if(r<0.8){const a=rand(2,20),b=rand(2,20);return makeQuestionObject('|'+a+' − '+b+'| = ?',Math.abs(a-b));}
+    const n=rand(3,18);return makeQuestionObject('Absolute value of −'+n,n);
+  }
+  if(std==='m48_c016'){
+    const r=Math.random();
+    if(r<0.34){const t=rand(2,8),o=rand(1,9);return makeQuestionObject(t+' tens + '+o+' ones = ?',t*10+o);}
+    if(r<0.67){const r0=rand(2,6),c=rand(2,6);return makeQuestionObject('Array: '+r0+' rows of '+c+' tiles. Total?',r0*c);}
+    const a=rand(3,9),b=rand(3,9);return makeQuestionObject(a+' × '+b+' = ?',a*b);
+  }
+  if(std==='m48_c017'){
+    const r=Math.random();
+    if(r<0.34){const p=rand(2,6),m=rand(10,20);return makeQuestionObject(p+' parts × '+m+' min each. Total minutes?',p*m);}
+    if(r<0.67){const n=rand(20,35);return makeQuestionObject(n+' students in pairs (1 left over). How many pairs?',Math.floor(n/2));}
+    const perWk=rand(2,6),wk=rand(2,5);return makeQuestionObject((perWk*wk)+' lessons in '+wk+' weeks. Per week?',perWk);
+  }
+  if(std==='m48_c018'){
+    const r=Math.random();
+    if(r<0.34){const c=rand(6,9),t=rand(10,12);return makeQuestionObject('Quiz: '+c+' of '+t+' correct. Percent?',Math.round(100*c/t));}
+    if(r<0.67){const n=rand(15,30),p=rand(12,n-1);return makeQuestionObject('Class '+n+': '+p+' proficient. Percent (nearest)?',Math.round(100*p/n));}
+    const w1=30,w2=70,a=rand(80,98),b=rand(70,95);return makeQuestionObject('Weighted HW '+w1+'% ('+a+') + test '+w2+'% ('+b+'). Total (nearest)',Math.round((w1*a+w2*b)/100));
+  }
   if(std==='c006'){
     const style=Math.floor(Math.random()*3);
     if(style===0){const b=rand(2,12),x=rand(1,12);return makeQuestionObject('Solve x + '+b+' = '+(x+b)+'. Find x.',x);}
@@ -1333,18 +1803,47 @@ function generateQuestionFromComp(comp,diff){
     const x=rand(2,6);return makeQuestionObject('Evaluate f('+x+') for f(x)=x² − 3x.',x*x-3*x);
   }
   if(c==='comp003'||c==='comp48_3'){
-    const style=Math.floor(Math.random()*3);
+    const style=Math.floor(Math.random()*14);
+    const P=3.14;
     if(style===0){const w=rand(3,14),h=rand(3,14);return makeQuestionObject('Area of a rectangle with width '+w+' and height '+h+'.',w*h);}
     if(style===1){const s=rand(3,12);return makeQuestionObject('Perimeter of a square with side '+s+'.',4*s);}
-    const triples=[[3,4,5],[5,12,13],[8,15,17],[7,24,25]];
-    const t=triples[Math.floor(Math.random()*triples.length)];
-    return makeQuestionObject('Right triangle legs '+t[0]+' and '+t[1]+'. Hypotenuse?',t[2]);
+    if(style===2){const a=rand(3,12),b=rand(3,12);return makeQuestionObject('Right triangle legs '+a+' and '+b+'. Hypotenuse (nearest whole)?',Math.round(Math.sqrt(a*a+b*b)));}
+    if(style===3){const a=rand(30,80),b=rand(30,Math.max(31,145-a)),c=180-a-b;return makeQuestionObject('Triangle angles '+a+'° and '+b+'°. Third angle?',c);}
+    if(style===4){const r0=rand(3,10);return makeQuestionObject('Diameter of a circle with radius '+r0,2*r0);}
+    if(style===5){const n=rand(4,8);return makeQuestionObject('Interior angle sum of an '+n+'-gon (degrees)',(n-2)*180);}
+    if(style===6){const b=rand(6,14),h=rand(4,12);return makeQuestionObject('Area of triangle base '+b+', height '+h,Math.round(b*h/2));}
+    if(style===7){const s=rand(3,9);return makeQuestionObject('Volume of a cube with side '+s,s*s*s);}
+    if(style===8){const rad=rand(2,9);return makeQuestionObject('Circle area radius '+rad+' (π ≈ 3.14, nearest whole)',Math.round(P*rad*rad));}
+    if(style===9){const r0=rand(2,5),h=rand(4,10);return makeQuestionObject('Cylinder volume r='+r0+', h='+h+' (π ≈ 3.14, nearest whole)',Math.round(P*r0*r0*h));}
+    if(style===10){const s=rand(4,9);return makeQuestionObject('Surface area of a cube side '+s,6*s*s);}
+    if(style===11){const k=rand(2,5);return makeQuestionObject('Lengths scaled by '+k+'; area scales by what factor?',k*k);}
+    if(style===12){const a=rand(2,4),b=rand(3,6),c=rand(2,5);return makeQuestionObject('Volume of rectangular prism '+a+'×'+b+'×'+c,a*b*c);}
+    const w=rand(4,10),l=rand(5,12);return makeQuestionObject('Perimeter of rectangle '+w+' by '+l,2*(w+l));
   }
   if(c==='comp004'){
-    const style=Math.floor(Math.random()*3);
-    if(style===0){const a=rand(5,20),d=rand(2,6),n=rand(4,8);return makeQuestionObject('Arithmetic sequence starts at '+a+' with common difference '+d+'. Find term '+n+'.',a+(n-1)*d);}
-    if(style===1){const a=rand(2,5),r=2,n=rand(4,7);return makeQuestionObject('Geometric sequence starts at '+a+' with ratio '+r+'. Find term '+n+'.',a*(r**(n-1)));}
-    const x=rand(2,8);return makeQuestionObject('Evaluate p('+x+') for p(x)=2x+3.',2*x+3);
+    const style=Math.floor(Math.random()*6);
+    if(style===0){
+      const a=rand(5,30),b=rand(5,30),c=rand(5,30);
+      return makeQuestionObject('Mean of '+a+', '+b+', and '+c+'.',Math.round((a+b+c)/3));
+    }
+    if(style===1){
+      const a=rand(2,12),b=rand(a+1,a+15),c=rand(b+1,b+20),d=rand(c+1,c+25),e=rand(d+1,d+30);
+      return makeQuestionObject('Median of five values '+a+', '+b+', '+c+', '+d+', '+e,c);
+    }
+    if(style===2){
+      const lo=rand(3,20),hi=lo+rand(5,25);
+      return makeQuestionObject('Range of data '+lo+' and '+hi+' (high − low)',hi-lo);
+    }
+    if(style===3){
+      const n=rand(5,12);
+      return makeQuestionObject('Combinations C('+n+', 2) (handshake count)',(n*(n-1))/2);
+    }
+    if(style===4){
+      const n=rand(8,40),k=rand(2,n-1);
+      return makeQuestionObject('Out of '+n+' trials, '+k+' successes. Percent success (nearest whole)',Math.round((k/n)*100));
+    }
+    const sides=6;
+    return makeQuestionObject('Fair die: probability of rolling 1 as percent (nearest whole)',Math.round(100/sides));
   }
   if(c==='comp005'||c==='comp48_7'||c==='comp48_8'||c==='comp48_9'){
     const style=Math.floor(Math.random()*3);
@@ -1372,6 +1871,14 @@ function buildGeneratedScopedQuestion(kind,id,diff,type,scopeKey){
   return null;
 }
 
+function recycleScopeAndBuild(kind,id,diff,type,pool,scopeKey){
+  delete USED_POOL_QUESTIONS[scopeKey];
+  delete USED_GENERATED_QUESTIONS[scopeKey];
+  var gen=buildGeneratedScopedQuestion(kind,id,diff,type,scopeKey);
+  if(gen)return gen;
+  return buildChoiceFromPool(pool,diff,type,scopeKey);
+}
+
 function buildStdQuestion(diff){
   const bank=QBLOCKS_STD_BANK[scopedStdId];
   const pool=poolWithFallback(bank,diff);
@@ -1380,12 +1887,7 @@ function buildStdQuestion(diff){
   if(fromPool)return fromPool;
   const generated=buildGeneratedScopedQuestion('standard',scopedStdId,diff,'standard',scopeKey);
   if(generated)return generated;
-  // Never drift to a broader scope when a standard is active; recycle this standard pool.
-  if(pool.length){
-    delete USED_POOL_QUESTIONS[scopeKey];
-    delete USED_GENERATED_QUESTIONS[scopeKey];
-    return buildChoiceFromPool(pool,diff,'standard',scopeKey);
-  }
+  if(pool.length)return recycleScopeAndBuild('standard',scopedStdId,diff,'standard',pool,scopeKey);
   return null;
 }
 
@@ -1397,11 +1899,7 @@ function buildCompQuestion(diff){
   if(fromPool)return fromPool;
   const generated=buildGeneratedScopedQuestion('competency',scopedCompId,diff,'competency',scopeKey);
   if(generated)return generated;
-  if(pool.length){
-    delete USED_POOL_QUESTIONS[scopeKey];
-    delete USED_GENERATED_QUESTIONS[scopeKey];
-    return buildChoiceFromPool(pool,diff,'competency',scopeKey);
-  }
+  if(pool.length)return recycleScopeAndBuild('competency',scopedCompId,diff,'competency',pool,scopeKey);
   return null;
 }
 
@@ -1413,11 +1911,7 @@ function buildStdQuestion48(diff){
   if(fromPool)return fromPool;
   const generated=buildGeneratedScopedQuestion('standard',scopedStdId,diff,'standard',scopeKey);
   if(generated)return generated;
-  if(pool.length){
-    delete USED_POOL_QUESTIONS[scopeKey];
-    delete USED_GENERATED_QUESTIONS[scopeKey];
-    return buildChoiceFromPool(pool,diff,'standard',scopeKey);
-  }
+  if(pool.length)return recycleScopeAndBuild('standard',scopedStdId,diff,'standard',pool,scopeKey);
   return null;
 }
 
@@ -1429,11 +1923,7 @@ function buildCompQuestion48(diff){
   if(fromPool)return fromPool;
   const generated=buildGeneratedScopedQuestion('competency',scopedCompId,diff,'competency',scopeKey);
   if(generated)return generated;
-  if(pool.length){
-    delete USED_POOL_QUESTIONS[scopeKey];
-    delete USED_GENERATED_QUESTIONS[scopeKey];
-    return buildChoiceFromPool(pool,diff,'competency',scopeKey);
-  }
+  if(pool.length)return recycleScopeAndBuild('competency',scopedCompId,diff,'competency',pool,scopeKey);
   return null;
 }
 
@@ -1976,7 +2466,7 @@ function checkAnswer(btn){
     stats.byDifficulty[currentQuestion.diff].wrong++;
     const qStr=currentQuestion.type==='equation'
       ?currentQuestion.q
-      :(currentQuestion.type==='competency'
+      :(currentQuestion.type==='competency'||currentQuestion.type==='standard'
         ?currentQuestion.q
         :`${currentQuestion.a} ${currentQuestion.op} ${currentQuestion.b}`);
     wrongAnswers.push({q:qStr,correct:currentQuestion.ans,given:Number(btn.textContent),a:currentQuestion.a,b:currentQuestion.b,op:currentQuestion.op,type:currentQuestion.type||'arithmetic',diff:currentQuestion.diff||'easy',fullQ:currentQuestion.q||qStr});
@@ -2187,6 +2677,13 @@ function showGameOver(){
 function generateExplanation(w){
   var steps=[];var takeaway='';
   var a=w.a,b=w.b,op=w.op,correct=w.correct,given=w.given,type=w.type||'arithmetic';
+
+  if(w.skipped){
+    steps.push('You used <b>Skip</b> instead of answering — that counts as incorrect for accuracy.');
+    steps.push('The correct answer was <b>'+correct+'</b>.');
+    takeaway='Try working through the problem instead of skipping so your stats reflect real practice.';
+    return {steps:steps,takeaway:takeaway};
+  }
 
   if(type==='equation'){
     var qText=w.fullQ||w.q||'';
@@ -2511,7 +3008,43 @@ function init(){
   $('ansA').addEventListener('click',function(){checkAnswer(this);});
   $('ansB').addEventListener('click',function(){checkAnswer(this);});
   var skipBtn=$('skipBtn');
-  if(skipBtn){ skipBtn.addEventListener('click',function(){if(!unlocked&&piece){unlocked=true;var q=$('qText');if(q){q.textContent='GO! Move & place the block!';q.style.animation='none';}setSpeed();renderBoard();}}); skipBtn.addEventListener('touchstart',function(e){e.preventDefault();skipBtn.click();},{passive:false}); }
+  if(skipBtn){
+    skipBtn.addEventListener('click',function(){
+      if(!unlocked&&piece){
+        if(currentQuestion){
+          stats.mathWrong++;
+          var diffKey=currentQuestion.diff||'easy';
+          if(stats.byDifficulty[diffKey])stats.byDifficulty[diffKey].wrong++;
+          else stats.byDifficulty.easy.wrong++;
+          combo=0;
+          var cvCombo=$('comboVal');if(cvCombo)cvCombo.textContent='0';
+          var qSkipStr=currentQuestion.type==='equation'
+            ?currentQuestion.q
+            :(currentQuestion.type==='competency'||currentQuestion.type==='standard'
+              ?currentQuestion.q
+              :''+currentQuestion.a+' '+currentQuestion.op+' '+currentQuestion.b);
+          wrongAnswers.push({
+            q:qSkipStr,
+            correct:currentQuestion.ans,
+            given:'—',
+            skipped:true,
+            a:currentQuestion.a,
+            b:currentQuestion.b,
+            op:currentQuestion.op,
+            type:currentQuestion.type||'arithmetic',
+            diff:currentQuestion.diff||'easy',
+            fullQ:currentQuestion.q||qSkipStr
+          });
+        }
+        unlocked=true;
+        var q=$('qText');
+        if(q){q.textContent='GO! Move & place the block!';q.style.animation='none';}
+        setSpeed();
+        renderBoard();
+      }
+    });
+    skipBtn.addEventListener('touchstart',function(e){e.preventDefault();skipBtn.click();},{passive:false});
+  }
 
   // D-pad buttons — always active
   $('cLeft').addEventListener('click',()=>move(-1));
