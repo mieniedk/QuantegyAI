@@ -741,13 +741,325 @@ function AreaBuilder({ onComplete, continueLabel, badgeLabel, embedded }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   MODE 3 — Parallel & Perpendicular Lines Lab
+   Two lines on a coordinate grid. Drag endpoints to explore slope
+   relationships: parallel (equal slopes) and perpendicular (negative
+   reciprocal slopes). Challenges ask the learner to make lines ‖ or ⊥.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function slopeOf(x1, y1, x2, y2) {
+  if (x2 === x1) return Infinity;
+  return (y2 - y1) / (x2 - x1);
+}
+
+function slopeLabel(m) {
+  if (m === Infinity || m === -Infinity) return 'undefined (vertical)';
+  if (Number.isInteger(m)) return String(m);
+  const sign = m < 0 ? '-' : '';
+  const a = Math.abs(m);
+  for (let d = 1; d <= 20; d++) {
+    const n = a * d;
+    if (Math.abs(n - Math.round(n)) < 0.001) return `${sign}${Math.round(n)}/${d}`;
+  }
+  return roundTo(m, 2).toString();
+}
+
+function areLinesParallel(m1, m2) {
+  if (m1 === Infinity && m2 === Infinity) return true;
+  if (m1 === Infinity || m2 === Infinity) return false;
+  return Math.abs(m1 - m2) < 0.001;
+}
+
+function areLinesPerpendicular(m1, m2) {
+  if (m1 === Infinity && Math.abs(m2) < 0.001) return true;
+  if (m2 === Infinity && Math.abs(m1) < 0.001) return true;
+  if (m1 === Infinity || m2 === Infinity) return false;
+  return Math.abs(m1 * m2 + 1) < 0.05;
+}
+
+const CHALLENGES = [
+  { type: 'parallel', text: 'Drag the blue line so it is parallel to the red line.' },
+  { type: 'perpendicular', text: 'Drag the blue line so it is perpendicular to the red line.' },
+  { type: 'identify', text: 'Are these two lines parallel, perpendicular, or neither?' },
+];
+
+function generateLinePair(challengeType) {
+  const m1Choices = [-3, -2, -1, -0.5, 0.5, 1, 2, 3];
+  const m1 = m1Choices[rand(0, m1Choices.length - 1)];
+  const b1 = rand(-2, 2);
+  const x1A = -4, x1B = 4;
+  const y1A = clamp(Math.round(m1 * x1A + b1), -5, 5);
+  const y1B = clamp(Math.round(m1 * x1B + b1), -5, 5);
+
+  let x2A = -3, y2A, x2B = 3, y2B;
+  if (challengeType === 'identify') {
+    const r = Math.random();
+    let m2;
+    if (r < 0.33) {
+      m2 = m1;
+    } else if (r < 0.66) {
+      m2 = m1 === 0 ? Infinity : -1 / m1;
+      if (m2 === Infinity) { x2A = 0; x2B = 0; y2A = -4; y2B = 4; return { line1: [x1A, y1A, x1B, y1B], line2: [x2A, y2A, x2B, y2B], fixed: true }; }
+    } else {
+      m2 = m1 + (Math.random() < 0.5 ? 1.5 : -1.5);
+    }
+    const b2 = rand(-2, 2);
+    y2A = clamp(Math.round(m2 * x2A + b2), -5, 5);
+    y2B = clamp(Math.round(m2 * x2B + b2), -5, 5);
+    return { line1: [x1A, y1A, x1B, y1B], line2: [x2A, y2A, x2B, y2B], fixed: true };
+  }
+
+  const b2 = rand(-2, 3);
+  y2A = clamp(Math.round(0.5 * x2A + b2), -5, 5);
+  y2B = clamp(Math.round(0.5 * x2B + b2), -5, 5);
+  return { line1: [x1A, y1A, x1B, y1B], line2: [x2A, y2A, x2B, y2B], fixed: false };
+}
+
+function ParallelPerpLab({ onComplete, continueLabel, badgeLabel, embedded }) {
+  const [roundIdx, setRound] = useState(0);
+  const svgRef = useRef(null);
+
+  const challenge = useMemo(() => CHALLENGES[roundIdx % CHALLENGES.length], [roundIdx]);
+  const initial = useMemo(() => generateLinePair(challenge.type), [roundIdx]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const [line2, setLine2] = useState(initial.line2);
+  useEffect(() => { setLine2(initial.line2); setChecked(false); setAnswer(null); }, [initial]);
+
+  const [dragging, setDragging] = useState(null);
+  const [checked, setChecked] = useState(false);
+  const [answer, setAnswer] = useState(null);
+
+  const W = 340, H_SVG = 340, PAD = 30, GRID = 6;
+  const sx = useCallback((x) => PAD + ((x + GRID) / (2 * GRID)) * (W - 2 * PAD), []);
+  const sy = useCallback((y) => H_SVG - PAD - ((y + GRID) / (2 * GRID)) * (H_SVG - 2 * PAD), []);
+  const fromSvg = useCallback((cx, cy) => {
+    const gx = ((cx - PAD) / (W - 2 * PAD)) * 2 * GRID - GRID;
+    const gy = GRID - ((cy - PAD) / (H_SVG - 2 * PAD)) * 2 * GRID;
+    return [Math.round(clamp(gx, -GRID, GRID)), Math.round(clamp(gy, -GRID, GRID))];
+  }, []);
+
+  const onPointerDown = useCallback((endpoint, e) => {
+    if (initial.fixed) return;
+    e.preventDefault();
+    setDragging(endpoint);
+  }, [initial.fixed]);
+
+  const onPointerMove = useCallback((e) => {
+    if (dragging == null || !svgRef.current) return;
+    e.preventDefault();
+    const svg = svgRef.current;
+    const pt = svg.createSVGPoint();
+    const src = e.touches ? e.touches[0] : e;
+    pt.x = src.clientX; pt.y = src.clientY;
+    const svgPt = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const [gx, gy] = fromSvg(svgPt.x, svgPt.y);
+    setLine2((prev) => {
+      const next = [...prev];
+      if (dragging === 'A') { next[0] = gx; next[1] = gy; }
+      else { next[2] = gx; next[3] = gy; }
+      return next;
+    });
+    setChecked(false);
+  }, [dragging, fromSvg]);
+
+  const onPointerUp = useCallback(() => { setDragging(null); }, []);
+
+  useEffect(() => {
+    if (dragging == null) return;
+    const onMove = (e) => onPointerMove(e);
+    const onUp = () => onPointerUp();
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onUp);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onUp);
+    };
+  }, [dragging, onPointerMove, onPointerUp]);
+
+  const m1 = slopeOf(initial.line1[0], initial.line1[1], initial.line1[2], initial.line1[3]);
+  const m2 = slopeOf(line2[0], line2[1], line2[2], line2[3]);
+  const isPar = areLinesParallel(m1, m2);
+  const isPerp = areLinesPerpendicular(m1, m2);
+  const relationship = isPar ? 'parallel' : isPerp ? 'perpendicular' : 'neither';
+
+  const handleCheck = () => {
+    setChecked(true);
+  };
+
+  const isCorrect = challenge.type === 'parallel' ? isPar
+    : challenge.type === 'perpendicular' ? isPerp
+    : answer === relationship;
+
+  const slopeProduct = (m1 !== Infinity && m2 !== Infinity) ? roundTo(m1 * m2, 2) : null;
+
+  const propertiesPanel = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <div style={{ padding: '8px 10px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fca5a5' }}>
+          <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: '#dc2626', letterSpacing: '0.05em', marginBottom: 2 }}>Red line slope</div>
+          <div style={{ fontWeight: 800, fontSize: 15, color: '#b91c1c' }}>m₁ = {slopeLabel(m1)}</div>
+        </div>
+        <div style={{ padding: '8px 10px', borderRadius: 10, background: '#eff6ff', border: '1px solid #93c5fd' }}>
+          <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: COLOR.blue, letterSpacing: '0.05em', marginBottom: 2 }}>Blue line slope</div>
+          <div style={{ fontWeight: 800, fontSize: 15, color: '#1d4ed8' }}>m₂ = {slopeLabel(m2)}</div>
+        </div>
+      </div>
+
+      <div style={{ padding: '10px 12px', borderRadius: 10, background: '#faf5ff', border: '1px solid #ddd6fe' }}>
+        <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: '#7c3aed', letterSpacing: '0.05em', marginBottom: 4 }}>Properties</div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: '#4c1d95', lineHeight: 1.6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ width: 18, height: 18, borderRadius: '50%', background: isPar ? '#22c55e' : '#e2e8f0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#fff', fontWeight: 800, flexShrink: 0 }}>{isPar ? '\u2713' : ''}</span>
+            Parallel: m₁ = m₂ {isPar && <span style={{ color: '#22c55e', fontWeight: 800 }}>&larr; Yes!</span>}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+            <span style={{ width: 18, height: 18, borderRadius: '50%', background: isPerp ? '#22c55e' : '#e2e8f0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#fff', fontWeight: 800, flexShrink: 0 }}>{isPerp ? '\u2713' : ''}</span>
+            Perpendicular: m₁ \u00d7 m₂ = \u22121 {slopeProduct !== null && <span style={{ opacity: 0.7 }}>(= {slopeProduct})</span>} {isPerp && <span style={{ color: '#22c55e', fontWeight: 800 }}>&larr; Yes!</span>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const graphPanel = (
+    <div style={{ background: '#f8fafc', borderRadius: 14, border: `1px solid ${COLOR.border}`, padding: 6, touchAction: 'none' }}>
+      <svg ref={svgRef} viewBox={`0 0 ${W} ${H_SVG}`} width="100%" style={{ display: 'block', margin: '0 auto' }}>
+        {Array.from({ length: 2 * GRID + 1 }, (_, i) => i - GRID).map((v) => (
+          <g key={v}>
+            <line x1={sx(v)} y1={PAD} x2={sx(v)} y2={H_SVG - PAD} stroke={v === 0 ? '#9ca3af' : '#f3f4f6'} strokeWidth={v === 0 ? 1.5 : 0.5} />
+            <line x1={PAD} y1={sy(v)} x2={W - PAD} y2={sy(v)} stroke={v === 0 ? '#9ca3af' : '#f3f4f6'} strokeWidth={v === 0 ? 1.5 : 0.5} />
+            {v !== 0 && v % 2 === 0 && <text x={sx(v)} y={sy(0) + 11} fontSize={7} fill="#9ca3af" textAnchor="middle">{v}</text>}
+            {v !== 0 && v % 2 === 0 && <text x={sx(0) - 5} y={sy(v) + 3} fontSize={7} fill="#9ca3af" textAnchor="end">{v}</text>}
+          </g>
+        ))}
+        {/* Red line (fixed) */}
+        <line x1={sx(initial.line1[0])} y1={sy(initial.line1[1])} x2={sx(initial.line1[2])} y2={sy(initial.line1[3])}
+          stroke="#dc2626" strokeWidth={3} strokeLinecap="round" />
+        <circle cx={sx(initial.line1[0])} cy={sy(initial.line1[1])} r={6} fill="#dc2626" stroke="#fff" strokeWidth={2} />
+        <circle cx={sx(initial.line1[2])} cy={sy(initial.line1[3])} r={6} fill="#dc2626" stroke="#fff" strokeWidth={2} />
+        <text x={sx(initial.line1[0]) - 10} y={sy(initial.line1[1]) - 10} fontSize={9} fill="#dc2626" fontWeight={700}>
+          ({initial.line1[0]},{initial.line1[1]})
+        </text>
+        <text x={sx(initial.line1[2]) + 4} y={sy(initial.line1[3]) - 10} fontSize={9} fill="#dc2626" fontWeight={700}>
+          ({initial.line1[2]},{initial.line1[3]})
+        </text>
+
+        {/* Blue line (draggable unless "identify") */}
+        <line x1={sx(line2[0])} y1={sy(line2[1])} x2={sx(line2[2])} y2={sy(line2[3])}
+          stroke="#2563eb" strokeWidth={3} strokeLinecap="round" />
+        {!initial.fixed ? (
+          <>
+            <circle cx={sx(line2[0])} cy={sy(line2[1])} r={12} fill="#2563eb" stroke="#fff" strokeWidth={2}
+              style={{ cursor: 'grab', touchAction: 'none' }}
+              onPointerDown={(e) => onPointerDown('A', e)} onTouchStart={(e) => onPointerDown('A', e)} />
+            <text x={sx(line2[0])} y={sy(line2[1]) + 3.5} fontSize={7} fill="#fff" fontWeight={700} textAnchor="middle"
+              style={{ pointerEvents: 'none' }}>A</text>
+            <circle cx={sx(line2[2])} cy={sy(line2[3])} r={12} fill="#2563eb" stroke="#fff" strokeWidth={2}
+              style={{ cursor: 'grab', touchAction: 'none' }}
+              onPointerDown={(e) => onPointerDown('B', e)} onTouchStart={(e) => onPointerDown('B', e)} />
+            <text x={sx(line2[2])} y={sy(line2[3]) + 3.5} fontSize={7} fill="#fff" fontWeight={700} textAnchor="middle"
+              style={{ pointerEvents: 'none' }}>B</text>
+          </>
+        ) : (
+          <>
+            <circle cx={sx(line2[0])} cy={sy(line2[1])} r={6} fill="#2563eb" stroke="#fff" strokeWidth={2} />
+            <circle cx={sx(line2[2])} cy={sy(line2[3])} r={6} fill="#2563eb" stroke="#fff" strokeWidth={2} />
+          </>
+        )}
+        <text x={sx(line2[0]) - 10} y={sy(line2[1]) + 16} fontSize={9} fill="#2563eb" fontWeight={700}>
+          ({line2[0]},{line2[1]})
+        </text>
+        <text x={sx(line2[2]) + 4} y={sy(line2[3]) + 16} fontSize={9} fill="#2563eb" fontWeight={700}>
+          ({line2[2]},{line2[3]})
+        </text>
+
+        {/* Relationship badge on the graph */}
+        {checked && (
+          <g>
+            <rect x={W / 2 - 50} y={8} width={100} height={22} rx={6} fill={isCorrect ? '#22c55e' : '#ef4444'} />
+            <text x={W / 2} y={23} fontSize={11} fill="#fff" fontWeight={800} textAnchor="middle">
+              {isCorrect ? '\u2713 Correct!' : '\u2717 Try again'}
+            </text>
+          </g>
+        )}
+      </svg>
+    </div>
+  );
+
+  return (
+    <div style={embedded ? {} : CARD}>
+      {!embedded && <div style={{ ...BADGE, background: `${COLOR.purple}14`, color: COLOR.purple, marginBottom: 10 }}>{badgeLabel || 'Interactive activity'}</div>}
+
+      <QBotBubble
+        message={
+          checked && isCorrect ? (challenge.type === 'identify'
+            ? `Right! The lines are ${relationship}. ${isPar ? 'Parallel lines have equal slopes.' : isPerp ? 'Perpendicular slopes multiply to \u22121.' : 'Neither equal slopes nor negative reciprocals.'}`
+            : `Excellent! ${isPar ? 'Both slopes are equal \u2014 the lines are parallel.' : 'The slopes multiply to \u22121 \u2014 the lines are perpendicular.'}`)
+          : checked && !isCorrect ? 'Not quite \u2014 check the slope values and try adjusting.'
+          : challenge.text
+        }
+        mood={checked && isCorrect ? 'celebrate' : checked ? 'think' : 'wave'}
+      />
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, marginTop: 8 }}>
+        {graphPanel}
+        {propertiesPanel}
+      </div>
+
+      {challenge.type === 'identify' && !checked && (
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 12, flexWrap: 'wrap' }}>
+          {['parallel', 'perpendicular', 'neither'].map((opt) => (
+            <button key={opt} type="button" onClick={() => { setAnswer(opt); }}
+              style={{
+                padding: '9px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                background: answer === opt ? COLOR.blueBg : '#fff',
+                border: `2px solid ${answer === opt ? COLOR.blueBorder : COLOR.border}`,
+                color: answer === opt ? COLOR.blue : COLOR.textSecondary, textTransform: 'capitalize',
+              }}>
+              {opt === 'parallel' ? '\u2225 Parallel' : opt === 'perpendicular' ? '\u22A5 Perpendicular' : 'Neither'}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 12 }}>
+        {!checked && (challenge.type !== 'identify' || answer) && (
+          <button type="button" onClick={handleCheck}
+            style={{ ...BTN_PRIMARY, background: `linear-gradient(135deg, ${COLOR.blue}, #1d4ed8)`, flex: '1 1 auto' }}>
+            Check
+          </button>
+        )}
+        <button type="button" onClick={() => setRound((r) => r + 1)}
+          style={{ ...BTN_PRIMARY, background: 'linear-gradient(135deg,#d97706,#b45309)', flex: '0 0 auto' }}>
+          {'\u{1F504}'} New Challenge
+        </button>
+        <button type="button" onClick={onComplete} style={{ ...BTN_PRIMARY, flex: '1 1 auto' }}>{continueLabel}</button>
+      </div>
+
+      {checked && (
+        <div style={{ marginTop: 10, padding: '10px 14px', borderRadius: 12, background: '#f1f5f9', border: `1px solid ${COLOR.border}`, fontSize: 12, lineHeight: 1.7, color: COLOR.text }}>
+          <strong>Key rules:</strong><br />
+          \u2225 <strong>Parallel lines</strong> have <em>equal slopes</em>: m₁ = m₂. They never intersect.<br />
+          \u22A5 <strong>Perpendicular lines</strong> have slopes that are <em>negative reciprocals</em>: m₁ \u00d7 m₂ = \u22121. They meet at 90\u00b0.
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    Main export
    ═══════════════════════════════════════════════════════════════════════════ */
-const MODES = ['transform-lab', 'angle-explorer', 'area-builder'];
+const MODES = ['transform-lab', 'angle-explorer', 'area-builder', 'parallel-perp-lab'];
 
 export default function GeoExplorer({ activityIndex = 0, onComplete, continueLabel = 'Continue', badgeLabel = 'Interactive activity', embedded = false }) {
   const mode = MODES[activityIndex % MODES.length];
   if (mode === 'transform-lab') return <TransformLab onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'angle-explorer') return <AngleExplorer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+  if (mode === 'parallel-perp-lab') return <ParallelPerpLab onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   return <AreaBuilder onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
 }
