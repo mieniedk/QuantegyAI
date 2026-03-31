@@ -4681,25 +4681,34 @@ app.get('/api/search', requireAuth, (req, res) => {
   } catch (err) { res.json({ success: false, error: err.message }); }
 });
 
-// Serve the built frontend
+// Serve the built frontend (if dist/ exists after `npm run build`)
 const distPath = path.join(__dirname, '..', 'dist');
-app.use(express.static(distPath, {
-  maxAge: 0,
-  setHeaders: (res) => {
+const distExists = fs.existsSync(distPath) && fs.existsSync(path.join(distPath, 'index.html'));
+if (distExists) {
+  app.use(express.static(distPath, {
+    maxAge: 0,
+    setHeaders: (res) => {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    },
+  }));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-  },
-}));
-app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api')) return next();
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-  if (req.query.lti === '1' || req.path === '/lti-launch') {
-    res.removeHeader('X-Frame-Options');
-    res.setHeader('Content-Security-Policy', "frame-ancestors *;");
-  }
-  res.sendFile(path.join(distPath, 'index.html'));
-});
+    if (req.query.lti === '1' || req.path === '/lti-launch') {
+      res.removeHeader('X-Frame-Options');
+      res.setHeader('Content-Security-Policy', "frame-ancestors *;");
+    }
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+} else {
+  console.warn('[startup] dist/ not found — frontend will not be served. Run "npm run build" or set a Build Command on Render.');
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.status(200).send('<!DOCTYPE html><html><body style="font-family:sans-serif;text-align:center;padding:60px"><h2>API Server Running</h2><p>The frontend has not been built yet. Run <code>npm run build</code> or configure the Build Command on Render.</p><p><a href="/api/health">API Health Check</a></p></body></html>');
+  });
+}
 
 // Express error-handling middleware (must be last)
 app.use((err, req, res, next) => {
