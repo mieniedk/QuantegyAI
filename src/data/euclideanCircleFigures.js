@@ -4,6 +4,7 @@ import thales from '../assets/diagrams/euclid-thales.svg?url';
 import chordChord from '../assets/diagrams/euclid-chord-chord.svg?url';
 import secantSecant from '../assets/diagrams/euclid-secant-secant.svg?url';
 import powerPoint from '../assets/diagrams/euclid-power-point.svg?url';
+import chordVsDiameter from '../assets/diagrams/euclid-chord-vs-diameter.svg?url';
 
 const cell = (src, alt, caption) =>
   `<div style="text-align:center;min-width:0">
@@ -19,4 +20,9 @@ ${cell(thales, 'Triangle inscribed in a semicircle with diameter as base', 'Meas
 ${cell(chordChord, 'Two chords intersecting inside a circle', 'Chord–chord: angle = ½(sum of intercepted arcs)')}
 ${cell(secantSecant, 'Two secants from an external point through a circle', 'Secant–secant (outside): angle = ½(difference of arcs)')}
 ${cell(powerPoint, 'Two chords intersecting at interior point E', 'Power of a point: EA·EB = EC·ED')}
+</div>`;
+
+/** Misconception illustration: chord vs diameter. */
+export const chordVsDiameterFigureHtml = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px;margin-top:14px">
+${cell(chordVsDiameter, 'Circle showing a green diameter through center O and a red chord not passing through center', 'Diameter passes through O; a chord does not have to')}
 </div>`;

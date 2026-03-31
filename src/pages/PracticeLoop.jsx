@@ -3079,7 +3079,7 @@ export default function PracticeLoop() {
         ...microConcept,
         title: microConcept?.title ? `${microConcept.title} - New Angle` : conceptTitle,
         conceptText: `Watch out focus: ${microConcept.misconception}`,
-        illustrationHtml: undefined,
+        illustrationHtml: microConcept?.misconceptionIllustrationHtml || undefined,
       } : null,
       microConcept?.workedExample ? {
         ...microConcept,

@@ -6,7 +6,7 @@
  * Optional illustrationHtml: safe HTML (img grid) rendered below conceptText where supported.
  */
 
-import { euclideanCircleTheoremsFiguresHtml } from './euclideanCircleFigures';
+import { euclideanCircleTheoremsFiguresHtml, chordVsDiameterFigureHtml } from './euclideanCircleFigures';
 import { quadrilateralFiguresHtml } from './quadrilateralFigures';
 
 export const MICRO_CONCEPTS = {
@@ -240,6 +240,7 @@ export const MICRO_CONCEPTS = {
     variants: [
       { conceptText: 'Circle theorems: tangent ⊥ radius at point of tangency. Two tangents from external point are equal length. The measure of an inscribed ∠ in a semicircle = 90°. Chord–chord angle = (1)/(2)(sum of intercepted arcs). Secant–secant angle from outside = (1)/(2)(difference of intercepted arcs). Power of a point: for two chords, (segment₁)(segment₂) = (segment₃)(segment₄).',
         illustrationHtml: euclideanCircleTheoremsFiguresHtml,
+        misconceptionIllustrationHtml: chordVsDiameterFigureHtml,
         workedExample: 'Two chords intersect inside a circle. Segments: 3 and 8 on one chord, x and 4 on the other. 3·8 = x·4 → x = 6.',
         misconception: 'Only a diameter passes through the center of a circle. A chord is any segment whose endpoints lie on the circle — it does not need to pass through the center.' },
       { conceptText: 'Properties of quadrilaterals: parallelogram (opposite sides ‖ and ≅, opposite angles ≅, diagonals bisect each other); rectangle (parallelogram + right angles, diagonals ≅); rhombus (parallelogram + all sides ≅, diagonals ⊥); square (rectangle + rhombus). Trapezoid: exactly one pair of parallel sides. Midsegment = (1)/(2)(base₁ + base₂). Kite: two pairs of consecutive sides ≅.',
