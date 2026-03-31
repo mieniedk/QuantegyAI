@@ -15,7 +15,7 @@ const cell = (src, alt, caption) =>
 export const euclideanCircleTheoremsFiguresHtml = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px;margin-top:14px">
 ${cell(tangentPerp, 'Circle with radius to point of tangency and perpendicular tangent line', 'Tangent ⊥ radius at tangency')}
 ${cell(twoTangents, 'Two tangent segments from an external point to a circle', 'Two tangents from external point: equal length')}
-${cell(thales, 'Triangle inscribed in a semicircle with diameter as base', 'Angle inscribed in a semicircle = 90°')}
+${cell(thales, 'Triangle inscribed in a semicircle with diameter as base', 'Measure of inscribed ∠ in semicircle = 90°')}
 ${cell(chordChord, 'Two chords intersecting inside a circle', 'Chord–chord: angle = ½(sum of intercepted arcs)')}
 ${cell(secantSecant, 'Two secants from an external point through a circle', 'Secant–secant (outside): angle = ½(difference of arcs)')}
 ${cell(powerPoint, 'Two chords intersecting at interior point E', 'Power of a point: EA·EB = EC·ED')}

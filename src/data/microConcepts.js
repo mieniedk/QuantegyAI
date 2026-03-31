@@ -238,7 +238,7 @@ export const MICRO_CONCEPTS = {
     workedExample: 'Inscribed angle intercepts a 100° arc → inscribed angle = 50°. Regular octagon: interior angle = (6·180°)/(8) = 135°.',
     misconception: 'An inscribed angle is half the intercepted arc, not equal to it. A central angle equals the intercepted arc.',
     variants: [
-      { conceptText: 'Circle theorems: tangent ⊥ radius at point of tangency. Two tangents from external point are equal length. Inscribed angle in semicircle = 90°. Chord–chord angle = (1)/(2)(sum of intercepted arcs). Secant–secant angle from outside = (1)/(2)(difference of intercepted arcs). Power of a point: for two chords, (segment₁)(segment₂) = (segment₃)(segment₄).',
+      { conceptText: 'Circle theorems: tangent ⊥ radius at point of tangency. Two tangents from external point are equal length. The measure of an inscribed ∠ in a semicircle = 90°. Chord–chord angle = (1)/(2)(sum of intercepted arcs). Secant–secant angle from outside = (1)/(2)(difference of intercepted arcs). Power of a point: for two chords, (segment₁)(segment₂) = (segment₃)(segment₄).',
         illustrationHtml: euclideanCircleTheoremsFiguresHtml,
         workedExample: 'Two chords intersect inside a circle. Segments: 3 and 8 on one chord, x and 4 on the other. 3·8 = x·4 → x = 6.',
         misconception: 'Only a diameter passes through the center of a circle. A chord is any segment whose endpoints lie on the circle — it does not need to pass through the center.' },
