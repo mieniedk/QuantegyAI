@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 180" fill="none" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+  <polygon points="100,25 170,90 100,155 30,90" fill="#f1f5f9" stroke="#0f172a"/>
+  <!-- equal-side tick marks -->
+  <line x1="132" y1="54" x2="138" y2="62" stroke="#2563eb" stroke-width="1.8"/>
+  <line x1="138" y1="118" x2="132" y2="126" stroke="#2563eb" stroke-width="1.8"/>
+  <line x1="62" y1="126" x2="68" y2="118" stroke="#2563eb" stroke-width="1.8"/>
+  <line x1="68" y1="62" x2="62" y2="54" stroke="#2563eb" stroke-width="1.8"/>
+  <!-- diagonals (perpendicular) -->
+  <line x1="100" y1="25" x2="100" y2="155" stroke="#2563eb" stroke-dasharray="5,4" stroke-width="1.5"/>
+  <line x1="30" y1="90" x2="170" y2="90" stroke="#e11d48" stroke-dasharray="5,4" stroke-width="1.5"/>
+  <!-- perpendicular mark at center -->
+  <path d="M100,82 L108,82 L108,90" fill="none" stroke="#64748b" stroke-width="1.5"/>
+  <circle cx="100" cy="90" r="3" fill="#7c3aed" stroke="none"/>
+  <!-- labels -->
+  <text x="93" y="18" font-size="12" fill="#1e293b" stroke="none" font-family="system-ui,sans-serif">A</text>
+  <text x="174" y="94" font-size="12" fill="#1e293b" stroke="none" font-family="system-ui,sans-serif">B</text>
+  <text x="93" y="170" font-size="12" fill="#1e293b" stroke="none" font-family="system-ui,sans-serif">C</text>
+  <text x="14" y="94" font-size="12" fill="#1e293b" stroke="none" font-family="system-ui,sans-serif">D</text>
+  <!-- perp label -->
+  <text x="110" y="78" font-size="10" fill="#64748b" stroke="none" font-family="system-ui,sans-serif">¥</text>
+</svg>

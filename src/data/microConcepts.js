@@ -7,6 +7,7 @@
  */
 
 import { euclideanCircleTheoremsFiguresHtml } from './euclideanCircleFigures';
+import { quadrilateralFiguresHtml } from './quadrilateralFigures';
 
 export const MICRO_CONCEPTS = {
   // ═══════════════════════════════════════════════════════════════
@@ -242,6 +243,7 @@ export const MICRO_CONCEPTS = {
         workedExample: 'Two chords intersect inside a circle. Segments: 3 and 8 on one chord, x and 4 on the other. 3·8 = x·4 → x = 6.',
         misconception: 'Only a diameter passes through the center of a circle. A chord is any segment whose endpoints lie on the circle — it does not need to pass through the center.' },
       { conceptText: 'Properties of quadrilaterals: parallelogram (opposite sides ‖ and ≅, opposite angles ≅, diagonals bisect each other); rectangle (parallelogram + right angles, diagonals ≅); rhombus (parallelogram + all sides ≅, diagonals ⊥); square (rectangle + rhombus). Trapezoid: exactly one pair of parallel sides. Midsegment = (1)/(2)(base₁ + base₂). Kite: two pairs of consecutive sides ≅.',
+        illustrationHtml: quadrilateralFiguresHtml,
         workedExample: 'Prove ABCD is a parallelogram: show AB ‖ CD and AB = CD (one pair of sides both parallel and equal suffices).',
         misconception: 'A rhombus has all sides equal, but its angles need not be 90°. A square is a special case of a rhombus where all angles are right angles.' },
     ],
