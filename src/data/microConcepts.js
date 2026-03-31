@@ -40,7 +40,7 @@ export const MICRO_CONCEPTS = {
   },
   'math712:comp004': {
     title: 'Probability and Statistics',
-    conceptText: 'Probability: P(A) = (favorable)/(total). Independent: P(A and B) = P(A)·P(B). Mean = (Σx)/(n); median = middle; mode = most frequent. Normal: ~68% within 1σ, ~95% within 2σ. Conditional: P(A|B) = (P(A∩B))/(P(B)).',
+    conceptText: 'Probability: P(A) = favorable outcomes ÷ total outcomes. Independent: P(A and B) = P(A)·P(B). Mean = Σx ÷ n; median = middle; mode = most frequent. Normal: ~68% within 1σ, ~95% within 2σ. Conditional: P(A|B) = P(A∩B) ÷ P(B).',
     workedExample: 'P(5 on fair die) = (1)/(6). P(two 5s) = (1)/(6)·(1)/(6) = (1)/(36).',
     misconception: 'Correlation does not imply causation. Two variables can be related without one causing the other.',
   },
@@ -320,7 +320,7 @@ export const MICRO_CONCEPTS = {
   },
   'math712:c016': {
     title: 'Probability',
-    conceptText: 'P(A) = (favorable)/(total), 0 ≤ P ≤ 1. Complement: P(A′) = 1−P(A). Addition: P(A∪B) = P(A)+P(B)−P(A∩B). Independent: P(A∩B) = P(A)·P(B). Conditional: P(A|B) = P(A∩B)/P(B). Permutations: P(n,r) = n!/(n−r)!. Combinations: C(n,r) = n!/(r!(n−r)!). Expected value: E(X) = ΣxᵢP(xᵢ).',
+    conceptText: 'P(A) = favorable outcomes ÷ total outcomes, 0 ≤ P ≤ 1. Complement: P(A′) = 1 − P(A). Addition: P(A∪B) = P(A) + P(B) − P(A∩B). Independent: P(A∩B) = P(A)·P(B). Conditional: P(A|B) = P(A∩B) ÷ P(B). Permutations: P(n,r) = n! ÷ (n−r)!. Combinations: C(n,r) = n! ÷ (r!(n−r)!). Expected value: E(X) = ΣxᵢP(xᵢ).',
     workedExample: 'Draw 2 cards without replacement: P(both aces) = (4/52)·(3/51) = 12/2652 = 1/221.',
     misconception: 'P(A or B) = P(A) + P(B) − P(A∩B). You must subtract the overlap to avoid double-counting (unless A and B are mutually exclusive, where P(A∩B) = 0).',
     variants: [
@@ -565,7 +565,7 @@ export const MICRO_CONCEPTS = {
   'math48:m48_c011': {
     title: 'Probability',
     conceptText: 'Probability = favorable outcomes ÷ total outcomes. Always between 0 (impossible) and 1 (certain). Theoretical probability: based on equally likely outcomes. Experimental probability: based on actual trials. Sample space = list of all possible outcomes. Tree diagrams organize multi-step experiments. Compound events: use multiplication (AND) or addition (OR).',
-    workedExample: 'Roll a fair number cube. P(even) = 3 favorable (2, 4, 6) ÷ 6 total = (3)/(6) = (1)/(2). P(greater than 4) = (2)/(6) = (1)/(3).',
+    workedExample: 'Roll a fair number cube. P(even) = 3 favorable (2, 4, 6) ÷ 6 total = 3 ÷ 6 = 1 ÷ 2. P(greater than 4) = 2 ÷ 6 = 1 ÷ 3.',
     misconception: 'Probability of 0 means the event is impossible; probability of 1 means the event is certain. A probability cannot be negative or greater than 1.',
     variants: [
       { conceptText: 'Independent events: the outcome of one does not affect the other. P(A and B) = P(A) × P(B). Dependent events: the first outcome changes the possibilities for the second. P(A and B) = P(A) × P(B given A). Complement: P(not A) = 1 − P(A). "Or" events (mutually exclusive): P(A or B) = P(A) + P(B).',
