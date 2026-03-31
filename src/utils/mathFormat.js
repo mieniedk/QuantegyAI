@@ -445,6 +445,8 @@ export function speechifyForNarration(str) {
   s = s.replace(/∆/g, 'delta ');
   s = s.replace(/θ/g, 'theta');
   s = s.replace(/∘/g, ' composed with ');
+  s = s.replace(/\u2212/g, ' minus ');
+  s = s.replace(/°/g, ' degrees ');
 
   const superDigits = {
     '\u2070': '0', '\u00B9': '1', '\u00B2': '2', '\u00B3': '3', '\u2074': '4',

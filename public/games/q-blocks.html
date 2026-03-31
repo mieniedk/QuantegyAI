@@ -2674,20 +2674,632 @@ function showGameOver(){
   show('gameover');
 }
 
+/* ─── Detailed step-by-step solution generator for standard / competency questions ─── */
+function explainStdComp(q,correct,given){
+  var s=[],t='',Q=String(q||'');
+  var m; // reusable match variable
+
+  /* ── Geometry — Angles ── */
+  if((m=Q.match(/[Ss]upplementary\s+(?:to\s+)?(\d+)/))) {
+    var ang=Number(m[1]);
+    s.push('Formula: <span class="math-hl">Supplementary angles add up to 180°</span>');
+    s.push('Set up: <span class="math-hl">'+ang+'° + ? = 180°</span>');
+    s.push('Solve: <span class="math-hl">? = 180° − '+ang+'° = <b>'+(180-ang)+'°</b></span>');
+    t='Two angles are supplementary when they form a straight line (180°). Subtract the known angle from 180.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Cc]omplementary\s+(?:to\s+)?(\d+)/))) {
+    var ang=Number(m[1]);
+    s.push('Formula: <span class="math-hl">Complementary angles add up to 90°</span>');
+    s.push('Set up: <span class="math-hl">'+ang+'° + ? = 90°</span>');
+    s.push('Solve: <span class="math-hl">? = 90° − '+ang+'° = <b>'+(90-ang)+'°</b></span>');
+    t='Two angles are complementary when they form a right angle (90°). Subtract the known angle from 90.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Cc]omplement\s+of\s+(?:a\s+)?(\d+)/))) {
+    var ang=Number(m[1]);
+    s.push('Formula: <span class="math-hl">Complementary angles add up to 90°</span>');
+    s.push('Solve: <span class="math-hl">90° − '+ang+'° = <b>'+(90-ang)+'°</b></span>');
+    t='Complementary = adds to 90°.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ss]upplement\s+of\s+(?:a\s+)?(\d+)/))) {
+    var ang=Number(m[1]);
+    s.push('Formula: <span class="math-hl">Supplementary angles add up to 180°</span>');
+    s.push('Solve: <span class="math-hl">180° − '+ang+'° = <b>'+(180-ang)+'°</b></span>');
+    t='Supplementary = adds to 180°.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ll]inear\s+pair[:\s]+(\d+)/))) {
+    var ang=Number(m[1]);
+    s.push('A <b>linear pair</b> is two adjacent angles on a straight line.');
+    s.push('Formula: <span class="math-hl">Linear pair angles add up to 180°</span>');
+    s.push('Solve: <span class="math-hl">180° − '+ang+'° = <b>'+(180-ang)+'°</b></span>');
+    t='A linear pair always sums to 180° because they form a straight line.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Vv]ertical\s+angle\s+to\s+(\d+)/))) {
+    var ang=Number(m[1]);
+    s.push('Rule: <span class="math-hl">Vertical angles are always congruent (equal)</span>');
+    s.push('When two lines cross, the opposite angles are equal.');
+    s.push('Answer: <span class="math-hl"><b>'+ang+'°</b></span>');
+    t='Vertical angles are the pair across from each other when two lines intersect — they are always equal.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Tt]riangle\s+angles?\s+(\d+)[°\s]+and\s+(\d+)/))) {
+    var a1=Number(m[1]),a2=Number(m[2]);
+    s.push('Formula: <span class="math-hl">Triangle angle sum = 180°</span>');
+    s.push('We know two angles: <span class="math-hl">'+a1+'° and '+a2+'°</span>');
+    s.push('Add the known angles: <span class="math-hl">'+a1+'° + '+a2+'° = '+(a1+a2)+'°</span>');
+    s.push('Subtract from 180°: <span class="math-hl">180° − '+(a1+a2)+'° = <b>'+(180-a1-a2)+'°</b></span>');
+    t='The three interior angles of any triangle always sum to exactly 180°.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ee]xterior\s+angle\s+sum.*?(\d+)-gon/))) {
+    s.push('Rule: <span class="math-hl">The sum of exterior angles of any convex polygon = 360°</span>');
+    s.push('This is true regardless of the number of sides.');
+    s.push('Answer: <span class="math-hl"><b>360°</b></span>');
+    t='No matter how many sides a convex polygon has, its exterior angles always sum to 360°.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ii]nterior\s+angle\s+sum\s+(?:of\s+)?(?:an?\s+)?(\d+)-gon/))) {
+    var n=Number(m[1]);
+    s.push('Formula: <span class="math-hl">Interior angle sum = (n − 2) × 180°</span>');
+    s.push('Substitute n = '+n+': <span class="math-hl">('+n+' − 2) × 180°</span>');
+    s.push('Simplify: <span class="math-hl">'+(n-2)+' × 180° = <b>'+((n-2)*180)+'°</b></span>');
+    t='A polygon with n sides can be split into (n − 2) triangles, each with 180°.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Oo]ne\s+interior\s+angle\s+of\s+regular\s+(\d+)-gon/))) {
+    var n=Number(m[1]),sum=(n-2)*180;
+    s.push('Step 1 — Interior angle sum formula: <span class="math-hl">(n − 2) × 180°</span>');
+    s.push('Substitute n = '+n+': <span class="math-hl">('+n+' − 2) × 180° = '+sum+'°</span>');
+    s.push('Step 2 — Divide by number of sides (regular = all angles equal):');
+    s.push('<span class="math-hl">'+sum+'° ÷ '+n+' = <b>'+Math.round(sum/n)+'°</b></span>');
+    t='For a regular polygon: each angle = (n − 2) × 180° ÷ n.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ee]xterior\s+angle\s+of\s+regular\s+(hex|pent|oct|quad|tri|\w+)/i))||(m=Q.match(/[Ee]ach\s+exterior\s+angle\s+of\s+regular\s+(\w+)/i))) {
+    s.push('Formula: <span class="math-hl">Each exterior angle of a regular polygon = 360° ÷ n</span>');
+    s.push('Answer: <span class="math-hl"><b>'+correct+'°</b></span>');
+    t='Exterior angles of any convex polygon sum to 360°; for a regular polygon, divide equally.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ii]nscribed\s+angle\s+intercepts?\s+(?:a\s+)?(\d+)[°\s]+arc/))) {
+    var arc=Number(m[1]);
+    s.push('Theorem: <span class="math-hl">Inscribed angle = ½ × intercepted arc</span>');
+    s.push('The intercepted arc is '+arc+'°.');
+    s.push('Calculate: <span class="math-hl">½ × '+arc+'° = <b>'+(arc/2)+'°</b></span>');
+    t='An inscribed angle is always half the arc it intercepts. A central angle equals the full arc.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Pp]arallel\s+lines.*?(?:corresponding|alternate\s+interior)\s+(?:angle\s+)?(?:to\s+)?(\d+)/))) {
+    var ang=Number(m[1]);
+    s.push('Rule: When a transversal crosses parallel lines, <b>corresponding angles</b> and <b>alternate interior angles</b> are equal.');
+    s.push('The given angle is '+ang+'°, so the matching angle is also <b>'+ang+'°</b>.');
+    t='Parallel lines + transversal → corresponding angles are equal; alternate interior angles are equal.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ee]xterior\s+angle\s+(\d+)[°\s]+equals?\s+remote\s+interior\s+(\d+)/))) {
+    var ext=Number(m[1]),rem=Number(m[2]);
+    s.push('Theorem: <span class="math-hl">Exterior angle = sum of two remote interior angles</span>');
+    s.push('Set up: <span class="math-hl">'+ext+'° = '+rem+'° + ?</span>');
+    s.push('Solve: <span class="math-hl">? = '+ext+'° − '+rem+'° = <b>'+(ext-rem)+'°</b></span>');
+    t='A triangle\'s exterior angle always equals the sum of the two non-adjacent interior angles.';
+    return{steps:s,takeaway:t};
+  }
+  if(/[Ss]um\s+of\s+supplementary/i.test(Q)) {
+    s.push('Definition: <span class="math-hl">Supplementary angles sum to 180°</span>');
+    s.push('Answer: <span class="math-hl"><b>180</b></span>');
+    t='Two angles are supplementary if together they make a straight angle (180°).';
+    return{steps:s,takeaway:t};
+  }
+  if(/[Cc]omplementary\s+angles?\s+sum/i.test(Q)) {
+    s.push('Definition: <span class="math-hl">Complementary angles sum to 90°</span>');
+    s.push('Answer: <span class="math-hl"><b>90</b></span>');
+    t='Two angles are complementary if together they make a right angle (90°).';
+    return{steps:s,takeaway:t};
+  }
+  if(/[Tt]riangle\s+angle\s+sum/i.test(Q)) {
+    s.push('Rule: <span class="math-hl">The three interior angles of a triangle always add up to 180°</span>');
+    s.push('Answer: <span class="math-hl"><b>180</b></span>');
+    t='This is true for every triangle in Euclidean geometry — equilateral, isosceles, scalene, or right.';
+    return{steps:s,takeaway:t};
+  }
+
+  /* ── Geometry — Area, Volume, Perimeter ── */
+  if((m=Q.match(/[Aa]rea\s+of\s+(?:a\s+)?rectangle\s+(\d+)\s*(?:by|×|x)\s*(\d+)/))) {
+    var w=Number(m[1]),h=Number(m[2]);
+    s.push('Formula: <span class="math-hl">Area = length × width</span>');
+    s.push('Substitute: <span class="math-hl">'+w+' × '+h+' = <b>'+(w*h)+'</b></span>');
+    t='Rectangle area = length × width. Units are squared (e.g. cm²).';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Aa]rea\s+of\s+(?:a\s+)?rectangle\s+(?:with\s+)?(?:width|w)\s+(\d+)\s+(?:and\s+)?(?:height|h)\s+(\d+)/i))) {
+    var w=Number(m[1]),h=Number(m[2]);
+    s.push('Formula: <span class="math-hl">Area = width × height</span>');
+    s.push('Substitute: <span class="math-hl">'+w+' × '+h+' = <b>'+(w*h)+'</b></span>');
+    t='Rectangle area = width × height.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Tt]riangle\s+area\s+base\s+(\d+),?\s*height\s+(\d+)/))) {
+    var b=Number(m[1]),h=Number(m[2]);
+    s.push('Formula: <span class="math-hl">Triangle area = ½ × base × height</span>');
+    s.push('Substitute: <span class="math-hl">½ × '+b+' × '+h+'</span>');
+    s.push('Calculate: <span class="math-hl">'+b+' × '+h+' = '+(b*h)+', then ÷ 2 = <b>'+Math.round(b*h/2)+'</b></span>');
+    t='A triangle is half of a rectangle with the same base and height.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Aa]rea\s+of\s+(?:a\s+)?triangle\s*:?\s*base\s+(\d+),?\s*height\s+(\d+)/i))) {
+    var b=Number(m[1]),h=Number(m[2]);
+    s.push('Formula: <span class="math-hl">Area = ½ × base × height</span>');
+    s.push('Substitute: <span class="math-hl">½ × '+b+' × '+h+' = <b>'+Math.round(b*h/2)+'</b></span>');
+    t='Triangle area = ½ × base × height.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Vv]olume\s+of\s+(?:a\s+)?cube\s+side\s+(\d+)/))) {
+    var side=Number(m[1]);
+    s.push('Formula: <span class="math-hl">Volume of a cube = s³ = s × s × s</span>');
+    s.push('Substitute s = '+side+': <span class="math-hl">'+side+' × '+side+' × '+side+'</span>');
+    s.push('Calculate: <span class="math-hl">'+side+'² = '+(side*side)+', then × '+side+' = <b>'+(side*side*side)+'</b></span>');
+    t='A cube has equal length, width, and height, so V = s³.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ss]urface\s+area\s+of\s+(?:a\s+)?cube\s+side\s+(\d+)/))) {
+    var side=Number(m[1]);
+    s.push('Formula: <span class="math-hl">Surface area of a cube = 6 × s²</span>');
+    s.push('A cube has 6 identical square faces, each with area s².');
+    s.push('Substitute s = '+side+': <span class="math-hl">6 × '+side+'² = 6 × '+(side*side)+' = <b>'+(6*side*side)+'</b></span>');
+    t='Surface area = total area of all faces. A cube has 6 equal square faces.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Cc]ircle\s+area\s+r(?:adius)?\s*=?\s*(\d+)/))) {
+    var r=Number(m[1]);
+    s.push('Formula: <span class="math-hl">Area of a circle = π × r²</span>');
+    s.push('Substitute r = '+r+': <span class="math-hl">π × '+r+'² = π × '+(r*r)+'</span>');
+    s.push('Using π ≈ 3.14: <span class="math-hl">3.14 × '+(r*r)+' = <b>'+Math.round(3.14*r*r)+'</b></span>');
+    t='Circle area = πr². Always square the radius first, then multiply by π.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Aa]rea\s+of\s+(?:a\s+)?circle\s+(?:with\s+)?radius\s+(\d+)/i))) {
+    var r=Number(m[1]);
+    s.push('Formula: <span class="math-hl">Area = π × r²</span>');
+    s.push('Substitute: <span class="math-hl">π × '+r+'² = 3.14 × '+(r*r)+' ≈ <b>'+Math.round(3.14*r*r)+'</b></span>');
+    t='Circle area = πr².';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Cc]ylinder\s+(?:r\s*=\s*|r(?:adius)?\s+)(\d+),?\s*(?:h\s*=\s*|h(?:eight)?\s+)(\d+)/))) {
+    var r=Number(m[1]),h=Number(m[2]);
+    s.push('Formula: <span class="math-hl">Cylinder volume = π × r² × h</span>');
+    s.push('Substitute r = '+r+', h = '+h+': <span class="math-hl">π × '+r+'² × '+h+'</span>');
+    s.push('Calculate: <span class="math-hl">'+r+'² = '+(r*r)+', then '+(r*r)+' × '+h+' = '+(r*r*h)+'</span>');
+    s.push('Multiply by π ≈ 3.14: <span class="math-hl">3.14 × '+(r*r*h)+' ≈ <b>'+Math.round(3.14*r*r*h)+'</b></span>');
+    t='Cylinder volume = π r² h. Think of it as the area of the circular base × height.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Pp]erimeter\s+of\s+(?:a\s+)?square\s+(?:with\s+)?side\s+(\d+)/))) {
+    var side=Number(m[1]);
+    s.push('Formula: <span class="math-hl">Perimeter of a square = 4 × side</span>');
+    s.push('Substitute: <span class="math-hl">4 × '+side+' = <b>'+(4*side)+'</b></span>');
+    t='A square has 4 equal sides. Perimeter = distance around = 4 × s.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Pp]erimeter\s+of\s+(?:a\s+)?rectangle\s+(\d+)\s+by\s+(\d+)/))) {
+    var w=Number(m[1]),l=Number(m[2]);
+    s.push('Formula: <span class="math-hl">Perimeter = 2 × (length + width)</span>');
+    s.push('Substitute: <span class="math-hl">2 × ('+w+' + '+l+') = 2 × '+(w+l)+' = <b>'+(2*(w+l))+'</b></span>');
+    t='Perimeter = the total distance around. For a rectangle: 2(l + w).';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Vv]olume\s+of\s+(?:a\s+)?(?:box|rectangular\s+prism)\s+(\d+)\s*[×x]\s*(\d+)\s*[×x]\s*(\d+)/))) {
+    var a=Number(m[1]),b=Number(m[2]),c=Number(m[3]);
+    s.push('Formula: <span class="math-hl">Volume = length × width × height</span>');
+    s.push('Substitute: <span class="math-hl">'+a+' × '+b+' × '+c+'</span>');
+    s.push('Calculate: <span class="math-hl">'+(a*b)+' × '+c+' = <b>'+(a*b*c)+'</b></span>');
+    t='Volume of a rectangular prism = l × w × h.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Dd]iameter.*?radius\s+(\d+)/))) {
+    var r=Number(m[1]);
+    s.push('Formula: <span class="math-hl">Diameter = 2 × radius</span>');
+    s.push('Substitute: <span class="math-hl">2 × '+r+' = <b>'+(2*r)+'</b></span>');
+    t='The diameter is always twice the radius.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Hh]ypotenuse.*?legs?\s+(\d+)\s+and\s+(\d+)/))) {
+    var a=Number(m[1]),b=Number(m[2]),c2=a*a+b*b;
+    s.push('Formula: <span class="math-hl">Pythagorean theorem: a² + b² = c²</span>');
+    s.push('Substitute a = '+a+', b = '+b+': <span class="math-hl">'+a+'² + '+b+'² = '+(a*a)+' + '+(b*b)+' = '+c2+'</span>');
+    s.push('Take the square root: <span class="math-hl">c = √'+c2+' ≈ <b>'+Math.round(Math.sqrt(c2))+'</b></span>');
+    t='The Pythagorean theorem: c = √(a² + b²). Only works for right triangles.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ll]engths?\s+scaled\s+by\s+(?:factor\s+)?(\d+).*?area/))) {
+    var k=Number(m[1]);
+    s.push('Rule: <span class="math-hl">When lengths scale by k, areas scale by k²</span>');
+    s.push('Substitute k = '+k+': <span class="math-hl">'+k+'² = <b>'+(k*k)+'</b></span>');
+    t='Area is two-dimensional, so it scales as the square of the linear scale factor.';
+    return{steps:s,takeaway:t};
+  }
+
+  /* ── Coordinate Geometry ── */
+  if((m=Q.match(/[Dd]istance\s+from\s+\((\d+),\s*(\d+)\)\s+to\s+\((\d+),\s*(\d+)\)/))) {
+    var x1=Number(m[1]),y1=Number(m[2]),x2=Number(m[3]),y2=Number(m[4]);
+    var dx=x2-x1,dy=y2-y1;
+    s.push('Formula: <span class="math-hl">d = √((x₂−x₁)² + (y₂−y₁)²)</span>');
+    s.push('Substitute: <span class="math-hl">Δx = '+x2+' − '+x1+' = '+dx+', Δy = '+y2+' − '+y1+' = '+dy+'</span>');
+    s.push('Square each: <span class="math-hl">'+dx+'² + '+dy+'² = '+(dx*dx)+' + '+(dy*dy)+' = '+(dx*dx+dy*dy)+'</span>');
+    s.push('Take the square root: <span class="math-hl">d = √'+(dx*dx+dy*dy)+' ≈ <b>'+Math.round(Math.sqrt(dx*dx+dy*dy))+'</b></span>');
+    t='The distance formula comes from the Pythagorean theorem applied to the coordinate plane.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Mm]idpoint\s+(x|y)\s+of\s+\((-?\d+),\s*(-?\d+)\)\s+and\s+\((-?\d+),\s*(-?\d+)\)/))) {
+    var coord=m[1],x1=Number(m[2]),y1=Number(m[3]),x2=Number(m[4]),y2=Number(m[5]);
+    s.push('Formula: <span class="math-hl">Midpoint = ((x₁+x₂)/2, (y₁+y₂)/2)</span>');
+    if(coord==='x'){
+      s.push('For the x-coordinate: <span class="math-hl">('+x1+' + '+x2+') ÷ 2 = '+(x1+x2)+' ÷ 2 = <b>'+Math.round((x1+x2)/2)+'</b></span>');
+    }else{
+      s.push('For the y-coordinate: <span class="math-hl">('+y1+' + '+y2+') ÷ 2 = '+(y1+y2)+' ÷ 2 = <b>'+Math.round((y1+y2)/2)+'</b></span>');
+    }
+    t='The midpoint is the average of the two endpoints for each coordinate.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Dd]ot\s+product\s+<(-?\d+),\s*(-?\d+)>\s*[·.]\s*<(-?\d+),\s*(-?\d+)>/))) {
+    var a=Number(m[1]),b=Number(m[2]),c=Number(m[3]),d=Number(m[4]);
+    s.push('Formula: <span class="math-hl">&lt;a,b&gt; · &lt;c,d&gt; = ac + bd</span>');
+    s.push('Substitute: <span class="math-hl">('+a+')('+c+') + ('+b+')('+d+') = '+(a*c)+' + '+(b*d)+' = <b>'+(a*c+b*d)+'</b></span>');
+    t='The dot product multiplies corresponding components and sums the results.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ss]lope\s+through\s+\((-?\d+),\s*(-?\d+)\)\s+and\s+\((-?\d+),\s*(-?\d+)\)/))) {
+    var x1=Number(m[1]),y1=Number(m[2]),x2=Number(m[3]),y2=Number(m[4]);
+    s.push('Formula: <span class="math-hl">slope = (y₂ − y₁) / (x₂ − x₁)</span>');
+    s.push('Substitute: <span class="math-hl">('+ y2+' − '+y1+') / ('+x2+' − '+x1+') = '+(y2-y1)+' / '+(x2-x1)+'</span>');
+    s.push('Simplify: <span class="math-hl">slope = <b>'+correct+'</b></span>');
+    t='Slope = rise ÷ run = (change in y) ÷ (change in x).';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Tt]ranslate\s+\((-?\d+),\s*(-?\d+)\)\s+(?:right|left|up|down)\s+(\d+).*?[Nn]ew\s+(x|y)/))) {
+    var dir=Q.match(/right|left|up|down/i)[0].toLowerCase();
+    var amt=Number(m[3]),coord=m[4];
+    s.push('Translation means sliding a point without rotating or flipping.');
+    if(dir==='right') s.push('Moving <b>right '+amt+'</b> means add '+amt+' to x.');
+    else if(dir==='left') s.push('Moving <b>left '+amt+'</b> means subtract '+amt+' from x.');
+    else if(dir==='up') s.push('Moving <b>up '+amt+'</b> means add '+amt+' to y.');
+    else s.push('Moving <b>down '+amt+'</b> means subtract '+amt+' from y.');
+    s.push('New coordinate: <span class="math-hl"><b>'+correct+'</b></span>');
+    t='Translations shift a point by adding/subtracting from x (left/right) or y (up/down).';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Rr]eflect\s+\((-?\d+),\s*(-?\d+)\)\s+over\s+(x|y)-axis.*?[Nn]ew\s+(x|y)/))) {
+    var axis=m[3];
+    s.push('Reflecting over the <b>'+axis+'-axis</b>:');
+    if(axis==='x') s.push('Rule: <span class="math-hl">(x, y) → (x, −y)</span> — the y-coordinate flips sign.');
+    else s.push('Rule: <span class="math-hl">(x, y) → (−x, y)</span> — the x-coordinate flips sign.');
+    s.push('Result: <span class="math-hl"><b>'+correct+'</b></span>');
+    t='Reflection over x-axis: negate y. Reflection over y-axis: negate x.';
+    return{steps:s,takeaway:t};
+  }
+
+  /* ── Algebra — Linear equations & functions ── */
+  if((m=Q.match(/y\s*=\s*(\d+)x\s*([+\u2212−-])\s*(\d+).*?(?:at|when)\s+x\s*=\s*(\d+)/))) {
+    var slope=Number(m[1]),sign=m[2],b=Number(m[3]),x=Number(m[4]);
+    var yVal=sign==='+'?(slope*x+b):(slope*x-b);
+    s.push('Function: <span class="math-hl">y = '+slope+'x '+sign+' '+b+'</span>');
+    s.push('Substitute x = '+x+': <span class="math-hl">y = '+slope+'('+x+') '+sign+' '+b+'</span>');
+    s.push('Calculate: <span class="math-hl">y = '+(slope*x)+' '+sign+' '+b+' = <b>'+yVal+'</b></span>');
+    t='To evaluate a function at a value, replace x with that number and simplify.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/y\s*=\s*(\d+)x\s*\+\s*(\d+).*?(?:value\s+at|when)\s+x\s*=\s*(\d+)/i))) {
+    var slope=Number(m[1]),b=Number(m[2]),x=Number(m[3]);
+    s.push('Function: <span class="math-hl">y = '+slope+'x + '+b+'</span>');
+    s.push('Substitute x = '+x+': <span class="math-hl">y = '+slope+'('+x+') + '+b+' = '+(slope*x)+' + '+b+' = <b>'+(slope*x+b)+'</b></span>');
+    t='Plug the x-value into the equation and simplify.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/y\s*=\s*(\d+)x\s*\+\s*(\d+).*?y-intercept/i))) {
+    var b=Number(m[2]);
+    s.push('In slope-intercept form <span class="math-hl">y = mx + b</span>, the y-intercept is <b>b</b>.');
+    s.push('Here b = <span class="math-hl"><b>'+b+'</b></span>');
+    s.push('This is the point where the line crosses the y-axis (when x = 0).');
+    t='The y-intercept (b) is the constant in y = mx + b — the value of y when x = 0.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ss]olve[:\s]+x\s*\+\s*(\d+)\s*=\s*(\d+)/))) {
+    var b=Number(m[1]),rhs=Number(m[2]);
+    s.push('Equation: <span class="math-hl">x + '+b+' = '+rhs+'</span>');
+    s.push('Subtract '+b+' from both sides: <span class="math-hl">x = '+rhs+' − '+b+' = <b>'+(rhs-b)+'</b></span>');
+    t='To isolate x, undo the addition by subtracting from both sides.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ss]olve[:\s]+x\s*[−\u2212-]\s*(\d+)\s*=\s*(\d+)/))) {
+    var b=Number(m[1]),rhs=Number(m[2]);
+    s.push('Equation: <span class="math-hl">x − '+b+' = '+rhs+'</span>');
+    s.push('Add '+b+' to both sides: <span class="math-hl">x = '+rhs+' + '+b+' = <b>'+(rhs+b)+'</b></span>');
+    t='To undo subtraction, add the same number to both sides.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ss]olve[:\s]+(\d+)x\s*=\s*(\d+)/))) {
+    var coef=Number(m[1]),rhs=Number(m[2]);
+    s.push('Equation: <span class="math-hl">'+coef+'x = '+rhs+'</span>');
+    s.push('Divide both sides by '+coef+': <span class="math-hl">x = '+rhs+' ÷ '+coef+' = <b>'+(rhs/coef)+'</b></span>');
+    t='To isolate x from multiplication, divide both sides by the coefficient.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/f\s*\(x\)\s*=\s*x[²\^2].*?g\s*\(x\)\s*=\s*x\s*\+\s*(\d+).*?\(f\s*[∘°o]\s*g\)\s*\((\d+)\)/i))) {
+    var c=Number(m[1]),x=Number(m[2]),gx=x+c;
+    s.push('(f∘g) means f(g(x)) — apply g first, then f.');
+    s.push('Step 1 — find g('+x+'): <span class="math-hl">g('+x+') = '+x+' + '+c+' = '+gx+'</span>');
+    s.push('Step 2 — find f('+gx+'): <span class="math-hl">f('+gx+') = '+gx+'² = <b>'+(gx*gx)+'</b></span>');
+    t='Function composition (f∘g)(x) = f(g(x)). Work from the inside out.';
+    return{steps:s,takeaway:t};
+  }
+
+  /* ── Number Theory ── */
+  if((m=Q.match(/[Gg][Cc][DdFf]\s*(?:of\s+)?(?:\()?(\d+),?\s*(\d+)/))) {
+    var a=Number(m[1]),b=Number(m[2]);
+    s.push('The GCF (Greatest Common Factor) is the largest number that divides both evenly.');
+    s.push('Method — list factors or use the Euclidean algorithm:');
+    var aa=Math.abs(a),bb=Math.abs(b);
+    while(bb){var t2=bb;bb=aa%bb;aa=t2;}
+    s.push('<span class="math-hl">GCF('+a+', '+b+') = <b>'+aa+'</b></span>');
+    t='GCF = the largest factor shared by both numbers. Use the Euclidean algorithm for larger numbers.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Gg][Cc][Dd]\s*\((\d+),\s*(\d+)\)/))) {
+    var a=Number(m[1]),b=Number(m[2]);
+    s.push('GCD (Greatest Common Divisor) = largest number that divides both evenly.');
+    var aa=Math.abs(a),bb=Math.abs(b);
+    while(bb){var t2=bb;bb=aa%bb;aa=t2;}
+    s.push('<span class="math-hl">gcd('+a+', '+b+') = <b>'+aa+'</b></span>');
+    t='GCD and GCF mean the same thing. Use Euclidean algorithm: divide and take remainders.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ll][Cc][Mm]\s*(?:of\s+)?(?:\()?(\d+),?\s*(\d+)/))) {
+    var a=Number(m[1]),b=Number(m[2]);
+    var aa=Math.abs(a),bb=Math.abs(b),ga=aa,gb=bb;
+    while(gb){var t2=gb;gb=ga%gb;ga=t2;}
+    var lcmVal=(aa/ga)*bb;
+    s.push('LCM (Least Common Multiple) is the smallest number both divide into evenly.');
+    s.push('Formula: <span class="math-hl">LCM(a, b) = (a × b) / GCD(a, b)</span>');
+    s.push('GCD('+a+', '+b+') = '+ga);
+    s.push('<span class="math-hl">LCM = ('+a+' × '+b+') / '+ga+' = '+(a*b)+' / '+ga+' = <b>'+lcmVal+'</b></span>');
+    t='LCM = product of both numbers divided by their GCD.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/\|[−\u2212-]?(\d+)\|/))) {
+    var n=Number(m[1]);
+    s.push('Definition: <span class="math-hl">|x| = distance from 0 on the number line</span>');
+    s.push('Distance is always non-negative.');
+    s.push('<span class="math-hl">|−'+n+'| = <b>'+n+'</b></span>');
+    t='Absolute value strips the sign — it measures distance from zero.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Aa]bsolute\s+value\s+of\s+[−\u2212-]?(\d+)/))) {
+    var n=Number(m[1]);
+    s.push('Definition: <span class="math-hl">Absolute value = distance from 0</span>');
+    s.push('<span class="math-hl">|−'+n+'| = <b>'+n+'</b></span>');
+    t='Absolute value is always non-negative.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/\|(\d+)\s*[−\u2212-]\s*(\d+)\|/))) {
+    var a=Number(m[1]),b=Number(m[2]);
+    s.push('Compute inside first: <span class="math-hl">'+a+' − '+b+' = '+(a-b)+'</span>');
+    s.push('Take absolute value: <span class="math-hl">|'+(a-b)+'| = <b>'+Math.abs(a-b)+'</b></span>');
+    t='Absolute value: compute the expression inside, then take the positive result.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/2\^(\d+)\s*[÷\/]\s*2\^(\d+)/))) {
+    var a=Number(m[1]),b=Number(m[2]);
+    s.push('Exponent rule: <span class="math-hl">aⁿ ÷ aᵐ = a^(n−m)</span>');
+    s.push('Apply: <span class="math-hl">2^'+a+' ÷ 2^'+b+' = 2^('+a+'−'+b+') = 2^'+(a-b)+'</span>');
+    s.push('Calculate: <span class="math-hl">2^'+(a-b)+' = <b>'+Math.pow(2,a-b)+'</b></span>');
+    t='When dividing powers with the same base, subtract the exponents.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ee]valuate\s+i\^(\d+)/))) {
+    var n=Number(m[1]),mod=n%4;
+    s.push('Powers of i follow a cycle of 4:');
+    s.push('<span class="math-hl">i¹ = i, i² = −1, i³ = −i, i⁴ = 1, then repeats</span>');
+    s.push('Find '+n+' mod 4 = '+mod);
+    var vals={0:1,1:'i',2:-1,3:'-i'};
+    s.push('So <span class="math-hl">i^'+n+' = <b>'+vals[mod]+'</b></span>');
+    t='Powers of i cycle every 4: i, −1, −i, 1. Divide the exponent by 4 and use the remainder.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/\((\d+)\s*\+\s*(\d+)i\)\s*\(\1\s*[−\u2212-]\s*\2i\)/))) {
+    var a=Number(m[1]),b=Number(m[2]);
+    s.push('Pattern: <span class="math-hl">(a + bi)(a − bi) = a² + b²</span> (difference of squares with i² = −1)');
+    s.push('Substitute a = '+a+', b = '+b+': <span class="math-hl">'+a+'² + '+b+'² = '+(a*a)+' + '+(b*b)+' = <b>'+(a*a+b*b)+'</b></span>');
+    t='Conjugate pairs (a+bi)(a−bi) always simplify to a²+b² — a real number.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/\|(\d+)\s*\+\s*(\d+)i\|/))) {
+    var a=Number(m[1]),b=Number(m[2]);
+    s.push('Formula: <span class="math-hl">|a + bi| = √(a² + b²)</span>');
+    s.push('Substitute: <span class="math-hl">√('+a+'² + '+b+'²) = √('+(a*a)+' + '+(b*b)+') = √'+(a*a+b*b)+'</span>');
+    s.push('Calculate: <span class="math-hl">≈ <b>'+Math.round(Math.sqrt(a*a+b*b))+'</b></span>');
+    t='The modulus of a complex number is its distance from the origin: √(a² + b²).';
+    return{steps:s,takeaway:t};
+  }
+
+  /* ── Statistics ── */
+  if((m=Q.match(/[Mm]ean\s+of\s+(\d+),?\s*(\d+),?\s*(?:and\s+)?(\d+)/))) {
+    var a=Number(m[1]),b=Number(m[2]),c=Number(m[3]);
+    s.push('Formula: <span class="math-hl">Mean = sum of values ÷ number of values</span>');
+    s.push('Sum: <span class="math-hl">'+a+' + '+b+' + '+c+' = '+(a+b+c)+'</span>');
+    s.push('Divide by 3: <span class="math-hl">'+(a+b+c)+' ÷ 3 = <b>'+Math.round((a+b+c)/3)+'</b></span>');
+    t='The mean (average) is the total divided by how many values there are.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Mm]edian\s+of\s+(?:five[:\s]+)?(\d+),?\s*(\d+),?\s*(\d+),?\s*(\d+),?\s*(\d+)/))) {
+    var vals=[Number(m[1]),Number(m[2]),Number(m[3]),Number(m[4]),Number(m[5])].sort(function(a,b){return a-b;});
+    s.push('The <b>median</b> is the middle value when data is sorted.');
+    s.push('Sorted: <span class="math-hl">'+vals.join(', ')+'</span>');
+    s.push('Middle value (3rd of 5): <span class="math-hl"><b>'+vals[2]+'</b></span>');
+    t='To find the median: sort the data, then pick the middle value.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Mm]edian\s+of\s+(\d+),?\s*(\d+),?\s*(\d+)/))) {
+    var vals=[Number(m[1]),Number(m[2]),Number(m[3])].sort(function(a,b){return a-b;});
+    s.push('The <b>median</b> is the middle value when sorted.');
+    s.push('Sorted: <span class="math-hl">'+vals.join(', ')+'</span>');
+    s.push('Middle value: <span class="math-hl"><b>'+vals[1]+'</b></span>');
+    t='Sort the values, pick the one in the middle.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Rr]ange\s+of\s+(?:data\s+)?(\d+)\s+(?:to|and)\s+(\d+)/))) {
+    var lo=Number(m[1]),hi=Number(m[2]);
+    s.push('Formula: <span class="math-hl">Range = maximum − minimum</span>');
+    s.push('Calculate: <span class="math-hl">'+hi+' − '+lo+' = <b>'+(hi-lo)+'</b></span>');
+    t='Range measures the spread of data: highest value minus lowest value.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/C\((\d+),\s*(\d+)\)/))) {
+    var n=Number(m[1]),k=Number(m[2]);
+    s.push('Formula: <span class="math-hl">C(n, k) = n! / (k! × (n−k)!)</span>');
+    if(k===2) {
+      s.push('For k = 2: <span class="math-hl">C('+n+', 2) = '+n+' × '+(n-1)+' / 2 = '+(n*(n-1))+' / 2 = <b>'+(n*(n-1)/2)+'</b></span>');
+    } else if(k===3) {
+      s.push('For k = 3: <span class="math-hl">C('+n+', 3) = '+n+' × '+(n-1)+' × '+(n-2)+' / 6 = <b>'+(n*(n-1)*(n-2)/6)+'</b></span>');
+    } else {
+      s.push('<span class="math-hl">C('+n+', '+k+') = <b>'+correct+'</b></span>');
+    }
+    t='Combinations C(n,k) count how many ways to choose k items from n (order doesn\'t matter).';
+    return{steps:s,takeaway:t};
+  }
+
+  /* ── Probability & Percent ── */
+  if((m=Q.match(/(\d+)\s*favorable\s+out\s+of\s+(\d+)/i))) {
+    var fav=Number(m[1]),tot=Number(m[2]);
+    s.push('Formula: <span class="math-hl">Probability = favorable outcomes ÷ total outcomes</span>');
+    s.push('As a fraction: <span class="math-hl">'+fav+' / '+tot+'</span>');
+    s.push('As a percent: <span class="math-hl">('+fav+' ÷ '+tot+') × 100 = <b>'+Math.round(100*fav/tot)+'%</b></span>');
+    t='Probability = favorable ÷ total. Multiply by 100 for percent.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ii]ndependent.*?P\(A\)\s*=\s*(\d+)%.*?P\(B\)\s*=\s*(\d+)%/))) {
+    var pa=Number(m[1]),pb=Number(m[2]);
+    s.push('For independent events: <span class="math-hl">P(A ∩ B) = P(A) × P(B)</span>');
+    s.push('Convert to decimals: <span class="math-hl">'+(pa/100)+' × '+(pb/100)+' = '+(pa*pb/10000)+'</span>');
+    s.push('As a percent: <span class="math-hl"><b>'+Math.round(pa*pb/100)+'%</b></span>');
+    t='Independent events: the probability of both = product of each probability.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/(\d+)\s*%\s*of\s*(\d+)/))) {
+    var pct=Number(m[1]),whole=Number(m[2]);
+    s.push('Formula: <span class="math-hl">Percent of a number = (percent ÷ 100) × number</span>');
+    s.push('Calculate: <span class="math-hl">('+pct+' ÷ 100) × '+whole+' = '+(pct/100)+' × '+whole+' = <b>'+Math.round(pct*whole/100)+'</b></span>');
+    t='To find a percent of a number, convert the percent to a decimal and multiply.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/(\d+)\s+of\s+(\d+).*?[Pp]ercent/))) {
+    var part=Number(m[1]),whole=Number(m[2]);
+    s.push('Formula: <span class="math-hl">Percent = (part ÷ whole) × 100</span>');
+    s.push('Calculate: <span class="math-hl">('+part+' ÷ '+whole+') × 100 = <b>'+Math.round(100*part/whole)+'%</b></span>');
+    t='Percent means "per hundred." Divide the part by the whole, then multiply by 100.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ww]eighted.*?(\d+)%\s*\((\d+)\)\s*\+\s*(\d+)%\s*\((\d+)\)/))) {
+    var w1=Number(m[1]),a=Number(m[2]),w2=Number(m[3]),b=Number(m[4]);
+    s.push('Formula: <span class="math-hl">Weighted average = (w₁ × v₁ + w₂ × v₂) / 100</span>');
+    s.push('Substitute: <span class="math-hl">('+w1+' × '+a+' + '+w2+' × '+b+') / 100</span>');
+    s.push('Calculate: <span class="math-hl">('+(w1*a)+' + '+(w2*b)+') / 100 = '+(w1*a+w2*b)+' / 100 = <b>'+Math.round((w1*a+w2*b)/100)+'</b></span>');
+    t='Weighted average gives more importance to some values based on their weight (percent).';
+    return{steps:s,takeaway:t};
+  }
+
+  /* ── Arithmetic & Order of Operations ── */
+  if((m=Q.match(/(\d+)\s*\+\s*(\d+)\s*[×x\*]\s*(\d+)/))) {
+    var a=Number(m[1]),b=Number(m[2]),c=Number(m[3]);
+    s.push('Rule: <span class="math-hl">Multiplication before addition (PEMDAS)</span>');
+    s.push('Step 1 — multiply: <span class="math-hl">'+b+' × '+c+' = '+(b*c)+'</span>');
+    s.push('Step 2 — add: <span class="math-hl">'+a+' + '+(b*c)+' = <b>'+(a+b*c)+'</b></span>');
+    t='PEMDAS: Parentheses, Exponents, Multiplication/Division, Addition/Subtraction.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/(\d+)\s*[×x\*]\s*(\d+)\s*[−\u2212-]\s*(\d+)/))) {
+    var a=Number(m[1]),b=Number(m[2]),c=Number(m[3]);
+    s.push('Rule: <span class="math-hl">Multiplication before subtraction (PEMDAS)</span>');
+    s.push('Step 1 — multiply: <span class="math-hl">'+a+' × '+b+' = '+(a*b)+'</span>');
+    s.push('Step 2 — subtract: <span class="math-hl">'+(a*b)+' − '+c+' = <b>'+(a*b-c)+'</b></span>');
+    t='Always do multiplication and division before addition and subtraction.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/(\d+)\s*[×x\*]\s*(\d+)\s*=\s*\?/))) {
+    var a=Number(m[1]),b=Number(m[2]);
+    s.push('Multiply: <span class="math-hl">'+a+' × '+b+'</span>');
+    if(a<=12&&b<=12) s.push('From the times table: <span class="math-hl">'+a+' × '+b+' = <b>'+(a*b)+'</b></span>');
+    else s.push('Calculate: <span class="math-hl">'+a+' × '+b+' = <b>'+(a*b)+'</b></span>');
+    t='Practice times tables for quick recall.';
+    return{steps:s,takeaway:t};
+  }
+
+  /* ── Word problems ── */
+  if((m=Q.match(/(\d+)\s*(?:items?|notebooks?|eggs?)\s*(?:at|@)\s*\$?(\d+)\s*each/i))) {
+    var n=Number(m[1]),p=Number(m[2]);
+    s.push('Total cost = quantity × price per item');
+    s.push('<span class="math-hl">'+n+' × $'+p+' = <b>$'+(n*p)+'</b></span>');
+    t='Multiply the number of items by the cost per item.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/(?:at|speed)\s+(\d+)\s*mph\s+for\s+(\d+)\s*hours?/i))||(m=Q.match(/(\d+)\s*mph\s*(?:for|×)\s*(\d+)\s*h/i))) {
+    var speed=Number(m[1]),time=Number(m[2]);
+    s.push('Formula: <span class="math-hl">Distance = Speed × Time</span>');
+    s.push('<span class="math-hl">'+speed+' mph × '+time+' hours = <b>'+(speed*time)+' miles</b></span>');
+    t='Distance = speed × time. Make sure units match (mph with hours).';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Cc]lass\s+(\d+).*?(\d+)\s+absent.*?present/))) {
+    var tot=Number(m[1]),abs=Number(m[2]);
+    s.push('Total students: '+tot+', Absent: '+abs);
+    s.push('<span class="math-hl">Present = Total − Absent = '+tot+' − '+abs+' = <b>'+(tot-abs)+'</b></span>');
+    t='Present = Total − Absent. Simple subtraction.';
+    return{steps:s,takeaway:t};
+  }
+  if((m=Q.match(/[Ss]ample.*?(\d+)\s+of\s+(\d+)\s+chose.*?[Pp]redict.*?(\d+)/))) {
+    var part=Number(m[1]),sample=Number(m[2]),total=Number(m[3]);
+    var rate=part/sample;
+    s.push('From the sample: <span class="math-hl">'+part+' out of '+sample+' = '+(rate*100).toFixed(0)+'%</span>');
+    s.push('Apply the same rate to '+total+': <span class="math-hl">'+rate.toFixed(2)+' × '+total+' = <b>'+Math.round(rate*total)+'</b></span>');
+    t='Use the sample proportion to predict for a larger population.';
+    return{steps:s,takeaway:t};
+  }
+
+  /* ── Number of sides ── */
+  if((m=Q.match(/[Hh]ow\s+many\s+sides.*?(triangle|quadrilateral|pentagon|hexagon|heptagon|octagon)/i))) {
+    var shapes={triangle:3,quadrilateral:4,pentagon:5,hexagon:6,heptagon:7,octagon:8};
+    var shape=m[1].toLowerCase();
+    s.push('A <b>'+shape+'</b> has <b>'+(shapes[shape]||correct)+'</b> sides.');
+    s.push('Common polygon names: tri=3, quad=4, penta=5, hexa=6, hepta=7, octa=8.');
+    t='Memorize the Greek/Latin prefixes: tri=3, quad=4, penta=5, hexa=6, hepta=7, octa=8.';
+    return{steps:s,takeaway:t};
+  }
+
+  return null;
+}
+
 function generateExplanation(w){
   var steps=[];var takeaway='';
   var a=w.a,b=w.b,op=w.op,correct=w.correct,given=w.given,type=w.type||'arithmetic';
 
   if(w.skipped){
-    steps.push('You used <b>Skip</b> instead of answering — that counts as incorrect for accuracy.');
-    steps.push('The correct answer was <b>'+correct+'</b>.');
-    takeaway='Try working through the problem instead of skipping so your stats reflect real practice.';
+    var skipExp=explainStdComp(w.fullQ||w.q,correct,given);
+    if(skipExp){
+      steps.push('You used <b>Skip</b> — that counts as incorrect. Here\'s the solution:');
+      steps=steps.concat(skipExp.steps);
+      takeaway=skipExp.takeaway;
+    }else{
+      steps.push('You used <b>Skip</b> instead of answering — that counts as incorrect for accuracy.');
+      steps.push('The correct answer was <b>'+correct+'</b>.');
+      takeaway='Try working through the problem instead of skipping so your stats reflect real practice.';
+    }
     return {steps:steps,takeaway:takeaway};
   }
 
   if(type==='equation'){
     var qText=w.fullQ||w.q||'';
-    // Parse equation patterns
     var m1=qText.match(/x\s*\+\s*(\d+)\s*=\s*(\d+)/);
     var m2=qText.match(/(\d+)x\s*\+\s*(\d+)\s*=\s*(\d+)/);
     var m3=qText.match(/(\d+)x\s*-\s*(\d+)\s*=\s*(\d+)/);
@@ -2724,18 +3336,27 @@ function generateExplanation(w){
       }
     }
   }else if(type==='standard'||type==='competency'){
-    steps.push('The question: <span class="math-hl">'+mathRender(w.fullQ||w.q)+'</span>');
-    steps.push('The correct answer is <b>'+correct+'</b>, but you answered <span style="color:#ff4466">'+given+'</span>.');
-    var offBy=Math.abs(given-correct);
-    if(offBy===1){
-      steps.push('You were off by just 1 — likely a small counting or rounding error.');
-      takeaway='Read the question carefully and double-check before answering.';
-    }else if(given===correct*2||given===Math.round(correct/2)){
-      steps.push('Your answer is roughly double or half the correct one — check if you multiplied or divided an extra time.');
-      takeaway='Track your operations carefully: multiply vs. divide, add vs. subtract.';
+    var stdExp=explainStdComp(w.fullQ||w.q,correct,given);
+    if(stdExp){
+      steps=stdExp.steps;
+      takeaway=stdExp.takeaway;
+      if(given!==correct&&given!=='—'){
+        steps.push('<span style="color:#ff4466">You answered '+given+', but the correct answer is <b>'+correct+'</b>.</span>');
+      }
     }else{
-      steps.push('Think through the concept again. What formula or rule applies here?');
-      takeaway='Review this topic in the learning loop to strengthen your understanding.';
+      steps.push('The question: <span class="math-hl">'+mathRender(w.fullQ||w.q)+'</span>');
+      steps.push('The correct answer is <b>'+correct+'</b>, but you answered <span style="color:#ff4466">'+given+'</span>.');
+      var offBy=Math.abs(given-correct);
+      if(offBy===1){
+        steps.push('You were off by just 1 — likely a small counting or rounding error.');
+        takeaway='Read the question carefully and double-check before answering.';
+      }else if(given===correct*2||given===Math.round(correct/2)){
+        steps.push('Your answer is roughly double or half the correct one — check if you multiplied or divided an extra time.');
+        takeaway='Track your operations carefully: multiply vs. divide, add vs. subtract.';
+      }else{
+        steps.push('Identify the formula or rule that applies, substitute the values, and solve step-by-step.');
+        takeaway='Review this topic in the learning loop and practice the relevant formulas.';
+      }
     }
   }else{
     // Arithmetic
