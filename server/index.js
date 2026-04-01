@@ -1439,7 +1439,20 @@ app.get('/api/billing/student/plans', (req, res) => {
 });
 
 function studentIdFromReq(req) {
-  return String(req.user?.studentId || req.user?.id || req.user?.sub || '').trim() || null;
+  const rawStudentId = String(req.user?.studentId || req.user?.id || req.user?.sub || '').trim();
+  const username = String(req.user?.username || '').trim();
+  if (!rawStudentId && !username) return null;
+
+  const students = getStudents();
+  if (rawStudentId) {
+    const byId = students.find((s) => s.id === rawStudentId);
+    if (byId) return byId.id;
+  }
+  if (username) {
+    const byUsername = students.find((s) => s.username === username);
+    if (byUsername) return byUsername.id;
+  }
+  return null;
 }
 
 app.get('/api/billing/student/subscription/me', requireStudent, (req, res) => {
