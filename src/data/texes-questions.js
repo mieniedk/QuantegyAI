@@ -3308,10 +3308,10 @@ export const LINALG_TEST_CONFIG = {
 // ═══════════════════════════════════════════════════════════════
 
 export const CALCULUS_DOMAINS = [
-  { id: 'calc_limits', name: 'Limits, Continuity & L\'Hospital\'s Rule', desc: 'Limit laws, continuity, asymptotic behavior, and indeterminate forms with explicit L\'Hospital\'s Rule practice.', weight: 0.17, games: ['math-match', 'q-blocks'],
+  { id: 'calc_limits', name: 'L\'Hospital\'s Rule, Limits & Continuity', desc: 'Dedicated L\'Hospital\'s Rule section plus limit laws, continuity, asymptotic behavior, and indeterminate-form strategy.', weight: 0.17, games: ['math-match', 'q-blocks'],
     standards: [
       { id: 'calc_c001', name: 'Limit Laws & Continuity', desc: 'Evaluating limits algebraically/graphically and checking continuity.' },
-      { id: 'calc_c002', name: 'Indeterminate Forms & L\'Hospital\'s Rule', desc: 'Using L\'Hospital for 0/0 and ∞/∞ forms when conditions are met.' },
+      { id: 'calc_c002', name: 'L\'Hospital\'s Rule (Indeterminate Forms)', desc: 'Dedicated L\'Hospital practice for 0/0 and ∞/∞ forms when conditions are met.' },
     ],
   },
   { id: 'calc_derivatives', name: 'Derivative Foundations', desc: 'Definition of derivative, differentiation rules, implicit differentiation, and related rates setup.', weight: 0.18, games: ['math-match', 'q-blocks'],

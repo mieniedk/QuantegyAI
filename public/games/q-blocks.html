@@ -606,7 +606,7 @@ let lockDelay=null;
 const LOCK_DELAY_MS=500;
 let unlocked=false; // piece is frozen until math question answered correctly
 let stats={
-  mathCorrect:0, mathWrong:0, mathPts:0, rowPts:0,
+  mathCorrect:0, mathWrong:0, mathPts:0, rowPts:0, dropPts:0,
   rowsCleared:0, blocksPlaced:0, maxCombo:0,
   singleClears:0, doubleClears:0, tripleClears:0, quadClears:0,
   byDifficulty:{easy:{correct:0,wrong:0},medium:{correct:0,wrong:0},hard:{correct:0,wrong:0}}
@@ -619,6 +619,8 @@ const compParam=(urlParams.get('comp')||'').toLowerCase();
 const currentStdParam=(urlParams.get('currentStd')||urlParams.get('std')||'').toLowerCase();
 const examIdParam=(urlParams.get('examId')||'').toLowerCase();
 const gradeParam=(urlParams.get('grade')||'').toLowerCase();
+const isMath712Loop=(examIdParam==='math712'||gradeParam==='grade7-12'||gradeParam==='algebra');
+const isMath48Loop=(examIdParam==='math48'||gradeParam==='grade4-8');
 const useEquationTopic=!/^\s*$/.test(teksParam)&&(teksParam.indexOf('A.')!==-1||teksParam.indexOf('8.')!==-1||/equation|equations|algebra|linear|solve|solving|pattern/.test(labelParam));
 
 function compFromStd(std){
@@ -643,7 +645,7 @@ function compFromStd48(std){
   return'';
 }
 
-const scopedCompId=compParam||compFromStd(currentStdParam)||compFromStd48(currentStdParam);
+const scopedCompId=compParam||compFromStd(currentStdParam)||compFromStd48(currentStdParam)||(isMath712Loop?currentStdParam:'');
 const scopedStdId=currentStdParam;
 const mappedCompFromStd=compFromStd(scopedStdId)||compFromStd48(scopedStdId)||'';
 const showScopeDebug=(urlParams.get('from')==='loop')||urlParams.get('scopeDebug')==='1';
@@ -670,10 +672,10 @@ function updateScopeDebugLabels(){
   });
 }
 
-const useMath712StdBank=(examIdParam==='math712'||gradeParam==='grade7-12'||gradeParam==='algebra')&&/^c0(0[1-9]|1[0-9]|21)$/.test(scopedStdId);
-const useMath48StdBank=(examIdParam==='math48'||gradeParam==='grade4-8')&&/^m48_c0(0[1-9]|1[0-8])$/.test(scopedStdId);
-const useMath712CompBank=(examIdParam==='math712'||gradeParam==='grade7-12'||gradeParam==='algebra')&&!useMath712StdBank&&/^comp00[1-6]$/.test(scopedCompId);
-const useMath48CompBank=(examIdParam==='math48'||gradeParam==='grade4-8')&&!useMath48StdBank&&/^comp48_[1-6]$/.test(scopedCompId);
+const useMath712StdBank=isMath712Loop&&!!scopedStdId;
+const useMath48StdBank=isMath48Loop&&/^m48_c0(0[1-9]|1[0-8])$/.test(scopedStdId);
+const useMath712CompBank=isMath712Loop&&!!scopedCompId;
+const useMath48CompBank=isMath48Loop&&/^comp48_[1-6]$/.test(scopedCompId);
 const activeQBlocksScope=(function(){
   if(useMath48StdBank)return{mode:'standard',label:'STD '+scopedStdId.toUpperCase(),css:'scope-standard'};
   if(useMath48CompBank)return{mode:'competency',label:'COMP '+scopedCompId.toUpperCase(),css:'scope-competency'};
@@ -1866,6 +1868,41 @@ function generateQuestionFromComp(comp,diff){
     if(style===1){const a=rand(10,40),b=rand(10,40),c2=rand(10,40);return makeQuestionObject('Find the mean of '+a+', '+b+', and '+c2+'.',Math.round((a+b+c2)/3));}
     const n=rand(4,10);return makeQuestionObject('How many outcomes are in n coin flips when n='+n+'?',2**n);
   }
+  const topicScope=(c+' '+String(labelParam||'').toLowerCase()+' '+String(teksParam||'').toLowerCase()+' '+String(currentStdParam||'').toLowerCase()).trim();
+  if(/calc|limit|l'hospital|hospital|deriv|integral|series|taylor|slope/.test(topicScope)){
+    const style=Math.floor(Math.random()*4);
+    if(style===0){
+      const n=rand(2,6),coef=rand(2,7);
+      return makeQuestionObject('For f(x) = '+coef+'x^'+n+', what is f′(1)?',coef*n);
+    }
+    if(style===1){
+      const a=rand(2,9);
+      return makeQuestionObject('Evaluate limit: (x² − '+(a*a)+') / (x − '+a+') as x → '+a+'.',2*a);
+    }
+    if(style===2){
+      const c0=rand(2,9),b=rand(2,8);
+      return makeQuestionObject('Compute ∫₀^'+b+' '+c0+' dx.',c0*b);
+    }
+    const d=rand(2,8);
+    return makeQuestionObject('If y = x^'+d+', what is dy/dx at x = 1?',d);
+  }
+  if(/linear|linalg|vector|matrix|eigen|determinant|transform/.test(topicScope)){
+    const style=Math.floor(Math.random()*4);
+    if(style===0){
+      const a=rand(1,6),b=rand(1,6),c2=rand(1,6),d=rand(1,6);
+      return makeQuestionObject('Compute determinant of [['+a+', '+b+'], ['+c2+', '+d+']].',a*d-b*c2);
+    }
+    if(style===1){
+      const x1=rand(1,6),y1=rand(1,6),x2=rand(1,6),y2=rand(1,6);
+      return makeQuestionObject('Dot product <'+x1+', '+y1+'> · <'+x2+', '+y2+'>',x1*x2+y1*y2);
+    }
+    if(style===2){
+      const k=rand(2,7);
+      return makeQuestionObject('For A = [['+k+', 0], [0, '+k+']], what is one eigenvalue of A?',k);
+    }
+    const m=rand(2,5),n=rand(1,5);
+    return makeQuestionObject('If T(x, y) = ('+m+'x, '+n+'y), what is x-coordinate of T(2, 3)?',2*m);
+  }
   const fallbackAns=rand(5,40),fallbackB=rand(2,12);
   return makeQuestionObject('Solve to drop: x + '+fallbackB+' = '+(fallbackAns+fallbackB)+'. Find x.',fallbackAns);
 }
@@ -2222,7 +2259,11 @@ function drop(){
   if(paused||over||!piece||!unlocked)return;
   let dropped=0;
   while(!hit(px,py+1,piece)){py++;dropped++;}
-  if(dropped>0) score+=dropped*2; // bonus for hard drop distance
+  if(dropped>0){
+    const dropBonus=dropped*2;
+    score+=dropBonus; // bonus for hard drop distance
+    stats.dropPts+=dropBonus;
+  }
   playSfx('drop');
   lock();
 }
@@ -2503,7 +2544,7 @@ function startGame(){
     allAnswers=[];
     for(var uk in USED_POOL_QUESTIONS)delete USED_POOL_QUESTIONS[uk];
     for(var gk in USED_GENERATED_QUESTIONS)delete USED_GENERATED_QUESTIONS[gk];
-    stats={mathCorrect:0,mathWrong:0,mathPts:0,rowPts:0,rowsCleared:0,blocksPlaced:0,maxCombo:0,singleClears:0,doubleClears:0,tripleClears:0,quadClears:0,byDifficulty:{easy:{correct:0,wrong:0},medium:{correct:0,wrong:0},hard:{correct:0,wrong:0}}};
+    stats={mathCorrect:0,mathWrong:0,mathPts:0,rowPts:0,dropPts:0,rowsCleared:0,blocksPlaced:0,maxCombo:0,singleClears:0,doubleClears:0,tripleClears:0,quadClears:0,byDifficulty:{easy:{correct:0,wrong:0},medium:{correct:0,wrong:0},hard:{correct:0,wrong:0}}};
     var sv=$('scoreVal'),lv=$('levelVal'),cv=$('comboVal');
     if(sv)sv.textContent='0';if(lv)lv.textContent='1';if(cv)cv.textContent='0';
     show('game');
@@ -2656,6 +2697,8 @@ function showGameOver(){
   var detailsHtml='';
   detailsHtml+='<div class="go-stat"><span class="label">Math Points</span><span class="value">'+stats.mathPts+'</span></div>';
   detailsHtml+='<div class="go-stat"><span class="label">Row Points</span><span class="value">'+stats.rowPts+'</span></div>';
+  detailsHtml+='<div class="go-stat"><span class="label">Drop Bonus</span><span class="value">'+(stats.dropPts||0)+'</span></div>';
+  detailsHtml+='<div class="go-stat"><span class="label">Total Score</span><span class="value">'+score+'</span></div>';
   detailsHtml+='<div class="go-stat"><span class="label">Blocks Placed</span><span class="value">'+stats.blocksPlaced+'</span></div>';
   detailsHtml+='<div class="go-section-title">Difficulty Breakdown</div>';
   ['easy','medium','hard'].forEach(function(d){
@@ -3547,12 +3590,14 @@ function showReviewScreen(){
   var wrongCount=total-correctCount;
   var accuracy=total>0?Math.round((correctCount/total)*100):0;
   var ringColor=accuracy>=80?'#00ff88':accuracy>=50?'#ffcc00':'#ff4466';
+  var dropPts=stats.dropPts||0;
 
-  $('reviewInfo').textContent=total+' question'+(total!==1?'s':'')+' answered — full review with solutions';
+  $('reviewInfo').textContent='Final Score: '+score+' • '+total+' question'+(total!==1?'s':'')+' answered — full review with solutions';
 
   var scoreBar='<div class="rv-score-bar">';
   scoreBar+='<div class="rv-sb-pct" style="color:'+ringColor+'">'+accuracy+'%</div>';
-  scoreBar+='<div class="rv-sb-detail">'+correctCount+' correct, '+wrongCount+' wrong out of '+total+' questions</div>';
+  scoreBar+='<div class="rv-sb-detail">'+correctCount+' correct, '+wrongCount+' wrong out of '+total+' questions';
+  scoreBar+='<br>Score '+score+' = Math '+stats.mathPts+' + Rows '+stats.rowPts+' + Drop '+dropPts+'</div>';
   scoreBar+='</div>';
   cards.appendChild(createElementFromHTML(scoreBar));
 
@@ -3953,7 +3998,7 @@ function init(){
     return isDbl;
   }
 
-  let _down=false, _dragging=false, _pointerId=null;
+  let _down=false, _dragging=false, _pointerId=null, _downOnPiece=false;
   let _startX=0, _startY=0, _startTime=0;
   let _trackX=0, _trackY=0;
   let _accumX=0, _accumY=0;
@@ -3968,6 +4013,7 @@ function init(){
     _startY=_trackY=e.clientY;
     _startTime=Date.now();
     _accumX=0; _accumY=0;
+    _downOnPiece=isCellOnPiece(getColFromEvent(e),getRowFromEvent(e));
     try{boardBox.setPointerCapture(e.pointerId);}catch(_){}
     e.preventDefault();
   });
@@ -3980,6 +4026,7 @@ function init(){
     }
     if(!_down||e.pointerId!==_pointerId)return;
     if(paused||over||!piece||!unlocked)return;
+    if(!_downOnPiece)return;
 
     const dx=e.clientX-_startX, dy=e.clientY-_startY;
     if(!_dragging&&(Math.abs(dx)>DRAG_THRESHOLD||Math.abs(dy)>DRAG_THRESHOLD)) _dragging=true;
@@ -4032,14 +4079,14 @@ function init(){
 
     if(!_dragging&&adx<TAP_SLOP&&ady<TAP_SLOP){
       // TAP (not a drag)
-      if(checkDoubleTap(e.clientX,e.clientY)){
+      if(_downOnPiece&&checkDoubleTap(e.clientX,e.clientY)){
         // ── DOUBLE-TAP → ROTATE (change shape) ──
         rotate();
       }else{
         // ── SINGLE TAP ──
         const col=getColFromEvent(e);
         const row=getRowFromEvent(e);
-        if(isCellOnPiece(col,row)){
+        if(_downOnPiece&&isCellOnPiece(col,row)){
           // Tapped ON/near the piece → ROTATE
           rotate();
         }else if(piece&&!paused&&!over){
@@ -4060,18 +4107,26 @@ function init(){
       if(ady>adx&&dy>0&&ady>50&&dt<400) drop();
     }
 
-    _down=false;_dragging=false;_pointerId=null;
+    _down=false;_dragging=false;_pointerId=null;_downOnPiece=false;
     _accumX=0;_accumY=0;
   });
 
   boardBox.addEventListener('pointercancel',()=>{
     boardBox.classList.remove('dragging');
-    _down=false;_dragging=false;_pointerId=null;
+    _down=false;_dragging=false;_pointerId=null;_downOnPiece=false;
+  });
+  boardBox.addEventListener('dblclick',e=>{
+    if(paused||over||!piece||!unlocked)return;
+    const col=getColFromEvent(e),row=getRowFromEvent(e);
+    if(isCellOnPiece(col,row)){
+      e.preventDefault();
+      rotate();
+    }
   });
   boardBox.addEventListener('pointerleave',()=>{hoverCol=-1;drawHoverHighlight(-1);});
 
   // Touch fallback for devices where pointer events may not fire reliably in iframes
-  let _touchId=null,_touchSX=0,_touchSY=0,_touchST=0,_touchDrag=false;
+  let _touchId=null,_touchSX=0,_touchSY=0,_touchST=0,_touchDrag=false,_touchOnPiece=false;
   let _touchTX=0,_touchTY=0,_touchAX=0,_touchAY=0;
   boardBox.addEventListener('touchstart',function(te){
     if(_down)return;
@@ -4079,6 +4134,7 @@ function init(){
     const t=te.touches[0];
     _touchId=t.identifier;_touchSX=_touchTX=t.clientX;_touchSY=_touchTY=t.clientY;
     _touchST=Date.now();_touchDrag=false;_touchAX=0;_touchAY=0;
+    _touchOnPiece=isCellOnPiece(getColFromEvent(t),getRowFromEvent(t));
     te.preventDefault();
   },{passive:false});
   boardBox.addEventListener('touchmove',function(te){
@@ -4089,6 +4145,7 @@ function init(){
     const dx=t.clientX-_touchSX,dy=t.clientY-_touchSY;
     if(!_touchDrag&&(Math.abs(dx)>DRAG_THRESHOLD||Math.abs(dy)>DRAG_THRESHOLD))_touchDrag=true;
     if(!_touchDrag){te.preventDefault();return;}
+    if(!_touchOnPiece){te.preventDefault();return;}
     const rect=boardBox.getBoundingClientRect();
     const cW=rect.width/W,cH=rect.height/H;
     _touchAX+=t.clientX-_touchTX;
@@ -4107,17 +4164,17 @@ function init(){
     const dx=t.clientX-_touchSX,dy=t.clientY-_touchSY;
     const adx=Math.abs(dx),ady=Math.abs(dy);
     if(!_touchDrag&&adx<TAP_SLOP&&ady<TAP_SLOP){
-      if(checkDoubleTap(t.clientX,t.clientY)){rotate();}
+      if(_touchOnPiece&&checkDoubleTap(t.clientX,t.clientY)){rotate();}
       else{
         const col=getColFromEvent(t),row=getRowFromEvent(t);
-        if(isCellOnPiece(col,row)){rotate();}
+        if(_touchOnPiece&&isCellOnPiece(col,row)){rotate();}
         else if(piece&&!paused&&!over){
           const pw=piece[0].length;let tx=col-Math.floor(pw/2);tx=Math.max(0,Math.min(tx,W-pw));
           if(tx!==px){const d=tx>px?1:-1;while(px!==tx){if(hit(px+d,py,piece))break;px+=d;}playSfx('move');renderBoard();}
         }
       }
     }else if(_touchDrag&&ady>adx&&dy>0&&ady>50&&dt<400){drop();}
-    _touchId=null;_touchDrag=false;_touchAX=0;_touchAY=0;
+    _touchId=null;_touchDrag=false;_touchAX=0;_touchAY=0;_touchOnPiece=false;
   },{passive:false});
 
   // Right-click → rotate

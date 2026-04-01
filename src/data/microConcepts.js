@@ -797,7 +797,7 @@ export const MICRO_CONCEPTS = {
   // Calculus (calculus)
   // ═══════════════════════════════════════════════════════════════
   'calculus:calc_limits': {
-    title: 'Limits, Continuity & L\'Hospital\'s Rule',
+    title: 'L\'Hospital\'s Rule, Limits & Continuity',
     conceptText: 'A limit describes behavior near a point, not necessarily at the point. A function is continuous at x=a if f(a) exists, lim(x→a)f(x) exists, and they are equal. For rational limits, factor/cancel where possible. For ∞ behavior, compare leading terms. L\'Hospital\'s Rule applies to 0/0 and ∞/∞ forms after confirming those forms.',
     workedExample: 'lim(x→2)(x²−4)/(x−2) = lim(x→2)(x+2) = 4 after canceling (x−2).',
     misconception: 'If f(a) is undefined, the limit at a cannot exist. False: limits can exist even when the function value is missing or different.',
@@ -833,7 +833,7 @@ export const MICRO_CONCEPTS = {
     misconception: 'All differential equations have elementary closed-form solutions. Many require numerical or qualitative methods.',
   },
   'calculus:calc_c002': {
-    title: 'Indeterminate Forms & L\'Hospital\'s Rule',
+    title: 'L\'Hospital\'s Rule (Indeterminate Forms)',
     conceptText: 'L\'Hospital\'s Rule: if lim(x→a) f(x)/g(x) gives 0/0 or ∞/∞ and f,g are differentiable near a with g\'(x)≠0, then lim f/g = lim f\'/g\' (if that new limit exists). You may apply repeatedly when needed. It also works for x→∞ under the same conditions.',
     workedExample: 'lim(x→0)(1−cos x)/x² is 0/0. Differentiate top and bottom: lim(sin x)/(2x)=1/2.',
     misconception: 'Use L\'Hospital on any difficult limit. Convert first to 0/0 or ∞/∞; forms like 0·∞ or ∞−∞ need algebraic rewriting.',
