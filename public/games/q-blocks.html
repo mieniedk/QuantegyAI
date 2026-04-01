@@ -2993,7 +2993,7 @@ function explainStdComp(q,correct,given){
   if((m=Q.match(/[Rr]otate\s+\((-?\d+),\s*(-?\d+)\)\s+90[°\s]*(?:degrees?\s+)?clockwise.*?[Nn]ew\s+(x|y)/))) {
     var x0=Number(m[1]),y0=Number(m[2]),coord=m[3];
     s.push('Rule: <span class="math-hl">90° clockwise about origin: (x, y) → (y, −x)</span>');
-    s.push('Apply to ('+x0+', '+y0+'): <span class="math-hl">('+y0+', '+(−x0)+')</span>');
+    s.push('Apply to ('+x0+', '+y0+'): <span class="math-hl">('+y0+', '+(-x0)+')</span>');
     s.push('The new '+coord+'-coordinate is <span class="math-hl"><b>'+correct+'</b></span>');
     t='90° CW rotation: swap x and y, then negate the new y.';
     return{steps:s,takeaway:t};
@@ -3001,7 +3001,7 @@ function explainStdComp(q,correct,given){
   if((m=Q.match(/[Rr]otate\s+\((-?\d+),\s*(-?\d+)\)\s+90[°\s]*(?:degrees?\s+)?(?:CCW|counterclockwise|counter-clockwise).*?[Nn]ew\s+(x|y)/i))) {
     var x0=Number(m[1]),y0=Number(m[2]),coord=m[3];
     s.push('Rule: <span class="math-hl">90° CCW about origin: (x, y) → (−y, x)</span>');
-    s.push('Apply to ('+x0+', '+y0+'): <span class="math-hl">('+(−y0)+', '+x0+')</span>');
+    s.push('Apply to ('+x0+', '+y0+'): <span class="math-hl">('+(-y0)+', '+x0+')</span>');
     s.push('The new '+coord+'-coordinate is <span class="math-hl"><b>'+correct+'</b></span>');
     t='90° CCW rotation: swap x and y, then negate the new x.';
     return{steps:s,takeaway:t};
