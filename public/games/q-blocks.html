@@ -621,6 +621,7 @@ const examIdParam=(urlParams.get('examId')||'').toLowerCase();
 const gradeParam=(urlParams.get('grade')||'').toLowerCase();
 const isMath712Loop=(examIdParam==='math712'||gradeParam==='grade7-12'||gradeParam==='algebra');
 const isMath48Loop=(examIdParam==='math48'||gradeParam==='grade4-8');
+const isCalculusLoop=(examIdParam==='calculus');
 const useEquationTopic=!/^\s*$/.test(teksParam)&&(teksParam.indexOf('A.')!==-1||teksParam.indexOf('8.')!==-1||/equation|equations|algebra|linear|solve|solving|pattern/.test(labelParam));
 
 function compFromStd(std){
@@ -645,7 +646,7 @@ function compFromStd48(std){
   return'';
 }
 
-const scopedCompId=compParam||compFromStd(currentStdParam)||compFromStd48(currentStdParam)||(isMath712Loop?currentStdParam:'');
+const scopedCompId=compParam||compFromStd(currentStdParam)||compFromStd48(currentStdParam)||(isMath712Loop||isCalculusLoop?currentStdParam:'');
 const scopedStdId=currentStdParam;
 const mappedCompFromStd=compFromStd(scopedStdId)||compFromStd48(scopedStdId)||'';
 const showScopeDebug=(urlParams.get('from')==='loop')||urlParams.get('scopeDebug')==='1';
@@ -676,7 +677,11 @@ const useMath712StdBank=isMath712Loop&&!!scopedStdId;
 const useMath48StdBank=isMath48Loop&&/^m48_c0(0[1-9]|1[0-8])$/.test(scopedStdId);
 const useMath712CompBank=isMath712Loop&&!!scopedCompId;
 const useMath48CompBank=isMath48Loop&&/^comp48_[1-6]$/.test(scopedCompId);
+const useCalculusStdBank=isCalculusLoop&&!!scopedStdId;
+const useCalculusCompBank=isCalculusLoop&&!!scopedCompId;
 const activeQBlocksScope=(function(){
+  if(useCalculusStdBank)return{mode:'standard',label:'STD '+scopedStdId.toUpperCase(),css:'scope-standard'};
+  if(useCalculusCompBank)return{mode:'competency',label:'COMP '+scopedCompId.toUpperCase(),css:'scope-competency'};
   if(useMath48StdBank)return{mode:'standard',label:'STD '+scopedStdId.toUpperCase(),css:'scope-standard'};
   if(useMath48CompBank)return{mode:'competency',label:'COMP '+scopedCompId.toUpperCase(),css:'scope-competency'};
   if(useMath712StdBank)return{mode:'standard',label:'STD '+scopedStdId.toUpperCase(),css:'scope-standard'};
@@ -686,6 +691,23 @@ const activeQBlocksScope=(function(){
 })();
 
 const QBLOCKS_STD_BANK={
+  calc_c002:{
+    easy:[
+      {q:"L'Hospital applies directly to which form?",ans:0},
+      {q:'lim(x→0) (sin x)/x',ans:1},
+      {q:'lim(x→0) (1−cos x)/x²',ans:0.5},
+    ],
+    medium:[
+      {q:'lim(x→∞) (ln x)/x',ans:0},
+      {q:'lim(x→∞) x/e^x',ans:0},
+      {q:'lim(x→∞) (x²+1)/(2x²−3)',ans:0.5},
+    ],
+    hard:[
+      {q:'lim(x→0) (e^x−1−x)/x²',ans:0.5},
+      {q:'If still 0/0 after one L\'Hospital step, apply again? (yes=1,no=0)',ans:1},
+      {q:'Rewrite 0·∞ before L\'Hospital as a quotient? (yes=1,no=0)',ans:1},
+    ],
+  },
   c001:{easy:[{q:'Evaluate: |−8| + 1',ans:9}],medium:[{q:'Compute: 2⁴ ÷ 2²',ans:4}],hard:[{q:'Find gcd(84,30)',ans:6}]},
   c002:{easy:[{q:'Evaluate i²',ans:-1}],medium:[{q:'Compute (2 + 3i)(2 − 3i)',ans:13}],hard:[{q:'Magnitude |3 + 4i|',ans:5}]},
   c003:{easy:[{q:'Compute lcm(6,8)',ans:24}],medium:[{q:'Compute gcd(48,18)',ans:6}],hard:[{q:'How many positive factors does 36 have?',ans:9}]},
@@ -1800,6 +1822,15 @@ function generateQuestionFromStd(std,diff){
 
 function generateQuestionFromComp(comp,diff){
   const c=String(comp||'').toLowerCase();
+  if(c==='calc_c002'){
+    const style=Math.floor(Math.random()*6);
+    if(style===0){return makeQuestionObject("L'Hospital applies directly to which indeterminate form? (0/0=0, other=1)",0);}
+    if(style===1){return makeQuestionObject('lim(x→0) (sin x)/x',1);}
+    if(style===2){return makeQuestionObject('lim(x→∞) (ln x)/x',0);}
+    if(style===3){return makeQuestionObject('lim(x→0) (1−cos x)/x²',0.5);}
+    if(style===4){return makeQuestionObject('lim(x→∞) (x²+1)/(2x²−3)',0.5);}
+    return makeQuestionObject("If still 0/0 after one derivative step, apply L'Hospital again? (yes=1,no=0)",1);
+  }
   if(c==='comp001'||c==='comp48_1'){
     const style=Math.floor(Math.random()*3);
     if(style===0){const n=rand(2,15);return makeQuestionObject('Evaluate |−'+n+'| + 1.',n+1);}
@@ -1869,6 +1900,14 @@ function generateQuestionFromComp(comp,diff){
     const n=rand(4,10);return makeQuestionObject('How many outcomes are in n coin flips when n='+n+'?',2**n);
   }
   const topicScope=(c+' '+String(labelParam||'').toLowerCase()+' '+String(teksParam||'').toLowerCase()+' '+String(currentStdParam||'').toLowerCase()).trim();
+  if(/l'hospital|hospital|calc_c002/.test(topicScope)){
+    const style=Math.floor(Math.random()*5);
+    if(style===0){return makeQuestionObject("L'Hospital applies directly to 0/0? (yes=1,no=0)",1);}
+    if(style===1){return makeQuestionObject('lim(x→0) (sin x)/x',1);}
+    if(style===2){return makeQuestionObject('lim(x→∞) (ln x)/x',0);}
+    if(style===3){return makeQuestionObject('lim(x→0) (1−cos x)/x²',0.5);}
+    return makeQuestionObject("For 0·∞, rewrite to a quotient before L'Hospital? (yes=1,no=0)",1);
+  }
   if(/calc|limit|l'hospital|hospital|deriv|integral|series|taylor|slope/.test(topicScope)){
     const style=Math.floor(Math.random()*4);
     if(style===0){
@@ -2394,6 +2433,22 @@ function setSpeed(){
 // When teks/label indicate equations (e.g. from practice-loop quiz), include equation questions.
 function mkQ(){
   let a,b,op,ans,diff,qText,isEquation=false;
+  if(useCalculusStdBank){
+    diff=level<=3?'easy':level<=6?'medium':'hard';
+    const scopedCalcStd=buildStdQuestion(diff);
+    if(scopedCalcStd){
+      paintQuestionUI(ensureQuestionPayload(scopedCalcStd,'Solve to drop: choose the correct answer.',diff,'standard'),false);
+      return;
+    }
+  }
+  if(useCalculusCompBank){
+    diff=level<=3?'easy':level<=6?'medium':'hard';
+    const scopedCalcComp=buildCompQuestion(diff);
+    if(scopedCalcComp){
+      paintQuestionUI(ensureQuestionPayload(scopedCalcComp,'Solve to drop: choose the correct answer.',diff,'competency'),false);
+      return;
+    }
+  }
   if(useMath48StdBank){
     diff=level<=3?'easy':level<=6?'medium':'hard';
     const std48=buildStdQuestion48(diff);
