@@ -776,8 +776,10 @@ const aiRateLimiter = createInMemoryRateLimiter({
   maxRequests: Number(process.env.AI_RATE_LIMIT_PER_MIN || 40),
   keyPrefix: 'ai',
 });
-app.use('/api/ai', aiRateLimiter);
-app.use('/api', apiRateLimiter);
+if (process.env.NODE_ENV !== 'test') {
+  app.use('/api/ai', aiRateLimiter);
+  app.use('/api', apiRateLimiter);
+}
 app.use(createAuditMiddleware({ decodeToken: verifyToken }));
 
 // ── LTI 1.3 Integration ──
@@ -1436,6 +1438,35 @@ app.get('/api/billing/student/plans', (req, res) => {
     configured: !!p.priceId,
   }));
   res.json({ success: true, plans });
+});
+
+/**
+ * Billing health probe (safe for production):
+ * - Does NOT expose key values.
+ * - Helps quickly diagnose Stripe/env configuration issues.
+ */
+app.get('/api/billing/health', (_req, res) => {
+  const stripeMode = STRIPE_SECRET_KEY.startsWith('sk_live_')
+    ? 'live'
+    : STRIPE_SECRET_KEY.startsWith('sk_test_')
+      ? 'test'
+      : 'unknown';
+  const studentPlans = Object.values(STUDENT_BILLING_PLANS).map((p) => ({
+    id: p.id,
+    configured: !!p.priceId,
+  }));
+  const teacherPlans = Object.values(BILLING_PLANS).map((p) => ({
+    id: p.id,
+    configured: !!p.priceId,
+  }));
+  res.json({
+    success: true,
+    stripeConfigured: !!stripe,
+    stripeMode,
+    webhookConfigured: !!STRIPE_WEBHOOK_SECRET,
+    studentPlans,
+    teacherPlans,
+  });
 });
 
 function studentIdFromReq(req) {

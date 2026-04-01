@@ -449,7 +449,7 @@ export function speechifyForNarration(str) {
   s = s.replace(/\u2212/g, ' minus ');
   s = s.replace(/°/g, ' degrees ');
   // Read fraction slash as division in probability/formula narration.
-  s = s.replace(/([A-Za-z0-9)\]])\s*\/\s*([A-Za-z0-9(\[])/g, '$1 divided by $2');
+  s = s.replace(/([A-Za-z0-9)\]])\s*\/\s*([[A-Za-z0-9(])/g, '$1 divided by $2');
 
   // Unicode subscript digits (₀–₉) → spoken digits so "x₂−x₁" reads as "x 2 minus x 1"
   s = s.replace(/₀/g, ' 0');
