@@ -62,6 +62,7 @@ import { motionTransition } from '../utils/motion';
 import { showAppToast } from '../utils/appToast';
 
 const COMPETENCY_EXPLORER = { id: 'concept-explorer', name: 'Concept Explorer', path: '/concept-explorer' };
+const STANDARD_LOOP_GAME_IDS = ['q-blocks', 'math-match', 'math-bingo', 'math-jeopardy'];
 const VIDEO_BACKUP_EMBEDS = [
   'https://www.youtube.com/embed/CLWpkv6ccpA',
   'https://www.youtube.com/embed/SP-YJe7Vldo',
@@ -2811,94 +2812,18 @@ export default function PracticeLoop() {
   }, [phase, quizResetMap]);
 
   const fourGames = useMemo(() => {
-    // For the dedicated L'Hospital loop, keep all game tiles on the scoped Q-Blocks flow.
-    if (isLHospitalLoop) {
-      const qBlocks = GAMES_CATALOG.find((g) => g.id === 'q-blocks');
-      return qBlocks
-        ? [
-            { ...qBlocks, name: "L'Hospital Challenge 1" },
-            { ...qBlocks, name: "L'Hospital Challenge 2" },
-            { ...qBlocks, name: "L'Hospital Challenge 3" },
-            { ...qBlocks, name: "L'Hospital Challenge 4" },
-          ]
-        : [COMPETENCY_EXPLORER];
-    }
-
     const isOk = (g) => g && (!Array.isArray(g.grades) || g.grades.includes(grade));
-    let eligible = GAMES_CATALOG.filter(isOk);
-    if (eligible.length === 0) return [COMPETENCY_EXPLORER];
-
-    const strictStdScope = (loopExamId === 'math712' || loopExamId === 'math48') && !!currentStd;
-    const STRICT_SCOPED_GAME_IDS = new Set(['q-blocks', 'math-bingo', 'math-match']);
-    if (strictStdScope) {
-      eligible = eligible.filter((g) => STRICT_SCOPED_GAME_IDS.has(g.id));
-      if (eligible.length === 0) return [COMPETENCY_EXPLORER];
+    const fixed = STANDARD_LOOP_GAME_IDS
+      .map((id) => GAMES_CATALOG.find((g) => g.id === id && isOk(g)))
+      .filter(Boolean);
+    if (fixed.length === STANDARD_LOOP_GAME_IDS.length) return fixed;
+    if (fixed.length > 0) {
+      const padded = [...fixed];
+      while (padded.length < 4) padded.push(COMPETENCY_EXPLORER);
+      return padded;
     }
-
-    // Games whose content is hardcoded to a specific domain and can't adapt to
-    // arbitrary TEKS.  Map competency → set of game IDs to exclude.
-    // Games whose content is hardcoded and can't adapt to the competency's TEKS.
-    // Games whose content can't adapt to the competency's TEKS. Keyed by comp.
-    // Shared set of games with hardcoded elementary content (no TEKS filtering).
-    const HARDCODED_GAMES = [
-      'escape-room', 'scavenger-hunt', 'speed-builder', 'crosses-knots',
-      'math-memory', 'time-traveler', 'math-maze', 'fraction-pizza',
-      'number-line-ninja', 'shape-shifter', 'fraction-frenzy',
-    ];
-    const COMP_GAME_EXCLUDE = {
-      comp001: new Set([...HARDCODED_GAMES, 'qbot-shop']),
-      comp002: new Set([...HARDCODED_GAMES, 'qbot-shop']),
-      comp003: new Set([...HARDCODED_GAMES, 'qbot-shop']),
-      comp004: new Set([
-        ...HARDCODED_GAMES, 'qbot-shop', 'equation-balance', 'graph-explorer',
-        'algebra-sprint', 'math-sprint', 'q-blocks',
-      ]),
-      comp005: new Set([...HARDCODED_GAMES, 'qbot-shop']),
-      comp006: new Set([...HARDCODED_GAMES, 'qbot-shop']),
-    };
-    // Games extended with content for a competency — placed first in rotation.
-    const COMP_GAME_PREFER = strictStdScope
-      ? {
-          comp001: ['q-blocks', 'math-bingo', 'math-match'],
-          comp002: ['q-blocks', 'math-bingo', 'math-match'],
-          comp003: ['q-blocks', 'math-bingo', 'math-match'],
-          comp004: ['q-blocks', 'math-bingo', 'math-match'],
-          comp005: ['q-blocks', 'math-bingo', 'math-match'],
-          comp006: ['q-blocks', 'math-bingo', 'math-match'],
-        }
-      : {
-          comp001: ['math-match', 'math-bingo', 'math-jeopardy', 'q-blocks'],
-          comp002: ['math-match', 'math-bingo', 'math-jeopardy', 'q-blocks'],
-          comp003: ['math-match', 'math-bingo', 'math-jeopardy', 'q-blocks'],
-          comp004: ['math-match', 'math-bingo', 'math-jeopardy', 'math-millionaire', 'q-blocks'],
-          comp005: ['math-match', 'math-bingo', 'math-jeopardy', 'q-blocks'],
-          comp006: ['math-match', 'math-bingo', 'math-jeopardy', 'q-blocks'],
-        };
-
-    const exclude = comp && COMP_GAME_EXCLUDE[comp];
-    if (exclude) eligible = eligible.filter((g) => !exclude.has(g.id));
-    if (eligible.length === 0) return [COMPETENCY_EXPLORER];
-
-    // Deterministic offset from competency so each standard gets a different mix.
-    let hash = 0;
-    const seed = `${comp || ''}|${currentStd || ''}|${examId || ''}`;
-    for (let i = 0; i < seed.length; i++) hash = ((hash << 5) - hash + seed.charCodeAt(i)) | 0;
-    const offset = ((hash % eligible.length) + eligible.length) % eligible.length;
-
-    const picked = [];
-    // Insert preferred games first (if they are in the eligible list).
-    const preferred = (comp && COMP_GAME_PREFER[comp]) || [];
-    for (const pid of preferred) {
-      const g = eligible.find((e) => e.id === pid);
-      if (g && picked.length < 4) picked.push(g);
-    }
-    const pickedIds = new Set(picked.map((g) => g.id));
-    for (let i = 0; i < eligible.length && picked.length < 4; i++) {
-      const g = eligible[(offset + i) % eligible.length];
-      if (!pickedIds.has(g.id)) { picked.push(g); pickedIds.add(g.id); }
-    }
-    return picked;
-  }, [grade, comp, currentStd, isLHospitalLoop, loopExamId]);
+    return [COMPETENCY_EXPLORER];
+  }, [grade]);
 
   const activityModes = useMemo(() => {
     if (subject !== 'math') return [];

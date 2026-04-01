@@ -274,6 +274,7 @@ export default function Domains() {
                   p.set('comp', d.id);
                   if (stdId) p.set('std', stdId);
                   p.set('phase', 'diagnostic');
+                  p.set('examId', examId);
                   if (examId === 'math712') { p.set('grade', 'grade7-12'); p.set('label', 'Math 7\u201312'); }
                   else if (examId === 'math48') { p.set('grade', 'grade4-8'); p.set('label', 'Math 4\u20138'); }
                   else { p.set('grade', String(examId)); p.set('label', d.name); }
