@@ -454,6 +454,84 @@ const Q_POOLS = {
     { expr: '20% of 50', ans: 10 }, { expr: '√(144)', ans: 12 },
     { expr: '50% of 42', ans: 21 }, { expr: '10% of 130', ans: 13 },
   ],
+  calc_limits: [
+    { expr: 'lim(x->0) sin(x)/x', ans: 1 }, { expr: 'lim(x->3) (x^2-9)/(x-3)', ans: 6 },
+    { expr: 'lim(x->infinity) 1/x', ans: 0 }, { expr: 'lim(x->2) (x^2-4)/(x-2)', ans: 4 },
+    { expr: 'lim(x->0) (1-cos x)/x^2', ans: 0.5 }, { expr: 'lim(x->infinity) ln(x)/x', ans: 0 },
+  ],
+  calc_derivatives: [
+    { expr: 'd/dx[x^3] at x=2', ans: 12 }, { expr: 'd/dx[x^2] at x=3', ans: 6 },
+    { expr: 'd/dx[sin x] at x=0', ans: 1 }, { expr: 'd/dx[e^x] at x=0', ans: 1 },
+    { expr: 'd/dx[ln x] at x=1', ans: 1 }, { expr: 'd/dx[x^4] at x=1', ans: 4 },
+  ],
+  calc_derivative_apps: [
+    { expr: 'f\'(x) > 0 means function is', ans: 1 }, { expr: 'f\'(x) < 0 means function is', ans: -1 },
+    { expr: 'f\'\'(x) > 0 means concave', ans: 1 }, { expr: 'f\'\'(x) < 0 means concave', ans: -1 },
+    { expr: 'A critical point can occur if f\'(x)=', ans: 0 }, { expr: 'Local max test sign change + to', ans: -1 },
+  ],
+  calc_integrals: [
+    { expr: 'Integral of 2x from 0 to 1', ans: 1 }, { expr: 'Integral of 1 from 0 to 3', ans: 3 },
+    { expr: 'Integral of 3x^2 from 0 to 2', ans: 8 }, { expr: 'Integral of x from 0 to 4', ans: 8 },
+    { expr: 'Integral of cos(x) from 0 to pi/2', ans: 1 }, { expr: 'Integral of 5 from 0 to 2', ans: 10 },
+  ],
+  calc_series: [
+    { expr: 'Convergence if |r| <', ans: 1 }, { expr: 'Maclaurin center value', ans: 0 },
+    { expr: 'Harmonic series converges (1 yes, 0 no)', ans: 0 }, { expr: 'If term test fails, converges (1 yes, 0 no)', ans: 0 },
+    { expr: 'sum n=1..4 of n', ans: 10 }, { expr: 'sum n=1..5 of n', ans: 15 },
+  ],
+  calc_advanced: [
+    { expr: 'Average value factor on [a,b]', ans: 1 }, { expr: 'dy/dx for parametric uses quotient count', ans: 2 },
+    { expr: 'Polar area uses factor 1/?', ans: 2 }, { expr: 'e^0', ans: 1 },
+    { expr: 'ln(e^3)', ans: 3 }, { expr: 'Initial value data points needed', ans: 1 },
+  ],
+  calc_c001: [
+    { expr: 'lim(x->3) (x^2-9)/(x-3)', ans: 6 }, { expr: 'lim(x->0) sin x/x', ans: 1 },
+    { expr: 'lim(x->infinity) 1/x', ans: 0 }, { expr: 'lim(x->2) (x^2-4)/(x-2)', ans: 4 },
+  ],
+  calc_c002: [
+    { expr: 'lim(x->0) (1-cos x)/x^2', ans: 0.5 }, { expr: 'lim(x->infinity) ln x/x', ans: 0 },
+    { expr: 'lim(x->infinity) x/e^x', ans: 0 }, { expr: 'LHospital on x/x at infinity', ans: 1 },
+  ],
+  calc_c003: [
+    { expr: 'd/dx[x^5] at x=1', ans: 5 }, { expr: 'd/dx[x^2+3x] at x=1', ans: 5 },
+    { expr: 'd/dx[cos x] at x=0', ans: 0 }, { expr: 'd/dx[ln x] at x=1', ans: 1 },
+  ],
+  calc_c004: [
+    { expr: 'd/dx[e^x] at 0', ans: 1 }, { expr: 'd/dx[a^x] includes ln(a): count letters', ans: 2 },
+    { expr: 'If x^2+y^2=1 at (0,1), dy/dx', ans: 0 }, { expr: 'Related rates often use dt variable index', ans: 1 },
+  ],
+  calc_c005: [
+    { expr: 'f\' sign + then - gives local max (1 yes)', ans: 1 }, { expr: 'f\' sign - then + gives local min (1 yes)', ans: 1 },
+    { expr: 'critical if f\'=0 (1 yes)', ans: 1 }, { expr: 'critical if f\' undefined (1 yes)', ans: 1 },
+  ],
+  calc_c006: [
+    { expr: 'f\'\' positive means concave up (1 yes)', ans: 1 }, { expr: 'f\'\' negative means concave down (1 yes)', ans: 1 },
+    { expr: 'Inflection requires concavity change (1 yes)', ans: 1 }, { expr: 'Second derivative at max is often', ans: -1 },
+  ],
+  calc_c007: [
+    { expr: 'Optimize area with fixed perimeter uses derivative (1 yes)', ans: 1 }, { expr: 'Include endpoints for absolute extrema (1 yes)', ans: 1 },
+    { expr: 'Critical candidate from derivative equals', ans: 0 }, { expr: 'Local min f\' sign change from - to', ans: 1 },
+  ],
+  calc_c008: [
+    { expr: 'Integral of 2x', ans: 1 }, { expr: 'Integral of x^2 gives denominator', ans: 3 },
+    { expr: 'Integral of sec^2 x is tan x (1 yes)', ans: 1 }, { expr: 'Integral includes +C term count', ans: 1 },
+  ],
+  calc_c009: [
+    { expr: 'Integral 0..3 of 1', ans: 3 }, { expr: 'Integral 1..3 of 2', ans: 4 },
+    { expr: 'Area below axis contributes sign', ans: -1 }, { expr: 'Net area can cancel (1 yes)', ans: 1 },
+  ],
+  calc_c010: [
+    { expr: 'u-sub reverses chain rule (1 yes)', ans: 1 }, { expr: 'Choose u as inner function count', ans: 1 },
+    { expr: 'Back-substitute variable count', ans: 1 }, { expr: 'Integral of 2x e^(x^2) uses u=x^2 (1 yes)', ans: 1 },
+  ],
+  calc_c011: [
+    { expr: 'Ratio test L<1 converges (1 yes)', ans: 1 }, { expr: 'Ratio test L>1 diverges (1 yes)', ans: 1 },
+    { expr: 'Geometric |r|<1 converges (1 yes)', ans: 1 }, { expr: 'Term not->0 diverges (1 yes)', ans: 1 },
+  ],
+  calc_c012: [
+    { expr: 'dy/dx=(dy/dt)/(dx/dt) has numerator count', ans: 1 }, { expr: 'Average value multiplier 1/(b-a) numerator', ans: 1 },
+    { expr: 'Polar area includes factor 1/2 as denominator', ans: 2 }, { expr: 'IVP needs initial condition count', ans: 1 },
+  ],
 };
 
 const ALL_TEKS = Object.keys(Q_POOLS);
@@ -465,9 +543,25 @@ const STD_TO_COMP = {
   c015: 'comp004', c016: 'comp004', c017: 'comp004',
   c018: 'comp005', c019: 'comp005',
   c020: 'comp006', c021: 'comp006',
+  calc_c001: 'calc_limits', calc_c002: 'calc_limits',
+  calc_c003: 'calc_derivatives', calc_c004: 'calc_derivatives',
+  calc_c005: 'calc_derivative_apps', calc_c006: 'calc_derivative_apps', calc_c007: 'calc_derivative_apps',
+  calc_c008: 'calc_integrals', calc_c009: 'calc_integrals', calc_c010: 'calc_integrals',
+  calc_c011: 'calc_series',
+  calc_c012: 'calc_advanced',
 };
 
 function inferCompFromStandard(standardId = '') {
+  const calc = String(standardId).match(/^calc_c(\d{3})$/i);
+  if (calc) {
+    const n = Number(calc[1]);
+    if (n >= 1 && n <= 2) return 'calc_limits';
+    if (n >= 3 && n <= 4) return 'calc_derivatives';
+    if (n >= 5 && n <= 7) return 'calc_derivative_apps';
+    if (n >= 8 && n <= 10) return 'calc_integrals';
+    if (n === 11) return 'calc_series';
+    if (n === 12) return 'calc_advanced';
+  }
   const m = String(standardId).match(/^c(\d{3})$/i);
   if (!m) return '';
   const n = Number(m[1]);
@@ -485,7 +579,7 @@ function buildGame(filterTeks, options = {}) {
   const teksIds = filterTeks
     ? filterTeks.split(',').map(t => t.trim()).filter(Boolean)
     : [];
-  const directStdKeys = [...new Set([currentStd, ...teksIds].filter((id) => id && /^c\d{3}$/i.test(id) && Q_POOLS[id]))];
+  const directStdKeys = [...new Set([currentStd, ...teksIds].filter((id) => id && /^(c\d{3}|calc_c\d{3})$/i.test(id) && Q_POOLS[id]))];
   const inferredCompKeys = [...new Set([
     compId,
     STD_TO_COMP[currentStd],

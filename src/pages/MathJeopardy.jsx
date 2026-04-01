@@ -392,6 +392,72 @@ const CATEGORY_BANKS = {
       { q: 'Checking reasonableness helps with:', choices: ['Formatting', 'Solution verification', 'Color choices', 'Class attendance'], answer: 'Solution verification' },
     ],
   },
+  calc_limits: {
+    label: 'Limits & LHospital',
+    icon: '∞',
+    questions: [
+      { q: 'Evaluate lim_(x->3) (x^(2)-9)/(x-3).', choices: ['6', '3', '9', '0'], answer: '6' },
+      { q: 'LHospital applies directly to which forms?', choices: ['0/0 and infinity/infinity', '0*infinity only', '1^infinity only', 'Any quotient'], answer: '0/0 and infinity/infinity' },
+      { q: 'What is lim_(x->0) sin(x)/x?', choices: ['1', '0', 'Does not exist', 'infinity'], answer: '1' },
+      { q: 'If left and right limits are different, the limit:', choices: ['Does not exist', 'Is zero', 'Is continuous', 'Equals f(a)'], answer: 'Does not exist' },
+      { q: 'What is lim_(x->infinity) ln(x)/x?', choices: ['0', '1', 'infinity', 'Undefined'], answer: '0' },
+    ],
+  },
+  calc_derivatives: {
+    label: 'Differentiation',
+    icon: 'f\'',
+    questions: [
+      { q: 'd/dx[x^(4)] equals:', choices: ['4x^(3)', 'x^(3)', '4x^(4)', 'x^(5)/5'], answer: '4x^(3)' },
+      { q: 'd/dx[sin(x)] equals:', choices: ['cos(x)', '-cos(x)', 'sin(x)', '-sin(x)'], answer: 'cos(x)' },
+      { q: 'd/dx[ln(x)] equals:', choices: ['1/x', 'ln(x)', 'x', 'e^(x)'], answer: '1/x' },
+      { q: 'The chain rule is for:', choices: ['Compositions', 'Products only', 'Constants', 'Linear terms only'], answer: 'Compositions' },
+      { q: 'd/dx[e^(x)] equals:', choices: ['e^(x)', 'x*e^(x)', '1', 'ln(x)'], answer: 'e^(x)' },
+    ],
+  },
+  calc_derivative_apps: {
+    label: 'Derivative Applications',
+    icon: '📉',
+    questions: [
+      { q: 'A critical point occurs where f\' is zero or:', choices: ['Undefined', 'Positive', 'Negative', 'Continuous'], answer: 'Undefined' },
+      { q: 'If f\' changes from positive to negative, you have a local:', choices: ['Maximum', 'Minimum', 'Inflection point', 'Asymptote'], answer: 'Maximum' },
+      { q: 'If f\'\'(x) > 0, the graph is:', choices: ['Concave up', 'Concave down', 'Decreasing', 'Flat'], answer: 'Concave up' },
+      { q: 'Optimization problems usually require finding:', choices: ['Extrema', 'Intercepts only', 'Domain only', 'Range only'], answer: 'Extrema' },
+      { q: 'A tangent line slope at x=a is:', choices: ['f\'(a)', 'f(a)', 'f\'\'(a)', 'integral of f'], answer: 'f\'(a)' },
+    ],
+  },
+  calc_integrals: {
+    label: 'Integration',
+    icon: '∫',
+    questions: [
+      { q: 'Integral of x^(2) is:', choices: ['x^(3)/3 + C', 'x^(3) + C', '2x + C', 'x^(2)/2 + C'], answer: 'x^(3)/3 + C' },
+      { q: 'A definite integral gives:', choices: ['Net area', 'Instantaneous slope', 'Domain', 'Intercept'], answer: 'Net area' },
+      { q: 'The Fundamental Theorem links integrals and:', choices: ['Derivatives', 'Polygons', 'Matrices', 'Probability'], answer: 'Derivatives' },
+      { q: 'Use u-substitution when integrand has:', choices: ['Inner function with derivative', 'Only constants', 'No composition', 'Absolute values only'], answer: 'Inner function with derivative' },
+      { q: 'Integral of 1 from 0 to 4 equals:', choices: ['4', '1', '0', '8'], answer: '4' },
+    ],
+  },
+  calc_series: {
+    label: 'Series',
+    icon: 'Σ',
+    questions: [
+      { q: 'A geometric series converges when |r| is:', choices: ['< 1', '> 1', '= 2', 'a prime'], answer: '< 1' },
+      { q: 'The harmonic series sum 1/n is:', choices: ['Divergent', 'Convergent', 'Alternating only', 'Finite'], answer: 'Divergent' },
+      { q: 'Maclaurin series is centered at:', choices: ['0', '1', 'pi', 'infinity'], answer: '0' },
+      { q: 'If terms do not approach 0, the series:', choices: ['Diverges', 'Converges', 'Oscillates to one value', 'Is geometric'], answer: 'Diverges' },
+      { q: 'Ratio test limit L<1 implies:', choices: ['Convergent', 'Divergent', 'Inconclusive always', 'Undefined'], answer: 'Convergent' },
+    ],
+  },
+  calc_advanced: {
+    label: 'Advanced Calculus',
+    icon: '🧠',
+    questions: [
+      { q: 'A differential equation relates a function and its:', choices: ['Derivatives', 'Integrals only', 'Limits only', 'Matrices'], answer: 'Derivatives' },
+      { q: 'In parametric form, dy/dx equals:', choices: ['(dy/dt)/(dx/dt)', '(dx/dt)/(dy/dt)', 'dy*dx', 'dt/dx'], answer: '(dy/dt)/(dx/dt)' },
+      { q: 'Average value of f on [a,b] includes factor:', choices: ['1/(b-a)', 'b-a', '1/(a+b)', 'ab'], answer: '1/(b-a)' },
+      { q: 'Polar coordinates are written as:', choices: ['(r, theta)', '(x, y)', '(rho, z)', '(m, b)'], answer: '(r, theta)' },
+      { q: 'An initial value problem needs an equation and:', choices: ['Initial condition', 'Second graph', 'Table only', 'No boundary data'], answer: 'Initial condition' },
+    ],
+  },
 };
 
 const ALL_CATEGORIES = Object.keys(CATEGORY_BANKS);
@@ -403,6 +469,12 @@ const STD_TO_COMP = {
   c014: 'comp004', c015: 'comp004', c016: 'comp004', c017: 'comp004',
   c018: 'comp005', c019: 'comp005',
   c020: 'comp006', c021: 'comp006',
+  calc_c001: 'calc_limits', calc_c002: 'calc_limits',
+  calc_c003: 'calc_derivatives', calc_c004: 'calc_derivatives',
+  calc_c005: 'calc_derivative_apps', calc_c006: 'calc_derivative_apps', calc_c007: 'calc_derivative_apps',
+  calc_c008: 'calc_integrals', calc_c009: 'calc_integrals', calc_c010: 'calc_integrals',
+  calc_c011: 'calc_series',
+  calc_c012: 'calc_advanced',
 };
 
 const STD_JEOPARDY_CATS = {
