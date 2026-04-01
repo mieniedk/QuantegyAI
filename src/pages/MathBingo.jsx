@@ -521,11 +521,8 @@ function buildGame(filterTeks, options = {}) {
 
   let fullPool;
   if (strictScope && matchedPool.length === 0) {
-    // Final fail-safe: keep the game playable instead of hard-failing.
-    const broadPool = [];
-    ALL_TEKS.forEach((t) => Q_POOLS[t].forEach((q) => broadPool.push({ ...q, teks: t })));
-    broadPool.sort(() => Math.random() - 0.5);
-    fullPool = broadPool;
+    // In loop strict mode, never leak unrelated TEKS into the deck.
+    fullPool = [];
   } else if (matchedPool.length >= 24) {
     fullPool = matchedPool.sort(() => Math.random() - 0.5);
   } else if (strictScope && matchedPool.length > 0) {
