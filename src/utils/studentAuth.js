@@ -351,6 +351,7 @@ function isTokenError(errMsg) {
   if (!errMsg) return false;
   const lower = String(errMsg).toLowerCase();
   return lower.includes('invalid session') || lower.includes('invalid token')
+    || lower.includes('invalid student session')
     || lower.includes('session expired') || lower.includes('authentication required');
 }
 
@@ -370,7 +371,7 @@ async function reAuthFromStored() {
 export async function confirmStudentCheckoutSession(sessionId) {
   const token = localStorage.getItem(TOKEN_KEY);
   const decoded = token ? decodeJwt(token) : null;
-  if (!decoded?.studentId || decoded?.local) {
+  if (!token || decoded?.local) {
     return { success: false, error: 'Sign in with your student account to finish activating access.' };
   }
   const sid = String(sessionId || '').trim();
