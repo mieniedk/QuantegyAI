@@ -797,7 +797,7 @@ export const MICRO_CONCEPTS = {
   // Calculus (calculus)
   // ═══════════════════════════════════════════════════════════════
   'calculus:calc_limits': {
-    title: 'Limits & Continuity',
+    title: 'Limits, Continuity & L\'Hospital\'s Rule',
     conceptText: 'A limit describes behavior near a point, not necessarily at the point. A function is continuous at x=a if f(a) exists, lim(x→a)f(x) exists, and they are equal. For rational limits, factor/cancel where possible. For ∞ behavior, compare leading terms. L\'Hospital\'s Rule applies to 0/0 and ∞/∞ forms after confirming those forms.',
     workedExample: 'lim(x→2)(x²−4)/(x−2) = lim(x→2)(x+2) = 4 after canceling (x−2).',
     misconception: 'If f(a) is undefined, the limit at a cannot exist. False: limits can exist even when the function value is missing or different.',

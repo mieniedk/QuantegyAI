@@ -3308,7 +3308,7 @@ export const LINALG_TEST_CONFIG = {
 // ═══════════════════════════════════════════════════════════════
 
 export const CALCULUS_DOMAINS = [
-  { id: 'calc_limits', name: 'Limits & Continuity', desc: 'Limit laws, continuity, asymptotic behavior, and indeterminate forms including L\'Hospital\'s Rule.', weight: 0.17, games: ['math-match', 'q-blocks'],
+  { id: 'calc_limits', name: 'Limits, Continuity & L\'Hospital\'s Rule', desc: 'Limit laws, continuity, asymptotic behavior, and indeterminate forms with explicit L\'Hospital\'s Rule practice.', weight: 0.17, games: ['math-match', 'q-blocks'],
     standards: [
       { id: 'calc_c001', name: 'Limit Laws & Continuity', desc: 'Evaluating limits algebraically/graphically and checking continuity.' },
       { id: 'calc_c002', name: 'Indeterminate Forms & L\'Hospital\'s Rule', desc: 'Using L\'Hospital for 0/0 and ∞/∞ forms when conditions are met.' },
