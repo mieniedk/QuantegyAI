@@ -1842,14 +1842,14 @@ export default function PracticeLoop() {
   const ADAPTIVE = adaptiveEnabledForContext ? (learningLoopConfig.adaptiveRules || {}) : {};
 
   const loopReviewKey = useMemo(() => {
-    const eid = gradeToExamId(grade) || examId;
+    const eid = examId || gradeToExamId(grade);
     const c = comp || (singleTeks && eid && getCompForTeks(singleTeks, eid)) || '';
     if (!eid || !c) return '';
     return buildLoopReviewKey(eid, c, currentStd);
   }, [grade, examId, comp, currentStd, singleTeks]);
 
   const loopMilestoneKey = useMemo(() => {
-    const eid = gradeToExamId(grade) || examId;
+    const eid = examId || gradeToExamId(grade);
     const c = comp || (singleTeks && eid && getCompForTeks(singleTeks, eid)) || '';
     return milestoneStorageKey(eid, c, currentStd);
   }, [examId, comp, currentStd, singleTeks, grade]);
@@ -2457,7 +2457,7 @@ export default function PracticeLoop() {
   ]), []);
 
   const quizPoolsByPhase = useMemo(() => {
-    const eid = gradeToExamId(grade) || examId;
+    const eid = examId || gradeToExamId(grade);
     const c = comp || (singleTeks && eid && getCompForTeks(singleTeks, eid));
     if (!c || !eid) return {};
 
@@ -2526,7 +2526,7 @@ export default function PracticeLoop() {
     CHECK_DIFFICULTY_BY_PHASE, quizCountsByPhase, quizSpecKeyByPhase, quizPhaseOrder,
   ]);
   const sourcePoolCoverage = useMemo(() => {
-    const eid = gradeToExamId(grade) || examId;
+    const eid = examId || gradeToExamId(grade);
     const c = comp || (singleTeks && eid && getCompForTeks(singleTeks, eid));
     if (!c || !eid) return { total: 0, easy: 0, medium: 0, hard: 0 };
     const texesList = getQuestionsForExam(eid) || [];

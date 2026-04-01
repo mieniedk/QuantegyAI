@@ -173,7 +173,24 @@ const STANDARD_MAP = {
   ta09:'c021',ta10:'c021',ta11:'c021',ta12:'c021',ta13:'c021',ta14:'c021',
 };
 
-export function getStandardForQuestion(qId) { return STANDARD_MAP[qId] || STANDARD_MAP_48[qId] || null; }
+const CALCULUS_STANDARD_MAP = {
+  calc001: 'calc_c001', calc002: 'calc_c001', calc003: 'calc_c001', calc004: 'calc_c001', calc005: 'calc_c001',
+  calc006: 'calc_c002', calc007: 'calc_c002', calc008: 'calc_c002', calc009: 'calc_c002', calc010: 'calc_c002',
+  calc011: 'calc_c003', calc012: 'calc_c003', calc013: 'calc_c003', calc014: 'calc_c003', calc015: 'calc_c003',
+  calc016: 'calc_c004', calc017: 'calc_c004', calc018: 'calc_c004', calc019: 'calc_c004', calc020: 'calc_c004',
+  calc021: 'calc_c005', calc022: 'calc_c005', calc023: 'calc_c005', calc024: 'calc_c005', calc025: 'calc_c005',
+  calc026: 'calc_c006', calc027: 'calc_c006', calc028: 'calc_c006', calc029: 'calc_c006', calc030: 'calc_c006',
+  calc031: 'calc_c007', calc032: 'calc_c007', calc033: 'calc_c007', calc034: 'calc_c007', calc035: 'calc_c007',
+  calc036: 'calc_c008', calc037: 'calc_c008', calc038: 'calc_c008', calc039: 'calc_c008', calc040: 'calc_c008',
+  calc041: 'calc_c009', calc042: 'calc_c009', calc043: 'calc_c009', calc044: 'calc_c009', calc045: 'calc_c009',
+  calc046: 'calc_c010', calc047: 'calc_c010', calc048: 'calc_c010', calc049: 'calc_c010', calc050: 'calc_c010',
+  calc051: 'calc_c011', calc052: 'calc_c011', calc053: 'calc_c011', calc054: 'calc_c011', calc055: 'calc_c011',
+  calc056: 'calc_c012', calc057: 'calc_c012', calc058: 'calc_c012', calc059: 'calc_c012', calc060: 'calc_c012',
+};
+
+export function getStandardForQuestion(qId) {
+  return STANDARD_MAP[qId] || STANDARD_MAP_48[qId] || CALCULUS_STANDARD_MAP[qId] || null;
+}
 
 export function getStandardsForComp(examId, compId) {
   const domains = getDomainsForExam(examId) || [];
