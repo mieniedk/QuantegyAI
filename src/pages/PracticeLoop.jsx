@@ -879,7 +879,7 @@ function QuizBlock({
 }
 
 const VERIFIED_GAME_PATHS = new Set(
-  GAMES_CATALOG.map((g) => g.path).concat(['/concept-explorer']),
+  GAMES_CATALOG.map((g) => g.path).concat(['/concept-explorer', '/games/q-blocks.html']),
 );
 
 function GamePhase({ gameLabel, scopeBadge, description, gameUrl, gameName, onSkip, stepIndex, totalSteps, phaseKey, continueOnly = false, scopeDebugText = '' }) {
@@ -3146,7 +3146,9 @@ export default function PracticeLoop() {
   };
 
   const buildGameUrl = (path, returnPhaseOverride = null) => {
-    const base = (path || gamePath).startsWith('/') ? (path || gamePath) : `/${path || gamePath}`;
+    const rawBase = (path || gamePath).startsWith('/') ? (path || gamePath) : `/${path || gamePath}`;
+    // Use the raw HTML game inside loop iframes for Q-Blocks to avoid router-wrapper blank states.
+    const base = rawBase === '/games/q-blocks' ? '/games/q-blocks.html' : rawBase;
     const sep = base.includes('?') ? '&' : '?';
     const returnPhase = returnPhaseOverride ?? 'check-quiz-2';
     const returnUrl = encodeURIComponent(buildReturnUrl(returnPhase));
