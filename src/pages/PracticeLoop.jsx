@@ -1618,8 +1618,6 @@ export default function PracticeLoop() {
     return fresh;
   });
 
-  const domains = useMemo(() => getDomainsForExam(examId) || [], [examId]);
-  const validExam = domains.length > 0;
   const isLHospitalLoop = useMemo(() => {
     if (examId !== 'calculus') return false;
     const scopeText = `${currentStd} ${singleTeks} ${teks} ${label} ${comp}`.toLowerCase();
@@ -1627,6 +1625,9 @@ export default function PracticeLoop() {
       || singleTeks === 'calc_c002'
       || /l'?hospital|indeterminate/.test(scopeText);
   }, [examId, currentStd, singleTeks, teks, label, comp]);
+  const loopExamId = isLHospitalLoop ? 'calculus' : examId;
+  const domains = useMemo(() => getDomainsForExam(loopExamId) || [], [loopExamId]);
+  const validExam = domains.length > 0;
   const forcedLoopStdId = isLHospitalLoop ? 'calc_c002' : '';
   const forcedLoopCompId = useMemo(() => {
     if (!isLHospitalLoop) return '';
@@ -1635,14 +1636,14 @@ export default function PracticeLoop() {
   }, [isLHospitalLoop, domains, forcedLoopStdId, comp]);
 
   const compDomain = useMemo(() => {
-    const doms = getDomainsForExam(examId) || [];
+    const doms = getDomainsForExam(loopExamId) || [];
     return doms.find((d) => d.id === comp) || null;
-  }, [comp, examId]);
+  }, [comp, loopExamId]);
 
   const compIdx = useMemo(() => {
-    const doms = getDomainsForExam(examId) || [];
+    const doms = getDomainsForExam(loopExamId) || [];
     return doms.findIndex((d) => d.id === comp);
-  }, [examId, comp]);
+  }, [loopExamId, comp]);
 
   const resolvedStdId = useMemo(() => {
     if (!compDomain) return forcedLoopStdId || currentStd || '';
@@ -2473,7 +2474,7 @@ export default function PracticeLoop() {
   ]), []);
 
   const quizPoolsByPhase = useMemo(() => {
-    const eid = examId || gradeToExamId(grade);
+    const eid = loopExamId || gradeToExamId(grade);
     const c = comp || (singleTeks && eid && getCompForTeks(singleTeks, eid)) || forcedLoopCompId;
     if (!c || !eid) return {};
 
@@ -2492,6 +2493,16 @@ export default function PracticeLoop() {
     if (scopedStd) {
       const byStd = sourcePool.filter((q) => getStandardForQuestion(q.id) === scopedStd);
       if (byStd.length > 0) sourcePool = byStd;
+    }
+    if (sourcePool.length === 0 && isLHospitalLoop) {
+      sourcePool = [
+        { id: 'lh_auto_01', type: 'mc', comp: 'calc_limits', difficulty: 1, q: "L'Hospital applies directly to which form?", choices: ['0/0', '0*infinity', 'infinity - infinity', '1^infinity'], answer: '0/0', explanation: 'Direct application requires 0/0 or infinity/infinity.' },
+        { id: 'lh_auto_02', type: 'mc', comp: 'calc_limits', difficulty: 1, q: 'Evaluate lim(x->0) (sin x)/x.', choices: ['0', '1', 'undefined', 'infinity'], answer: '1', explanation: 'This standard limit equals 1.' },
+        { id: 'lh_auto_03', type: 'mc', comp: 'calc_limits', difficulty: 2, q: 'Evaluate lim(x->0) (1-cos x)/x^2.', choices: ['1/2', '0', '1', '2'], answer: '1/2', explanation: "Apply L'Hospital once, then use lim(sin x)/x = 1." },
+        { id: 'lh_auto_04', type: 'mc', comp: 'calc_limits', difficulty: 2, q: 'Evaluate lim(x->infinity) (ln x)/x.', choices: ['0', '1', 'infinity', 'does not exist'], answer: '0', explanation: "After one L'Hospital step: (1/x)/1 -> 0." },
+        { id: 'lh_auto_05', type: 'mc', comp: 'calc_limits', difficulty: 2, q: 'Evaluate lim(x->infinity) x/e^x.', choices: ['0', '1', 'infinity', 'e'], answer: '0', explanation: 'Exponential growth dominates polynomial growth.' },
+        { id: 'lh_auto_06', type: 'mc', comp: 'calc_limits', difficulty: 3, q: 'If a limit remains 0/0 after one derivative step, you should:', choices: ['Stop immediately', "Apply L'Hospital again if conditions still hold", 'Rationalize no matter what', 'Use product rule'], answer: "Apply L'Hospital again if conditions still hold", explanation: 'Repeated application is valid while form stays 0/0 or infinity/infinity.' },
+      ];
     }
     if (sourcePool.length === 0) return {};
 
@@ -2538,12 +2549,13 @@ export default function PracticeLoop() {
 
     return pools;
   }, [
-    grade, examId, comp, currentStd, singleTeks, loopSessionSeed, reviewPoolEpoch, revisitSeed, loopReviewKey, domains,
+    grade, loopExamId, comp, currentStd, singleTeks, loopSessionSeed, reviewPoolEpoch, revisitSeed, loopReviewKey, domains,
+    isLHospitalLoop,
     forcedLoopStdId, forcedLoopCompId,
     CHECK_DIFFICULTY_BY_PHASE, quizCountsByPhase, quizSpecKeyByPhase, quizPhaseOrder,
   ]);
   const sourcePoolCoverage = useMemo(() => {
-    const eid = examId || gradeToExamId(grade);
+    const eid = loopExamId || gradeToExamId(grade);
     const c = comp || (singleTeks && eid && getCompForTeks(singleTeks, eid)) || forcedLoopCompId;
     if (!c || !eid) return { total: 0, easy: 0, medium: 0, hard: 0 };
     const texesList = getQuestionsForExam(eid) || [];
@@ -2565,7 +2577,7 @@ export default function PracticeLoop() {
     const counts = { total: pool.length, easy: 0, medium: 0, hard: 0 };
     pool.forEach((q) => { counts[normalizeDifficulty(q.difficulty)] += 1; });
     return counts;
-  }, [grade, examId, comp, singleTeks, currentStd, domains, forcedLoopStdId, forcedLoopCompId]);
+  }, [grade, loopExamId, comp, singleTeks, currentStd, domains, forcedLoopStdId, forcedLoopCompId]);
 
   const diagnosticPool = useMemo(
     () => quizPoolsByPhase.diagnostic || [],
@@ -2800,8 +2812,8 @@ export default function PracticeLoop() {
 
   const fourGames = useMemo(() => {
     // For the dedicated L'Hospital loop, keep all game tiles on the scoped Q-Blocks flow.
-    if (examId === 'calculus' && currentStd === 'calc_c002') {
-      const qBlocks = GAMES_CATALOG.find((g) => g.id === 'q-blocks' && (!Array.isArray(g.grades) || g.grades.includes(grade)));
+    if (isLHospitalLoop) {
+      const qBlocks = GAMES_CATALOG.find((g) => g.id === 'q-blocks');
       return qBlocks
         ? [
             { ...qBlocks, name: "L'Hospital Challenge 1" },
@@ -2816,7 +2828,7 @@ export default function PracticeLoop() {
     let eligible = GAMES_CATALOG.filter(isOk);
     if (eligible.length === 0) return [COMPETENCY_EXPLORER];
 
-    const strictStdScope = (examId === 'math712' || examId === 'math48') && !!currentStd;
+    const strictStdScope = (loopExamId === 'math712' || loopExamId === 'math48') && !!currentStd;
     const STRICT_SCOPED_GAME_IDS = new Set(['q-blocks', 'math-bingo', 'math-match']);
     if (strictStdScope) {
       eligible = eligible.filter((g) => STRICT_SCOPED_GAME_IDS.has(g.id));
@@ -2886,7 +2898,7 @@ export default function PracticeLoop() {
       if (!pickedIds.has(g.id)) { picked.push(g); pickedIds.add(g.id); }
     }
     return picked;
-  }, [grade, comp, currentStd, examId]);
+  }, [grade, comp, currentStd, isLHospitalLoop, loopExamId]);
 
   const activityModes = useMemo(() => {
     if (subject !== 'math') return [];
@@ -2952,9 +2964,10 @@ export default function PracticeLoop() {
 
   const lecture = useMemo(() => (singleTeks && !compDomain ? getLecture(singleTeks) : null), [singleTeks, compDomain]);
   const introLecture = useMemo(() => {
+    if (isLHospitalLoop) return getLecture('calc_c002');
     if (comp) return getLectureForComp(comp, resolvedStdId || singleTeks);
     return lecture || null;
-  }, [comp, lecture, resolvedStdId, singleTeks]);
+  }, [comp, lecture, resolvedStdId, singleTeks, isLHospitalLoop]);
 
   const deepDiveLecture = useMemo(() => {
     // When a specific standard is active, keep both videos aligned to that standard.
@@ -3172,7 +3185,7 @@ export default function PracticeLoop() {
     const base = `/practice-loop?teks=${encodeURIComponent(teks)}&label=${encodeURIComponent(label)}&grade=${encodeURIComponent(grade)}&phase=${returnPhase}`;
     const compParam = comp ? `&comp=${encodeURIComponent(comp)}` : '';
     const stdParam = (forcedLoopStdId || currentStd) ? `&currentStd=${encodeURIComponent(forcedLoopStdId || currentStd)}` : '';
-    return `${base}${compParam}${stdParam}&examId=${encodeURIComponent(examId)}`;
+    return `${base}${compParam}${stdParam}&examId=${encodeURIComponent(loopExamId)}`;
   };
 
   const buildGameUrl = (path, returnPhaseOverride = null) => {
@@ -3186,7 +3199,7 @@ export default function PracticeLoop() {
     const gameTeks = singleTeks || scopedStdForLoop || comp || '';
     const compParam = comp ? `&comp=${encodeURIComponent(comp)}` : '';
     const stdParam = scopedStdForLoop ? `&currentStd=${encodeURIComponent(scopedStdForLoop)}` : '';
-    const examParam = examId ? `&examId=${encodeURIComponent(examId)}` : '';
+    const examParam = loopExamId ? `&examId=${encodeURIComponent(loopExamId)}` : '';
     return `${base}${sep}teks=${encodeURIComponent(gameTeks)}&label=${encodeURIComponent(label)}&grade=${encodeURIComponent(grade)}&sid=${encodeURIComponent(sid)}&cid=${encodeURIComponent(cid)}${compParam}${stdParam}${examParam}&mode=adaptive&from=loop&embed=1&returnPhase=${encodeURIComponent(returnPhase)}&returnUrl=${returnUrl}`;
   };
   const gameUrl = buildGameUrl(game1?.path);

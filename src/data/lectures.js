@@ -1106,6 +1106,43 @@ const LECTURES = {
     tip: 'Always verify assessment items align with the specific TEKS standard being measured.',
     visual: 'chalkboard',
   },
+  'calc_c001': {
+    teks: 'calc_c001',
+    title: 'Limit Laws & Continuity',
+    objective: 'You will evaluate limits and determine continuity using algebraic and graphical reasoning.',
+    keyIdea: 'A limit describes what f(x) approaches as x approaches a value. Continuity at x=a requires f(a) exists, the limit exists, and both are equal.',
+    steps: [
+      { title: 'Evaluate direct substitution first', content: 'If substitution gives a real value, that is the limit. If it gives 0/0, use algebraic simplification.' },
+      { title: 'Use algebra when needed', content: 'Factor and cancel common factors, rationalize radicals, or combine fractions before re-evaluating the limit.' },
+      { title: 'Check continuity conditions', content: 'Verify f(a) exists, left/right limits match, and lim(x→a)f(x)=f(a).' },
+    ],
+    example: {
+      problem: 'Evaluate lim(x→3) (x²−9)/(x−3).',
+      solution: ['Direct substitution gives 0/0 (indeterminate).', 'Factor: (x²−9)=(x−3)(x+3).', 'Cancel (x−3), then evaluate x+3 at x=3 to get 6.'],
+      answer: '6',
+    },
+    tip: 'An indeterminate form means "simplify first," not "limit does not exist."',
+    visual: 'chalkboard',
+  },
+  'calc_c002': {
+    teks: 'calc_c002',
+    title: 'L\'Hospital\'s Rule (Indeterminate Forms)',
+    video: 'https://www.youtube.com/embed/PdSzruR5OeE',
+    objective: 'You will decide when L\'Hospital\'s Rule is valid and apply it correctly to 0/0 and ∞/∞ limits.',
+    keyIdea: 'L\'Hospital applies only after confirming the limit is 0/0 or ∞/∞. Differentiate numerator and denominator, then re-evaluate the new limit.',
+    steps: [
+      { title: 'Confirm indeterminate form', content: 'Check the original expression at the target value. Use L\'Hospital only for 0/0 or ∞/∞.' },
+      { title: 'Differentiate top and bottom', content: 'Compute f\'(x)/g\'(x), then evaluate the new limit. Repeat only if it remains 0/0 or ∞/∞.' },
+      { title: 'Rewrite other forms first', content: 'For forms like 0·∞, ∞−∞, or 1^∞, algebraically rewrite to a quotient before applying L\'Hospital.' },
+    ],
+    example: {
+      problem: 'Evaluate lim(x→0) (1−cos x)/x².',
+      solution: ['Substitute: 0/0, so L\'Hospital is valid.', 'Differentiate top and bottom: (sin x)/(2x).', 'Use lim(x→0) sin x / x = 1, so the limit is 1/2.'],
+      answer: '1/2',
+    },
+    tip: 'If the form is not 0/0 or ∞/∞ yet, rewrite first. Do not apply L\'Hospital prematurely.',
+    visual: 'chalkboard',
+  },
 };
 
 export default LECTURES;
