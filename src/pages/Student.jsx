@@ -2856,7 +2856,7 @@ const Student = () => {
                       gridColumn: '1 / -1',
                     }}>
                       <span style={{ fontSize: 11, fontWeight: 700, opacity: 0.8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Course</span>
-                      <span style={{ fontSize: 15, fontWeight: 800 }}>Calculus</span>
+                      <span style={{ fontSize: 15, fontWeight: 800 }}>Calculus 1</span>
                       <span style={{ fontSize: 11, opacity: 0.7 }}>6 domains · 12 topics · includes L&apos;Hospital&apos;s Rule</span>
                     </Link>
                   </div>
