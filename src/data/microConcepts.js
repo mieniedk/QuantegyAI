@@ -792,6 +792,52 @@ export const MICRO_CONCEPTS = {
     workedExample: 'Markov transition P = [[0.7,0.4],[0.3,0.6]]. Steady state: Pq = q → (P−I)q = 0. q = [4/7, 3/7] (normalized).',
     misconception: 'SVD only applies to square matrices. SVD works for any m×n matrix — it is the most general matrix decomposition.',
   },
+
+  // ═══════════════════════════════════════════════════════════════
+  // Calculus (calculus)
+  // ═══════════════════════════════════════════════════════════════
+  'calculus:calc_limits': {
+    title: 'Limits & Continuity',
+    conceptText: 'A limit describes behavior near a point, not necessarily at the point. A function is continuous at x=a if f(a) exists, lim(x→a)f(x) exists, and they are equal. For rational limits, factor/cancel where possible. For ∞ behavior, compare leading terms. L\'Hospital\'s Rule applies to 0/0 and ∞/∞ forms after confirming those forms.',
+    workedExample: 'lim(x→2)(x²−4)/(x−2) = lim(x→2)(x+2) = 4 after canceling (x−2).',
+    misconception: 'If f(a) is undefined, the limit at a cannot exist. False: limits can exist even when the function value is missing or different.',
+  },
+  'calculus:calc_derivatives': {
+    title: 'Derivative Foundations',
+    conceptText: 'Derivative means instantaneous rate of change and slope of the tangent line. Core rules: power, product, quotient, chain. Implicit differentiation handles equations where y is not isolated. Related rates differentiate with respect to time and substitute known values last.',
+    workedExample: 'If y²=x+1, differentiate: 2y(dy/dx)=1 so dy/dx=1/(2y).',
+    misconception: 'A derivative is the same as average rate of change. Average rate uses two points; derivative is the limit as the interval shrinks to 0.',
+  },
+  'calculus:calc_derivative_apps': {
+    title: 'Applications of Derivatives',
+    conceptText: 'Use f\' to analyze increasing/decreasing intervals and local extrema. Use f\'\' for concavity and inflection points. Optimization combines modeling + derivative tests. Mean Value Theorem connects average rate on [a,b] to an instantaneous rate at some c in (a,b).',
+    workedExample: 'For f(x)=x²−4x+1, f\'=2x−4 gives critical point x=2. Since f\' changes from negative to positive, x=2 is a local minimum.',
+    misconception: 'If f\'(c)=0 then c is automatically a max or min. It may also be neither (e.g., a flat inflection).',
+  },
+  'calculus:calc_integrals': {
+    title: 'Integrals & Accumulation',
+    conceptText: 'Indefinite integrals find antiderivatives (+C). Definite integrals represent signed accumulation. FTC links derivatives and integrals: d/dx ∫(from a to x)f(t)dt=f(x), and ∫(from a to b)f(x)dx=F(b)-F(a). Use u-substitution when the integrand is a composition.',
+    workedExample: '∫(from 0 to 2) 3x dx = (3/2)x² | 0→2 = 6.',
+    misconception: 'Definite integrals always equal geometric area. They give signed area (below-axis parts subtract).',
+  },
+  'calculus:calc_series': {
+    title: 'Sequences & Series',
+    conceptText: 'A sequence is an ordered list; a series is a sum of sequence terms. Geometric series converge when |r|<1. p-series Σ1/n^p converges when p>1. Ratio test helps with factorial/exponential terms. Taylor/Maclaurin polynomials approximate functions near a center.',
+    workedExample: 'Σ(1/n²) converges because p=2>1.',
+    misconception: 'If terms go to 0, the series must converge. Necessary but not sufficient (harmonic series diverges).',
+  },
+  'calculus:calc_advanced': {
+    title: 'Advanced Calculus Modeling',
+    conceptText: 'Differential equations model change, slope fields visualize solution behavior, and separable equations allow variable separation. Parametric and polar forms describe motion and geometry beyond y=f(x). Average value connects accumulated change to an equivalent constant rate.',
+    workedExample: 'For y\'=ky, solution is y=Ce^(kt). If k<0, decay; if k>0, growth.',
+    misconception: 'All differential equations have elementary closed-form solutions. Many require numerical or qualitative methods.',
+  },
+  'calculus:calc_c002': {
+    title: 'Indeterminate Forms & L\'Hospital\'s Rule',
+    conceptText: 'L\'Hospital\'s Rule: if lim(x→a) f(x)/g(x) gives 0/0 or ∞/∞ and f,g are differentiable near a with g\'(x)≠0, then lim f/g = lim f\'/g\' (if that new limit exists). You may apply repeatedly when needed. It also works for x→∞ under the same conditions.',
+    workedExample: 'lim(x→0)(1−cos x)/x² is 0/0. Differentiate top and bottom: lim(sin x)/(2x)=1/2.',
+    misconception: 'Use L\'Hospital on any difficult limit. Convert first to 0/0 or ∞/∞; forms like 0·∞ or ∞−∞ need algebraic rewriting.',
+  },
 };
 
 /**

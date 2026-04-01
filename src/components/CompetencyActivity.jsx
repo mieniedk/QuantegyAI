@@ -16,6 +16,7 @@ import GeoExplorer from './GeoExplorer';
 import StatsExplorer from './StatsExplorer';
 import ReasoningExplorer from './ReasoningExplorer';
 import PedagogyExplorer from './PedagogyExplorer';
+import CalculusExplorer from './CalculusExplorer';
 import { sanitizeHtml } from '../utils/sanitize';
 import { formatMathHtml } from '../utils/mathFormat';
 import {
@@ -297,6 +298,18 @@ export default function CompetencyActivity({
   }
   if (subject === 'math' && comp === 'comp006') {
     return <PedagogyExplorer activityIndex={activityIndex} onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+  }
+  if (subject === 'math' && examId === 'calculus') {
+    return (
+      <CalculusExplorer
+        currentStd={currentStd}
+        activityIndex={activityIndex}
+        onComplete={onComplete}
+        continueLabel={continueLabel}
+        badgeLabel={badgeLabel}
+        embedded={embedded}
+      />
+    );
   }
 
   /* ── Non-math subjects ── */

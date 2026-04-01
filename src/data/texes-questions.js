@@ -1713,6 +1713,12 @@ export const TEXES_TEST_CONFIG = {
     passingScore: 0.70,
     categoryDistribution: { la_vectors: 10, la_matrices: 12, la_transforms: 10, la_det_eigen: 12, la_inner: 8, la_diag: 8 },
   },
+  calculus: {
+    totalQuestions: 60,
+    timeMinutes: 120,
+    passingScore: 0.70,
+    categoryDistribution: { calc_limits: 10, calc_derivatives: 10, calc_derivative_apps: 10, calc_integrals: 10, calc_series: 10, calc_advanced: 10 },
+  },
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -3295,6 +3301,139 @@ export const LINALG_TEST_CONFIG = {
   },
 };
 
+// ═══════════════════════════════════════════════════════════════
+// Calculus — standalone college-level course
+// Domains: Limits & Continuity, Derivatives, Derivative Applications,
+//          Integrals, Sequences & Series, Advanced Calculus Modeling
+// ═══════════════════════════════════════════════════════════════
+
+export const CALCULUS_DOMAINS = [
+  { id: 'calc_limits', name: 'Limits & Continuity', desc: 'Limit laws, continuity, asymptotic behavior, and indeterminate forms including L\'Hospital\'s Rule.', weight: 0.17, games: ['math-match', 'q-blocks'],
+    standards: [
+      { id: 'calc_c001', name: 'Limit Laws & Continuity', desc: 'Evaluating limits algebraically/graphically and checking continuity.' },
+      { id: 'calc_c002', name: 'Indeterminate Forms & L\'Hospital\'s Rule', desc: 'Using L\'Hospital for 0/0 and ∞/∞ forms when conditions are met.' },
+    ],
+  },
+  { id: 'calc_derivatives', name: 'Derivative Foundations', desc: 'Definition of derivative, differentiation rules, implicit differentiation, and related rates setup.', weight: 0.18, games: ['math-match', 'q-blocks'],
+    standards: [
+      { id: 'calc_c003', name: 'Derivative Rules', desc: 'Power, product, quotient, and chain rules.' },
+      { id: 'calc_c004', name: 'Implicit Differentiation & Related Rates', desc: 'Derivatives with dependent variables and rates over time.' },
+    ],
+  },
+  { id: 'calc_derivative_apps', name: 'Applications of Derivatives', desc: 'Monotonicity, extrema, optimization, concavity, and curve analysis.', weight: 0.18, games: ['math-match', 'q-blocks'],
+    standards: [
+      { id: 'calc_c005', name: 'Critical Points & Optimization', desc: 'First derivative tests and real-world optimization.' },
+      { id: 'calc_c006', name: 'Concavity & Curve Sketching', desc: 'Second derivative test, inflection points, and graph behavior.' },
+    ],
+  },
+  { id: 'calc_integrals', name: 'Integrals & Accumulation', desc: 'Antiderivatives, definite integrals, Fundamental Theorem of Calculus, substitution.', weight: 0.18, games: ['math-match', 'q-blocks'],
+    standards: [
+      { id: 'calc_c007', name: 'Antiderivatives & FTC', desc: 'Accumulation, area interpretation, and net change.' },
+      { id: 'calc_c008', name: 'u-Substitution & Area Between Curves', desc: 'Core integration techniques and geometric applications.' },
+    ],
+  },
+  { id: 'calc_series', name: 'Sequences & Series', desc: 'Convergence tests, power series, and Taylor/Maclaurin approximations.', weight: 0.15, games: ['math-match', 'q-blocks'],
+    standards: [
+      { id: 'calc_c009', name: 'Convergence Tests', desc: 'Geometric, p-series, ratio test, and integral test basics.' },
+      { id: 'calc_c010', name: 'Power Series & Taylor Polynomials', desc: 'Series representation and local approximation.' },
+    ],
+  },
+  { id: 'calc_advanced', name: 'Advanced Modeling in Calculus', desc: 'Differential equations, slope fields, parametric/polar ideas, and average value modeling.', weight: 0.14, games: ['math-match', 'q-blocks'],
+    standards: [
+      { id: 'calc_c011', name: 'Differential Equations Basics', desc: 'Separable equations, growth/decay, and logistic intuition.' },
+      { id: 'calc_c012', name: 'Parametric, Polar, and Applied Accumulation', desc: 'Velocity/acceleration in parametric form and polar area setup.' },
+    ],
+  },
+];
+
+export const CALCULUS_QUESTIONS = [
+  // ── Domain 1: Limits & Continuity ──
+  { id: 'calc001', comp: 'calc_limits', type: 'mc', difficulty: 1, q: 'If f(x)=2x+3, what is lim(x→2) f(x)?', choices: ['7', '5', '4', 'Does not exist'], answer: '7', explanation: 'For polynomials, evaluate directly: 2(2)+3=7.' },
+  { id: 'calc002', comp: 'calc_limits', type: 'mc', difficulty: 2, q: 'lim(x→3) (x²−9)/(x−3) equals:', choices: ['6', '0', '3', 'Does not exist'], answer: '6', explanation: 'Factor: (x−3)(x+3)/(x−3)=x+3, so limit is 6.' },
+  { id: 'calc003', comp: 'calc_limits', type: 'mc', difficulty: 2, q: 'A function is continuous at x=a when:', choices: ['f(a) exists, lim(x→a)f(x) exists, and both are equal', 'Only f(a) exists', 'Only left and right limits exist', 'f is differentiable at a'], answer: 'f(a) exists, lim(x→a)f(x) exists, and both are equal', explanation: 'These are the three continuity conditions.' },
+  { id: 'calc004', comp: 'calc_limits', type: 'mc', difficulty: 2, q: 'Which form is suitable for direct L\'Hospital\'s Rule?', choices: ['0/0', '0·∞', '∞−∞', '1^∞'], answer: '0/0', explanation: 'L\'Hospital applies directly to 0/0 or ∞/∞ forms.' },
+  { id: 'calc005', comp: 'calc_limits', type: 'mc', difficulty: 2, q: 'Compute lim(x→0) (sin x)/x.', choices: ['1', '0', 'Does not exist', '∞'], answer: '1', explanation: 'This is a standard trigonometric limit.' },
+  { id: 'calc006', comp: 'calc_limits', type: 'mc', difficulty: 2, q: 'Using L\'Hospital, lim(x→0) (1−cos x)/x² equals:', choices: ['1/2', '0', '1', '2'], answer: '1/2', explanation: 'Apply once: sin x/(2x) → 1/2 as x→0.' },
+  { id: 'calc007', comp: 'calc_limits', type: 'mc', difficulty: 1, q: 'If lim(x→a−)f(x) ≠ lim(x→a+)f(x), then lim(x→a)f(x):', choices: ['Does not exist', 'Equals 0', 'Exists and equals f(a)', 'Is infinite'], answer: 'Does not exist', explanation: 'Two-sided limit exists only if one-sided limits agree.' },
+  { id: 'calc008', comp: 'calc_limits', type: 'mc', difficulty: 2, q: 'Vertical asymptotes occur where:', choices: ['f(x) grows without bound near x=a', 'f(a)=0 only', 'f is continuous', 'f\'(a)=0'], answer: 'f(x) grows without bound near x=a', explanation: 'That behavior defines a vertical asymptote.' },
+  { id: 'calc009', comp: 'calc_limits', type: 'mc', difficulty: 2, q: 'Evaluate lim(x→∞) (3x²+1)/(x²−4).', choices: ['3', '1', '0', '∞'], answer: '3', explanation: 'Same degree rational function: ratio of leading coefficients 3/1.' },
+  { id: 'calc010', comp: 'calc_limits', type: 'mc', difficulty: 3, q: 'lim(x→∞) (ln x)/x equals:', choices: ['0', '1', '∞', 'Does not exist'], answer: '0', explanation: 'Use L\'Hospital: (1/x)/1 = 1/x → 0.' },
+
+  // ── Domain 2: Derivative Foundations ──
+  { id: 'calc011', comp: 'calc_derivatives', type: 'mc', difficulty: 1, q: 'd/dx (x³) =', choices: ['3x²', 'x²', '3x', 'x⁴'], answer: '3x²', explanation: 'Power rule: d/dx(x^n)=n x^(n−1).' },
+  { id: 'calc012', comp: 'calc_derivatives', type: 'mc', difficulty: 1, q: 'If f(x)=5x−2, then f\'(x)=', choices: ['5', 'x', '5x', '0'], answer: '5', explanation: 'Derivative of mx+b is m.' },
+  { id: 'calc013', comp: 'calc_derivatives', type: 'mc', difficulty: 2, q: 'd/dx (x² sin x) =', choices: ['2x sin x + x² cos x', '2x cos x', 'x² cos x', 'sin x + cos x'], answer: '2x sin x + x² cos x', explanation: 'Use the product rule: (uv)\'=u\'v+uv\'.' },
+  { id: 'calc014', comp: 'calc_derivatives', type: 'mc', difficulty: 2, q: 'd/dx (sin(x²)) =', choices: ['2x cos(x²)', 'cos(x²)', 'sin(2x)', '2x sin(x²)'], answer: '2x cos(x²)', explanation: 'Chain rule with outer sin(u): cos(u)u\'.' },
+  { id: 'calc015', comp: 'calc_derivatives', type: 'mc', difficulty: 2, q: 'd/dx (1/x) =', choices: ['−1/x²', '1/x²', '−x²', '0'], answer: '−1/x²', explanation: 'Write as x^(−1), then power rule.' },
+  { id: 'calc016', comp: 'calc_derivatives', type: 'mc', difficulty: 2, q: 'If y²=x+1, then dy/dx =', choices: ['1/(2y)', '2y', '1/2', 'x/(2y)'], answer: '1/(2y)', explanation: 'Implicit differentiation: 2y(dy/dx)=1.' },
+  { id: 'calc017', comp: 'calc_derivatives', type: 'mc', difficulty: 1, q: 'd/dx (e^x) =', choices: ['e^x', 'xe^(x−1)', '1', 'ln x'], answer: 'e^x', explanation: 'Exponential function e^x is its own derivative.' },
+  { id: 'calc018', comp: 'calc_derivatives', type: 'mc', difficulty: 1, q: 'd/dx (ln x) =', choices: ['1/x', 'ln x', 'x', 'e^x'], answer: '1/x', explanation: 'Standard derivative rule for natural log.' },
+  { id: 'calc019', comp: 'calc_derivatives', type: 'mc', difficulty: 2, q: 'A tangent line slope at x=a equals:', choices: ['f\'(a)', 'f(a)', '∫f(x)dx', 'Average rate on [0,a]'], answer: 'f\'(a)', explanation: 'Derivative gives instantaneous rate/slope.' },
+  { id: 'calc020', comp: 'calc_derivatives', type: 'mc', difficulty: 3, q: 'If s(t)=t³−6t, velocity is:', choices: ['v(t)=3t²−6', 'v(t)=t²−6', 'v(t)=3t²', 'v(t)=t³'], answer: 'v(t)=3t²−6', explanation: 'Velocity is derivative of position.' },
+
+  // ── Domain 3: Applications of Derivatives ──
+  { id: 'calc021', comp: 'calc_derivative_apps', type: 'mc', difficulty: 2, q: 'Critical numbers of f occur where:', choices: ['f\'(x)=0 or undefined (in domain)', 'f(x)=0 only', 'f\'\'(x)=0 only', 'x=0 only'], answer: 'f\'(x)=0 or undefined (in domain)', explanation: 'That is the definition of critical numbers.' },
+  { id: 'calc022', comp: 'calc_derivative_apps', type: 'mc', difficulty: 2, q: 'If f\' changes from + to − at x=c, then f has a:', choices: ['Local maximum at c', 'Local minimum at c', 'No extremum', 'Vertical asymptote'], answer: 'Local maximum at c', explanation: 'First derivative test: increasing to decreasing means max.' },
+  { id: 'calc023', comp: 'calc_derivative_apps', type: 'mc', difficulty: 2, q: 'If f\' changes from − to + at x=c, then f has a:', choices: ['Local minimum at c', 'Local maximum at c', 'No extremum', 'Inflection point only'], answer: 'Local minimum at c', explanation: 'Decreasing to increasing means min.' },
+  { id: 'calc024', comp: 'calc_derivative_apps', type: 'mc', difficulty: 2, q: 'If f\'\'(x) > 0 on an interval, f is:', choices: ['Concave up', 'Concave down', 'Linear', 'Constant'], answer: 'Concave up', explanation: 'Positive second derivative indicates upward curvature.' },
+  { id: 'calc025', comp: 'calc_derivative_apps', type: 'mc', difficulty: 2, q: 'An inflection point is where concavity:', choices: ['Changes sign', 'Is always positive', 'Is always negative', 'Equals zero only'], answer: 'Changes sign', explanation: 'f\'\' may be zero there, but sign change is the key test.' },
+  { id: 'calc026', comp: 'calc_derivative_apps', type: 'mc', difficulty: 3, q: 'For fixed perimeter, which rectangle has maximum area?', choices: ['Square', 'Any rectangle', 'Very long thin rectangle', 'Cannot determine'], answer: 'Square', explanation: 'Optimization gives equal side lengths at the maximum.' },
+  { id: 'calc027', comp: 'calc_derivative_apps', type: 'mc', difficulty: 2, q: 'Mean Value Theorem applies when f is:', choices: ['Continuous on [a,b] and differentiable on (a,b)', 'Differentiable only at endpoints', 'Continuous only on (a,b)', 'Polynomial only'], answer: 'Continuous on [a,b] and differentiable on (a,b)', explanation: 'These are the exact MVT hypotheses.' },
+  { id: 'calc028', comp: 'calc_derivative_apps', type: 'mc', difficulty: 3, q: 'For f(x)=x² on [1,3], average rate of change is:', choices: ['4', '2', '3', '8'], answer: '4', explanation: '(f(3)-f(1))/(3-1)=(9-1)/2=4.' },
+  { id: 'calc029', comp: 'calc_derivative_apps', type: 'mc', difficulty: 2, q: 'Related rates problems require differentiating with respect to:', choices: ['Time t', 'x only', 'y only', 'Angle only'], answer: 'Time t', explanation: 'Differentiate the geometric relation implicitly with respect to t.' },
+  { id: 'calc030', comp: 'calc_derivative_apps', type: 'mc', difficulty: 3, q: 'If r increases at 2 cm/s, then for A=πr², dA/dt equals:', choices: ['2πr·dr/dt', 'π(dr/dt)²', '2π·dr/dt', 'πr²'], answer: '2πr·dr/dt', explanation: 'Differentiate area with chain rule: dA/dt=2πr(dr/dt).' },
+
+  // ── Domain 4: Integrals & Accumulation ──
+  { id: 'calc031', comp: 'calc_integrals', type: 'mc', difficulty: 1, q: '∫ x² dx =', choices: ['x³/3 + C', '2x + C', 'x²/2 + C', '3x² + C'], answer: 'x³/3 + C', explanation: 'Reverse power rule: ∫x^n dx = x^(n+1)/(n+1)+C.' },
+  { id: 'calc032', comp: 'calc_integrals', type: 'mc', difficulty: 1, q: '∫ 1/x dx =', choices: ['ln|x| + C', '1/(x²) + C', 'x + C', 'e^x + C'], answer: 'ln|x| + C', explanation: 'Standard antiderivative of 1/x.' },
+  { id: 'calc033', comp: 'calc_integrals', type: 'mc', difficulty: 2, q: 'By FTC, d/dx ∫(from a to x) f(t)dt =', choices: ['f(x)', 'f(a)', '0', '∫f(t)dt'], answer: 'f(x)', explanation: 'Fundamental Theorem of Calculus Part I.' },
+  { id: 'calc034', comp: 'calc_integrals', type: 'mc', difficulty: 2, q: '∫(from 0 to 2) 3x dx =', choices: ['6', '3', '12', '9'], answer: '6', explanation: 'Antiderivative 3x²/2 from 0 to 2 gives 6.' },
+  { id: 'calc035', comp: 'calc_integrals', type: 'mc', difficulty: 2, q: 'Substitute u=x² in ∫2x cos(x²)dx. Result is:', choices: ['sin(x²)+C', 'cos(x²)+C', '2sin(x)+C', 'x²sin(x²)+C'], answer: 'sin(x²)+C', explanation: 'u=x², du=2x dx, integral becomes ∫cos u du = sin u + C.' },
+  { id: 'calc036', comp: 'calc_integrals', type: 'mc', difficulty: 2, q: 'Net change theorem states:', choices: ['∫(from a to b) f\'(x)dx = f(b)−f(a)', '∫f = f', 'f\' = ∫f', 'Area is always positive'], answer: '∫(from a to b) f\'(x)dx = f(b)−f(a)', explanation: 'Integral of rate over interval equals total change.' },
+  { id: 'calc037', comp: 'calc_integrals', type: 'mc', difficulty: 2, q: 'Area between y=f(x) and y=g(x) on [a,b] is:', choices: ['∫(from a to b) (top−bottom) dx', '∫(from a to b) (bottom−top) dx', 'f(b)−g(a)', '∫(from a to b) f(x)g(x) dx'], answer: '∫(from a to b) (top−bottom) dx', explanation: 'Use upper function minus lower function.' },
+  { id: 'calc038', comp: 'calc_integrals', type: 'mc', difficulty: 3, q: 'Average value of f on [a,b] is:', choices: ['(1/(b−a))∫(from a to b) f(x)dx', '∫(from a to b) f(x)dx', 'f(b)−f(a)', 'f(a)+f(b)'], answer: '(1/(b−a))∫(from a to b) f(x)dx', explanation: 'Integral average formula over interval length.' },
+  { id: 'calc039', comp: 'calc_integrals', type: 'mc', difficulty: 3, q: 'If velocity v(t) can be negative, ∫ v(t)dt gives:', choices: ['Net displacement', 'Total distance always', 'Acceleration', 'Average velocity only'], answer: 'Net displacement', explanation: 'Signed area gives displacement; distance needs ∫|v(t)|dt.' },
+  { id: 'calc040', comp: 'calc_integrals', type: 'mc', difficulty: 2, q: '∫ e^(2x) dx =', choices: ['(1/2)e^(2x)+C', '2e^(2x)+C', 'e^(2x)+C', 'e^(x²)+C'], answer: '(1/2)e^(2x)+C', explanation: 'Reverse chain rule: divide by inner derivative 2.' },
+
+  // ── Domain 5: Sequences & Series ──
+  { id: 'calc041', comp: 'calc_series', type: 'mc', difficulty: 2, q: 'A geometric series Σ ar^(n) converges when:', choices: ['|r|<1', '|r|>1', 'r=1 only', 'Always'], answer: '|r|<1', explanation: 'Convergence criterion for geometric series.' },
+  { id: 'calc042', comp: 'calc_series', type: 'mc', difficulty: 2, q: 'Σ (1/n) from n=1 to ∞ is:', choices: ['Divergent', 'Convergent', 'Equals 1', 'Equals 0'], answer: 'Divergent', explanation: 'Harmonic series diverges.' },
+  { id: 'calc043', comp: 'calc_series', type: 'mc', difficulty: 2, q: 'Σ (1/n²) from n=1 to ∞ is:', choices: ['Convergent', 'Divergent', 'Oscillatory only', 'Undefined'], answer: 'Convergent', explanation: 'p-series with p=2>1 converges.' },
+  { id: 'calc044', comp: 'calc_series', type: 'mc', difficulty: 3, q: 'Ratio test uses limit L=|a_(n+1)/a_n|. If L<1, series:', choices: ['Converges absolutely', 'Diverges', 'Needs p-test', 'Is geometric only'], answer: 'Converges absolutely', explanation: 'Standard ratio test conclusion.' },
+  { id: 'calc045', comp: 'calc_series', type: 'mc', difficulty: 2, q: 'Maclaurin series is a Taylor series centered at:', choices: ['0', '1', '∞', 'π'], answer: '0', explanation: 'Maclaurin means center a=0.' },
+  { id: 'calc046', comp: 'calc_series', type: 'mc', difficulty: 2, q: 'The series for e^x is:', choices: ['Σ x^n/n!', 'Σ n!/x^n', 'Σ x^(2n)', 'Σ 1/(x+n)'], answer: 'Σ x^n/n!', explanation: 'Classic Maclaurin expansion for e^x.' },
+  { id: 'calc047', comp: 'calc_series', type: 'mc', difficulty: 3, q: 'Alternating series test requires terms b_n to:', choices: ['Decrease to 0', 'Increase to ∞', 'Be constant', 'Be geometric'], answer: 'Decrease to 0', explanation: 'If b_n decreases to 0, Σ(−1)^n b_n converges.' },
+  { id: 'calc048', comp: 'calc_series', type: 'mc', difficulty: 3, q: 'Radius of convergence is best found with:', choices: ['Ratio or root test', 'MVT', 'L\'Hospital only', 'FTC'], answer: 'Ratio or root test', explanation: 'These tests naturally produce interval/radius for power series.' },
+  { id: 'calc049', comp: 'calc_series', type: 'mc', difficulty: 2, q: 'A 2nd-degree Taylor polynomial uses derivatives up to order:', choices: ['2', '1', '3', '0'], answer: '2', explanation: 'Degree n Taylor polynomial uses derivatives through n.' },
+  { id: 'calc050', comp: 'calc_series', type: 'mc', difficulty: 3, q: 'If a power series has radius R, it converges absolutely for:', choices: ['|x−a|<R', '|x−a|>R', 'All x', 'No x'], answer: '|x−a|<R', explanation: 'Inside radius: absolute convergence; endpoints tested separately.' },
+
+  // ── Domain 6: Advanced Calculus Modeling ──
+  { id: 'calc051', comp: 'calc_advanced', type: 'mc', difficulty: 2, q: 'A separable differential equation can be written as:', choices: ['dy/dx = g(x)h(y)', 'dy/dx = y + x only', 'dy/dx = c', 'No variables'], answer: 'dy/dx = g(x)h(y)', explanation: 'Then variables can be separated and integrated.' },
+  { id: 'calc052', comp: 'calc_advanced', type: 'mc', difficulty: 2, q: 'For y\'=ky with k>0, the solution behavior is:', choices: ['Exponential growth', 'Linear growth', 'Oscillation only', 'Exponential decay'], answer: 'Exponential growth', explanation: 'y=Ce^(kt), so positive k means growth.' },
+  { id: 'calc053', comp: 'calc_advanced', type: 'mc', difficulty: 2, q: 'For y\'=ky with k<0, the solution behavior is:', choices: ['Exponential decay', 'Exponential growth', 'Always constant', 'Periodic'], answer: 'Exponential decay', explanation: 'Negative rate constant gives decay.' },
+  { id: 'calc054', comp: 'calc_advanced', type: 'mc', difficulty: 2, q: 'In parametric motion x=x(t), y=y(t), speed is:', choices: ['sqrt((dx/dt)^2 + (dy/dt)^2)', 'dy/dx', 'x+y', 'dx/dy'], answer: 'sqrt((dx/dt)^2 + (dy/dt)^2)', explanation: 'Magnitude of velocity vector in parametric form.' },
+  { id: 'calc055', comp: 'calc_advanced', type: 'mc', difficulty: 3, q: 'For polar r=f(θ), area from α to β is:', choices: ['(1/2)∫(from α to β) r² dθ', '∫ r dθ', 'πr²', '∫ r dr'], answer: '(1/2)∫(from α to β) r² dθ', explanation: 'Standard polar area formula.' },
+  { id: 'calc056', comp: 'calc_advanced', type: 'mc', difficulty: 3, q: 'For parametric curves, dy/dx equals:', choices: ['(dy/dt)/(dx/dt)', 'dx/dy', 'dy/dt', 'dx/dt'], answer: '(dy/dt)/(dx/dt)', explanation: 'Chain rule with respect to parameter t.' },
+  { id: 'calc057', comp: 'calc_advanced', type: 'mc', difficulty: 2, q: 'An equilibrium solution to y\'=f(y) occurs when:', choices: ['f(y)=0', 'y=0 only', 'f\'(y)=0', 't=0'], answer: 'f(y)=0', explanation: 'Constant solutions satisfy derivative zero, so RHS must be zero.' },
+  { id: 'calc058', comp: 'calc_advanced', type: 'mc', difficulty: 3, q: 'Logistic growth differs from exponential because logistic includes:', choices: ['Carrying capacity limit', 'No growth parameter', 'No initial value', 'Complex numbers only'], answer: 'Carrying capacity limit', explanation: 'Logistic model includes saturation term (1−y/K).' },
+  { id: 'calc059', comp: 'calc_advanced', type: 'mc', difficulty: 2, q: 'Slope fields are used to visualize:', choices: ['Solutions of differential equations', 'Only limits', 'Only integrals', 'Matrix inverses'], answer: 'Solutions of differential equations', explanation: 'They show directional behavior y\'=f(x,y).' },
+  { id: 'calc060', comp: 'calc_advanced', type: 'mc', difficulty: 3, q: 'Average value interpretation in modeling is best described as:', choices: ['A constant rate producing same net change over interval', 'The highest value of f', 'The midpoint value only', 'Always equal to f(a)'], answer: 'A constant rate producing same net change over interval', explanation: 'Average value times interval length equals total accumulation.' },
+];
+
+export const CALCULUS_TEST_CONFIG = {
+  totalQuestions: 60,
+  timeMinutes: 120,
+  passingScore: 0.70,
+  categoryDistribution: {
+    calc_limits: 10,
+    calc_derivatives: 10,
+    calc_derivative_apps: 10,
+    calc_integrals: 10,
+    calc_series: 10,
+    calc_advanced: 10,
+  },
+};
+
 /** Return domains array for a TExES exam id (used by ClassWizard, ClassView, TexesPrep). */
 export function getDomainsForExam(examId) {
   const map = {
@@ -3331,6 +3470,7 @@ export function getDomainsForExam(examId) {
     schoolCounselor: () => TEXES_DOMAINS_SCHOOL_COUNSELOR,
     loteSpanish: () => TEXES_DOMAINS_LOTE_SPANISH,
     linearAlgebra: () => LINALG_DOMAINS,
+    calculus: () => CALCULUS_DOMAINS,
   };
   const fn = map[examId];
   return fn ? fn() : TEXES_DOMAINS;
@@ -3372,6 +3512,7 @@ export function getQuestionsForExam(examId) {
     schoolCounselor: () => TEXES_QUESTIONS_SCHOOL_COUNSELOR,
     loteSpanish: () => TEXES_QUESTIONS_LOTE_SPANISH,
     linearAlgebra: () => LINALG_QUESTIONS,
+    calculus: () => CALCULUS_QUESTIONS,
   };
   const fn = map[examId];
   if (!fn) {

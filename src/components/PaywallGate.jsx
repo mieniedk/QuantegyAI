@@ -15,6 +15,7 @@ const EXAM_LABELS = {
   math712: 'TExES Math 7-12',
   math48: 'TExES Math 4-8',
   linearAlgebra: 'Linear Algebra',
+  calculus: 'Calculus',
 };
 
 const PLANS = [

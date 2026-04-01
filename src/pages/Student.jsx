@@ -2849,6 +2849,16 @@ const Student = () => {
                       <span style={{ fontSize: 15, fontWeight: 800 }}>Linear Algebra</span>
                       <span style={{ fontSize: 11, opacity: 0.7 }}>6 domains · 12 topics · vectors, matrices, eigenvalues & SVD</span>
                     </Link>
+                    <Link to="/texes-prep?exam=calculus" style={{
+                      padding: '18px 16px', borderRadius: 14, textDecoration: 'none',
+                      background: 'linear-gradient(135deg, #d97706, #b45309)', color: '#fff',
+                      boxShadow: '0 2px 10px rgba(217,119,6,0.3)', display: 'flex', flexDirection: 'column', gap: 4,
+                      gridColumn: '1 / -1',
+                    }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, opacity: 0.8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Course</span>
+                      <span style={{ fontSize: 15, fontWeight: 800 }}>Calculus</span>
+                      <span style={{ fontSize: 11, opacity: 0.7 }}>6 domains · 12 topics · includes L&apos;Hospital&apos;s Rule</span>
+                    </Link>
                   </div>
                   <Link to="/texes-prep" style={{
                     display: 'block', padding: '10px 16px', borderRadius: 10, textDecoration: 'none',

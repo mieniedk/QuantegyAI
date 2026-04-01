@@ -900,6 +900,19 @@ function extractErrorMessage(err) {
   return String(msg);
 }
 
+function isStripeAuthError(err) {
+  const status = err?.statusCode || err?.status;
+  const type = String(err?.type || err?.rawType || '').toLowerCase();
+  const msg = String(err?.message || '').toLowerCase();
+  return status === 401
+    || type.includes('authentication')
+    || msg.includes('invalid api key');
+}
+
+function stripeAuthErrorMessage() {
+  return 'Stripe authentication failed. Set STRIPE_SECRET_KEY on the server to a valid Stripe secret key (sk_live_... in production), then redeploy.';
+}
+
 function getOpenAPISpec() {
   return {
     openapi: '3.0.3',
@@ -1358,12 +1371,20 @@ app.post('/api/billing/create-checkout-session', requireTeacher, asyncHandler(as
 
   let customerId = existing.stripeCustomerId || '';
   if (!customerId) {
-    const customer = await stripe.customers.create({
-      metadata: { username },
-      name: username,
-    });
-    customerId = customer.id;
-    saveSubscriptionData(username, { ...existing, stripeCustomerId: customerId });
+    try {
+      const customer = await stripe.customers.create({
+        metadata: { username },
+        name: username,
+      });
+      customerId = customer.id;
+      saveSubscriptionData(username, { ...existing, stripeCustomerId: customerId });
+    } catch (err) {
+      console.error('[billing] teacher customer create failed:', err?.message || err);
+      const hint = isStripeAuthError(err)
+        ? stripeAuthErrorMessage()
+        : (err?.message || 'Stripe customer creation failed.');
+      return res.status(502).json({ success: false, error: hint });
+    }
   }
 
   const session = await stripe.checkout.sessions.create({
@@ -1507,12 +1528,20 @@ app.post('/api/billing/student/create-checkout-session', requireStudent, asyncHa
 
   let customerId = existing.stripeCustomerId || '';
   if (!customerId) {
-    const customer = await stripe.customers.create({
-      metadata: { studentId },
-      email: req.user.username || undefined,
-    });
-    customerId = customer.id;
-    saveStudentSubscription(studentId, { ...existing, stripeCustomerId: customerId });
+    try {
+      const customer = await stripe.customers.create({
+        metadata: { studentId },
+        email: req.user.username || undefined,
+      });
+      customerId = customer.id;
+      saveStudentSubscription(studentId, { ...existing, stripeCustomerId: customerId });
+    } catch (err) {
+      console.error('[billing] student customer create failed:', err?.message || err);
+      const hint = isStripeAuthError(err)
+        ? stripeAuthErrorMessage()
+        : (err?.message || 'Stripe customer creation failed.');
+      return res.status(502).json({ success: false, error: hint });
+    }
   }
 
   const isOneTime = planId === 'student_exam_onetime';
@@ -1533,7 +1562,9 @@ app.post('/api/billing/student/create-checkout-session', requireStudent, asyncHa
     });
   } catch (err) {
     console.error('[billing] student checkout session create failed:', err?.message || err);
-    const hint = err?.message || 'Stripe checkout could not be created. Check STRIPE_PRICE_STUDENT_EXAM_ONETIME / STRIPE_PRICE_STUDENT_MONTHLY in server env.';
+    const hint = isStripeAuthError(err)
+      ? stripeAuthErrorMessage()
+      : (err?.message || 'Stripe checkout could not be created. Check STRIPE_PRICE_STUDENT_EXAM_ONETIME / STRIPE_PRICE_STUDENT_MONTHLY in server env.');
     return res.status(502).json({ success: false, error: hint });
   }
 
