@@ -289,21 +289,28 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked, check
     setBusy(false);
   }, [effectiveExamId, isOffline, recoverServerAndCheckout, checkoutReturnSearch]);
 
-  const handleCoupon = useCallback(() => {
+  const redeemCouponCode = useCallback((raw) => {
     setCouponError('');
-    const code = couponCode.trim().toUpperCase();
-    if (!code) { setCouponError('Please enter a coupon code.'); return; }
+    const code = String(raw || '').trim().toUpperCase();
+    if (!code) {
+      setCouponError('Please enter a coupon code.');
+      return;
+    }
     if (VALID_COUPONS.has(code)) {
       try {
         localStorage.setItem(`coupon-redeemed:${effectiveExamId}`, code);
-        // "MATH" is a global free-access coupon for math exam tracks.
         if (code === 'MATH') localStorage.setItem('coupon-redeemed:all-math', code);
-      } catch {}
+      } catch { /* best-effort */ }
+      setCouponCode('');
       onUnlocked?.();
     } else {
       setCouponError('Invalid coupon code. Please check and try again.');
     }
-  }, [couponCode, effectiveExamId, onUnlocked]);
+  }, [effectiveExamId, onUnlocked]);
+
+  const handleCoupon = useCallback(() => {
+    redeemCouponCode(couponCode);
+  }, [couponCode, redeemCouponCode]);
 
   const studentInfo = getStudentInfo();
 
@@ -453,15 +460,24 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked, check
             </p>
 
             <div style={{ marginTop: 10, borderTop: `1px solid ${COLOR.border}`, paddingTop: 10 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.textSecondary, marginBottom: 6 }}>Have a coupon code?</div>
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.textSecondary, marginBottom: 6 }}>Continue free for math prep</div>
+              <p style={{ fontSize: 12, color: COLOR.textMuted, lineHeight: 1.45, margin: '0 0 8px' }}>
+                Type <strong style={{ color: COLOR.text }}>MATH</strong> in the box and tap Apply, or use the button below (no account required for this code).
+              </p>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
                 <input
+                  id="paywall-coupon-signup"
                   type="text"
+                  name="coupon-code"
+                  inputMode="text"
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
                   value={couponCode}
                   onChange={(e) => { setCouponCode(e.target.value); setCouponError(''); }}
-                  placeholder="Enter code"
-                  style={{ ...INPUT_STYLE, flex: 1, padding: '8px 12px', fontSize: 13 }}
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleCoupon(); }}
+                  placeholder="MATH"
+                  style={{ ...INPUT_STYLE, flex: 1, padding: '8px 12px', fontSize: 16, position: 'relative', zIndex: 1 }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleCoupon(); } }}
                 />
                 <button
                   type="button"
@@ -481,6 +497,24 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked, check
                   Apply
                 </button>
               </div>
+              <button
+                type="button"
+                onClick={() => redeemCouponCode('MATH')}
+                style={{
+                  marginTop: 8,
+                  width: '100%',
+                  padding: '10px 14px',
+                  borderRadius: 10,
+                  border: `1.5px solid ${COLOR.green}`,
+                  background: COLOR.successBg,
+                  color: COLOR.green,
+                  fontSize: 13,
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                Continue free — use code MATH
+              </button>
               {couponError && (
                 <p style={{ color: COLOR.red, fontSize: 12, fontWeight: 600, marginTop: 4, marginBottom: 0 }}>{couponError}</p>
               )}
@@ -566,16 +600,25 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked, check
               <p style={{ color: COLOR.red, fontSize: 13, fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>{error}</p>
             )}
 
-            <div style={{ ...CARD, marginBottom: 16, padding: isMobile ? 14 : 18 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: COLOR.text, marginBottom: 8 }}>Have a coupon code?</div>
-              <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ ...CARD, marginBottom: 16, padding: isMobile ? 14 : 18, position: 'relative', zIndex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: COLOR.text, marginBottom: 6 }}>Continue free for math prep</div>
+              <p style={{ fontSize: 12, color: COLOR.textMuted, lineHeight: 1.45, margin: '0 0 10px' }}>
+                Type <strong style={{ color: COLOR.text }}>MATH</strong> and tap Apply, or use the button below.
+              </p>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
                 <input
+                  id="paywall-coupon-pricing"
                   type="text"
+                  name="coupon-code-pricing"
+                  inputMode="text"
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
                   value={couponCode}
                   onChange={(e) => { setCouponCode(e.target.value); setCouponError(''); }}
-                  placeholder="Enter code"
-                  style={{ ...INPUT_STYLE, flex: 1, padding: '10px 12px', fontSize: 14 }}
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleCoupon(); }}
+                  placeholder="MATH"
+                  style={{ ...INPUT_STYLE, flex: 1, padding: '10px 12px', fontSize: 16 }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleCoupon(); } }}
                 />
                 <button
                   type="button"
@@ -592,6 +635,24 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked, check
                   Apply
                 </button>
               </div>
+              <button
+                type="button"
+                onClick={() => redeemCouponCode('MATH')}
+                style={{
+                  marginTop: 10,
+                  width: '100%',
+                  padding: '11px 14px',
+                  borderRadius: 10,
+                  border: `1.5px solid ${COLOR.green}`,
+                  background: COLOR.successBg,
+                  color: COLOR.green,
+                  fontSize: 14,
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                Continue free — use code MATH
+              </button>
               {couponError && (
                 <p style={{ color: COLOR.red, fontSize: 12, fontWeight: 600, marginTop: 6, marginBottom: 0 }}>{couponError}</p>
               )}

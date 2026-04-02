@@ -5,6 +5,7 @@ import { saveGameResult, findMatchingAssignment } from '../utils/storage';
 import { formatMathHtml } from '../utils/mathFormat';
 import { sanitizeHtml } from '../utils/sanitize';
 import GameReview from '../components/GameReview';
+import { explainMathLoopExpression as explainPair } from '../utils/loopGameTutoring';
 import LoopContinueButton from '../components/LoopContinueButton';
 import useGameReturn from '../hooks/useGameReturn';
 import qbotImg from '../assets/qbot.svg';
@@ -424,6 +425,22 @@ const COMPETENCY_MATCH_POOLS = {
   },
 };
 
+// Ensure strict loop launches can resolve every Math 7-12 standard key directly.
+const MATH712_STD_TO_POOL_KEY = {
+  c001: 'comp001', c002: 'comp001', c003: 'comp001',
+  c004: 'comp002', c005: 'comp002', c006: 'comp002', c007: 'comp002', c008: 'comp002', c009: 'comp002', c010: 'comp002',
+  c011: 'comp003', c012: 'comp003', c013: 'comp003', c014: 'comp003',
+  c015: 'comp004', c016: 'comp004', c017: 'comp004',
+  c018: 'comp005', c019: 'comp005',
+  c020: 'c020', c021: 'c021',
+};
+
+Object.entries(MATH712_STD_TO_POOL_KEY).forEach(([stdId, poolKey]) => {
+  if (!COMPETENCY_MATCH_POOLS.math712[stdId] && COMPETENCY_MATCH_POOLS.math712[poolKey]) {
+    COMPETENCY_MATCH_POOLS.math712[stdId] = [...COMPETENCY_MATCH_POOLS.math712[poolKey]];
+  }
+});
+
 /* ── Helpers ── */
 const shuffle = (arr) => {
   const a = [...arr];
@@ -461,10 +478,13 @@ const pickPairs = (grade, teksFilter, count = 6) => {
   return pickUniqueByAnswer(pool, count);
 };
 
-const pickCompetencyPairs = ({ examId, compId, currentStd, teksFilter, count = 6 }) => {
+const pickCompetencyPairs = ({ examId, compId, currentStd, teksFilter, strictScope = false, count = 6 }) => {
   const examPool = COMPETENCY_MATCH_POOLS[examId] || {};
   const teksIds = teksFilter ? teksFilter.split(',').map((t) => t.trim()).filter(Boolean) : [];
-  const keysToTry = [...new Set([currentStd, ...teksIds, compId].filter(Boolean))];
+  const directStdKeys = [...new Set([currentStd, ...teksIds].filter((id) => /^c\d{3}$|^calc_c\d{3}$/i.test(id)))];
+  const keysToTry = strictScope && directStdKeys.length > 0
+    ? directStdKeys
+    : [...new Set([currentStd, ...teksIds, compId].filter(Boolean))];
   const scoped = [];
   keysToTry.forEach((k) => {
     if (examPool[k]) scoped.push(...examPool[k]);
@@ -474,59 +494,6 @@ const pickCompetencyPairs = ({ examId, compId, currentStd, teksFilter, count = 6
 };
 
 const CARD_COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#ef4444', '#06b6d4', '#6366f1'];
-
-/* ── Generate a brief explanation for how to solve the expression ── */
-const explainPair = (expression, answer, teks) => {
-  const expr = expression.trim();
-  // Addition / subtraction (multi-digit)
-  if (/\d+\s*[+]\s*\d+/.test(expr)) {
-    const [a, b] = expr.split('+').map(s => s.trim());
-    return `Add the numbers: ${a} + ${b}. Line up the digits by place value and add column by column to get ${answer}.`;
-  }
-  if (/\d+\s*[−\-]\s*\d+/.test(expr)) {
-    const parts = expr.split(/[−\-]/).map(s => s.trim());
-    return `Subtract: ${parts[0]} − ${parts[1]}. Regroup (trade) if needed. The difference is ${answer}.`;
-  }
-  // Multiplication
-  if (/\d+\s*[×x]\s*\d+/.test(expr)) {
-    const [a, b] = expr.split(/[×x]/).map(s => s.trim());
-    return `Multiply: ${a} × ${b}. You can think of it as ${a} groups of ${b}, which equals ${answer}.`;
-  }
-  // Slope questions
-  if (/slope/i.test(expr)) {
-    return `Use the slope formula m = (y₂ − y₁) / (x₂ − x₁) to find the slope = ${answer}.`;
-  }
-  // Domain / Range
-  if (/domain|range/i.test(expr)) {
-    return `For standard linear functions, the domain and range are typically all real numbers. The answer is ${answer}.`;
-  }
-  // Solve equation
-  if (/x\s*=\s*\?/i.test(expr) || /solve/i.test(expr)) {
-    return `Isolate x by performing inverse operations on both sides of the equation. The solution is x = ${answer}.`;
-  }
-  // Factor
-  if (/factor/i.test(expr)) {
-    return `Find two numbers that multiply to give the constant and add to give the middle coefficient. The factored form is ${answer}.`;
-  }
-  // Vertex
-  if (/vertex/i.test(expr)) {
-    return `For vertex form y = a(x − h)² + k, the vertex is at (h, k) = ${answer}.`;
-  }
-  // Exponent simplification
-  if (/x[⁰¹²³⁴⁵⁶⁷⁸⁹]+/.test(expr)) {
-    return `Apply the laws of exponents (product rule: add exponents; quotient rule: subtract; power rule: multiply). Result: ${answer}.`;
-  }
-  // Rate of change
-  if (/rate/i.test(expr)) {
-    return `Rate of change = (change in output) / (change in input) = ${answer}.`;
-  }
-  // Function evaluation
-  if (/f\(/.test(expr)) {
-    return `Substitute the given value into the function and simplify to get ${answer}.`;
-  }
-  // Default
-  return `Evaluate the expression step by step to arrive at the answer: ${answer}.`;
-};
 
 /* ══════════════════════════════════════════════════════════════════════════ */
 
@@ -562,7 +529,9 @@ const MathMatch = () => {
   const [scopeUnavailable, setScopeUnavailable] = useState(false);
   const [autoStarting, setAutoStarting] = useState(false);
   const [mismatchMap, setMismatchMap] = useState({});   // pairId → mismatch count
+  const [mismatchHint, setMismatchHint] = useState('');
   const lockRef = useRef(false);
+  const mismatchHintTimerRef = useRef(null);
   const autoStartRef = useRef(false);
 
   const teksParam = searchParams.get('teks') || '';
@@ -572,9 +541,10 @@ const MathMatch = () => {
   const strictScope = searchParams.get('from') === 'loop' && !!(teksParam || compParam || currentStd);
   const launchedFromLoop = searchParams.get('from') === 'loop';
   const embeddedLaunch = searchParams.get('embed') === '1';
-  const loopEmbeddedMode = launchedFromLoop && embeddedLaunch;
+  const hasLoopReturn = !!(searchParams.get('returnUrl') || '').trim();
+  const loopEmbeddedMode = embeddedLaunch && (launchedFromLoop || hasLoopReturn);
   const labelParam = searchParams.get('label') || '';
-  const { returnUrl, goBack } = useGameReturn();
+  const { returnUrl, goBack, isEmbedded } = useGameReturn();
   // Resolve student identity: URL params first, then fall back to saved session
   const _session = (() => {
     try {
@@ -643,12 +613,20 @@ const MathMatch = () => {
     }
   }, [matched, cards.length, gameStarted]);
 
+  // Open full tutoring review automatically on completion.
+  useEffect(() => {
+    if (!gameComplete || showReview) return;
+    const timer = setTimeout(() => setShowReview(true), 120);
+    return () => clearTimeout(timer);
+  }, [gameComplete, showReview]);
+
   const startGame = useCallback(() => {
     const competencyScoped = pickCompetencyPairs({
       examId,
       compId: compParam,
       currentStd,
       teksFilter: teksParam,
+      strictScope,
       count: pairCount,
     });
     let pairs = competencyScoped.length > 0 ? competencyScoped : pickPairs(selectedGrade, teksParam, pairCount);
@@ -730,6 +708,12 @@ const MathMatch = () => {
           next[c2.pairId] = (next[c2.pairId] || 0) + 1;
           return next;
         });
+        if (mismatchHintTimerRef.current) clearTimeout(mismatchHintTimerRef.current);
+        setMismatchHint('Not a match — pair one Question card with the Answer that evaluates to the same value.');
+        mismatchHintTimerRef.current = setTimeout(() => {
+          setMismatchHint('');
+          mismatchHintTimerRef.current = null;
+        }, 2800);
         lockRef.current = true;
         setTimeout(() => {
           setFlipped([]);
@@ -757,7 +741,7 @@ const MathMatch = () => {
   const cols = totalCards <= 8 ? 4 : totalCards <= 12 ? 4 : totalCards <= 16 ? 5 : 5;
 
   return (
-    <div style={{ padding: '12px 16px', maxWidth: 600, margin: '0 auto', fontFamily: 'system-ui, sans-serif', paddingBottom: returnUrl ? 96 : 12 }}>
+    <div style={{ padding: '12px 16px', maxWidth: 600, margin: '0 auto', fontFamily: 'system-ui, sans-serif', paddingBottom: returnUrl && !isEmbedded ? 96 : 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         {!loopEmbeddedMode && (returnUrl ? (
           <button type="button" onClick={goBack} style={{ background: 'none', border: 'none', color: '#059669', fontWeight: 600, fontSize: 13, cursor: 'pointer', padding: 0 }}>← Continue practice</button>
@@ -765,10 +749,12 @@ const MathMatch = () => {
           <Link to="/games" style={{ color: '#007bff', textDecoration: 'none', fontSize: 13 }}>← Games</Link>
         ))}
         {gameStarted && !gameComplete && (
-          <div style={{ display: 'flex', gap: 12, fontSize: 12, fontWeight: 600, color: '#475569' }}>
-            <span>Moves: {moves}</span>
-            <span>Time: {formatTime(elapsed)}</span>
-            <span>Matched: {matched.size / 2}/{pairCount}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+            <div style={{ display: 'flex', gap: 12, fontSize: 12, fontWeight: 600, color: '#475569' }}>
+              <span>Moves: {moves}</span>
+              <span>Time: {formatTime(elapsed)}</span>
+              <span>Matched: {matched.size / 2}/{pairCount}</span>
+            </div>
           </div>
         )}
       </div>
@@ -911,6 +897,11 @@ const MathMatch = () => {
             <span style={{ fontSize: 11, fontWeight: 700, color: '#166534' }}>Answer</span>
           </div>
         </div>
+        {mismatchHint ? (
+          <div style={{ marginBottom: 8 }}>
+            <QBotBubble msg={mismatchHint} />
+          </div>
+        ) : null}
         <div style={{
           display: 'grid',
           gridTemplateColumns: `repeat(${cols}, 1fr)`,
@@ -1119,7 +1110,8 @@ const MathMatch = () => {
             gameTitle={`Math Match – ${gradeLabel}`}
             onPlayAgain={returnUrl ? undefined : startGame}
             continueUrl={returnUrl || undefined}
-            continueLabel="Continue"
+            continueLabel={isEmbedded ? 'Continue to practice loop' : 'Continue'}
+            onContinue={returnUrl ? goBack : undefined}
             onBack={() => { setGameStarted(false); setGameComplete(false); setShowReview(false); }}
             backLabel="Back"
           />
@@ -1140,8 +1132,8 @@ const MathMatch = () => {
         </div>
       )}
 
-      {/* ── Consistent loop CTA: always available at every screen/state ── */}
-      {returnUrl && (
+      {/* Floating continue only outside loop iframe — inside iframe, parent shows Skip; use in-game Continue after review. */}
+      {returnUrl && !isEmbedded && (
         <LoopContinueButton onClick={goBack} label="Continue" />
       )}
     </div>

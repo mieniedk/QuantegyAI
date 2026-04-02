@@ -533,6 +533,17 @@ function LHospitalLab({ onComplete, continueLabel, badgeLabel, embedded, activit
   });
 }
 
+function pickCalculusMode(currentStd, activityIndex) {
+  if (currentStd === 'calc_c002') return 'lhospital-lab';
+  if (currentStd === 'calc_c001') return 'limit-zoom';
+  if (currentStd === 'calc_c011') return 'limit-zoom';
+  if (['calc_c003', 'calc_c004', 'calc_c005', 'calc_c006', 'calc_c007', 'calc_c008', 'calc_c009', 'calc_c010'].includes(currentStd)) {
+    return 'derivative-sense';
+  }
+  if (currentStd === 'calc_c012') return activityIndex % 2 === 0 ? 'limit-zoom' : 'derivative-sense';
+  return MODES[activityIndex % MODES.length];
+}
+
 export default function CalculusExplorer({
   currentStd = '',
   activityIndex = 0,
@@ -541,7 +552,7 @@ export default function CalculusExplorer({
   badgeLabel,
   embedded,
 }) {
-  const mode = currentStd === 'calc_c002' ? 'lhospital-lab' : MODES[activityIndex % MODES.length];
+  const mode = pickCalculusMode(currentStd, activityIndex);
 
   if (mode === 'limit-zoom') {
     return (

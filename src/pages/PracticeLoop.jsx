@@ -345,6 +345,9 @@ const CORE_ACTIVITY_MODE_FALLBACKS = [
 const LINEAR_FUNCTION_COMPS = new Set(['comp002']);
 const LINEAR_FUNCTION_STANDARDS = new Set(['c005', 'c006']);
 
+/** Domain explorers (Number/Geo/Stats/Reasoning/Pedagogy/Calculus) ignore string `mode`; only comp002 uses algebra/slope mode strings. */
+const COMP002_INTERACTIVE_MODE_COMPS = new Set(['comp002']);
+
 function buildActivityModeSequence(count, seedInput) {
   const base = seededShuffle(MATH_ACTIVITY_MODES, seedInput);
   const sequence = [];
@@ -888,9 +891,19 @@ const VERIFIED_GAME_PATHS = new Set(
 function GamePhase({ gameLabel, scopeBadge, description, gameUrl, gameName, onSkip, stepIndex, totalSteps, phaseKey, continueOnly = false, scopeDebugText = '' }) {
   const basePath = (gameUrl || '').split('?')[0];
   const isVerified = VERIFIED_GAME_PATHS.has(basePath);
+  const isQblocksEmbed = isVerified && basePath.endsWith('q-blocks.html');
+  const isLoopIframeGame =
+    isVerified &&
+    String(gameUrl || '').includes('embed=1') &&
+    (String(gameUrl || '').includes('from=loop') || String(gameUrl || '').includes('returnUrl='));
   const [frameHeight, setFrameHeight] = useState(560);
+  const [qbFrameMin, setQbFrameMin] = useState(null);
   const skipRef = useRef(onSkip);
   skipRef.current = onSkip;
+
+  useEffect(() => {
+    setQbFrameMin(null);
+  }, [gameUrl]);
 
   useEffect(() => {
     const computeHeight = () => {
@@ -909,11 +922,31 @@ function GamePhase({ gameLabel, scopeBadge, description, gameUrl, gameName, onSk
     return () => window.removeEventListener('resize', computeHeight);
   }, []);
 
+  const effectiveFrameHeight = useMemo(() => {
+    const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
+    const cap = Math.max(520, Math.floor(vh * 0.88));
+    const merged = qbFrameMin != null ? Math.max(frameHeight, qbFrameMin) : frameHeight;
+    return Math.min(Math.max(merged, 420), cap);
+  }, [frameHeight, qbFrameMin]);
+
   useEffect(() => {
     const handleGameMsg = (e) => {
       if (!e.data || typeof e.data !== 'object') return;
-      const { type } = e.data;
-      if (type === 'qblocksDone' || type === 'qblocksNavigate' || type === 'gameDone') {
+      const { type, minHeight } = e.data;
+      if (type === 'qblocksLayout' && typeof minHeight === 'number' && Number.isFinite(minHeight)) {
+        setQbFrameMin((prev) => Math.max(prev ?? 0, minHeight));
+        return;
+      }
+      if (type === 'qblocksResult') {
+        setQbFrameMin((prev) => Math.max(prev ?? 0, 680));
+      }
+      if (
+        type === 'qblocksDone'
+        || type === 'qblocksNavigate'
+        || type === 'gameDone'
+        || type === 'loopGameNavigate'
+        || type === 'loopGameDone'
+      ) {
         skipRef.current?.();
       }
     };
@@ -953,7 +986,7 @@ function GamePhase({ gameLabel, scopeBadge, description, gameUrl, gameName, onSk
             src={gameUrl}
             style={{
               width: '100%',
-              height: frameHeight,
+              height: effectiveFrameHeight,
               border: `1px solid ${COLOR.border}`,
               borderRadius: 12,
               background: '#0f172a',
@@ -965,7 +998,29 @@ function GamePhase({ gameLabel, scopeBadge, description, gameUrl, gameName, onSk
           This game is coming soon. Tap Continue to keep practicing.
         </div>
       )}
-      <button type="button" onClick={onSkip} style={BTN_PRIMARY}>Continue</button>
+      {isLoopIframeGame && !isQblocksEmbed && (
+        <p style={{ margin: '0 0 12px', fontSize: 13, color: COLOR.textSecondary, lineHeight: 1.55 }}>
+          When you finish, open the in-game <strong>review</strong> (solutions for each question) if it appears, then tap{' '}
+          <strong>Continue</strong> inside the game frame. The control below skips ahead without finishing that flow.
+        </p>
+      )}
+      {isQblocksEmbed && (
+        <p style={{ margin: '0 0 12px', fontSize: 13, color: COLOR.textSecondary, lineHeight: 1.55 }}>
+          When the round ends, use <strong>Full Review</strong> inside the game to see every question and worked solutions, then tap{' '}
+          <strong>Continue to practice loop</strong> there. Scroll inside the game frame if the review is long. The control below skips this step if you need to move on.
+        </p>
+      )}
+      <button
+        type="button"
+        onClick={onSkip}
+        style={
+          isLoopIframeGame
+            ? { ...BTN_PRIMARY, background: COLOR.borderLight, color: COLOR.textSecondary, border: `1px solid ${COLOR.border}`, boxShadow: 'none' }
+            : BTN_PRIMARY
+        }
+      >
+        {isLoopIframeGame ? (isQblocksEmbed ? 'Skip Q-Blocks' : 'Skip game') : 'Continue'}
+      </button>
     </PhaseCard>
   );
 }
@@ -2872,11 +2927,11 @@ export default function PracticeLoop() {
     if (subject !== 'math') return undefined;
     if (loopCompId === 'comp002' && currentStd) {
       const standardModes = {
-        // Tiles 6/12/18 (Interactive A/B/C) must be distinct modes.
+        // Tiles 6/12/18 (Interactive A/B/C) must be distinct modes — every Domain II standard mapped so we never fall through to generic slope shuffle.
         c004: ['sequence-patterns', 'function-transform', 'quadratic'],
         c005: ['function-transform', 'quadratic', 'sequence-patterns'],
         c006: ['slope', 'intercept', 'both'],
-        c007: ['function-transform', 'quadratic', 'sequence-patterns'],
+        c007: ['quadratic', 'function-transform', 'sequence-patterns'],
         c008: ['function-transform', 'quadratic', 'sequence-patterns'],
         c009: ['trig-circle', 'function-transform', 'quadratic'],
         c010: ['quadratic', 'function-transform', 'sequence-patterns'],
@@ -2901,6 +2956,7 @@ export default function PracticeLoop() {
   const coreInteractiveModes = useMemo(() => {
     if (subject !== 'math') return [];
     if (loopExamId === 'calculus') return [];
+    if (loopCompId !== 'comp002') return [];
     const used = new Set();
     const picks = [];
     for (let i = 0; i < 3; i++) {
@@ -2916,7 +2972,17 @@ export default function PracticeLoop() {
       used.add(pick);
     }
     return picks;
-  }, [subject, loopExamId, getActivityMode, activityModes]);
+  }, [subject, loopExamId, loopCompId, getActivityMode, activityModes]);
+
+  const activityComp = loopCompId || comp;
+  const activityStd = resolvedStdId || currentStd;
+
+  const resolvePhaseInteractiveMode = useCallback((index, fallback = 'slope') => {
+    if (subject !== 'math' || loopExamId === 'calculus') return undefined;
+    if (!COMP002_INTERACTIVE_MODE_COMPS.has(loopCompId)) return undefined;
+    if (index < 3) return coreInteractiveModes[index] ?? getActivityMode(index);
+    return getActivityMode(index, fallback);
+  }, [subject, loopExamId, loopCompId, coreInteractiveModes, getActivityMode]);
 
   const game1 = fourGames[0];
   const game2 = fourGames[1] || COMPETENCY_EXPLORER;
@@ -2968,23 +3034,28 @@ export default function PracticeLoop() {
     pushUnique(introLecture?.video);
     pushUnique(deepDiveLecture?.video);
 
-    // Then pull from other standards in this competency to keep Video B relevant.
-    (compDomain?.standards || []).forEach((std) => {
-      if (!std?.id || std.id === resolvedStdId) return;
-      pushUnique(getLectureForComp(loopCompId, std.id)?.video);
-    });
+    const isTexesMathLoop = loopExamId === 'math712' || loopExamId === 'math48';
+
+    // For scoped TExES loops, do NOT pull videos from sibling standards.
+    // This prevents mismatches like c001 (real numbers) showing c002 (complex numbers).
+    if (!isTexesMathLoop) {
+      (compDomain?.standards || []).forEach((std) => {
+        if (!std?.id || std.id === resolvedStdId) return;
+        pushUnique(getLectureForComp(loopCompId, std.id)?.video);
+      });
+    }
 
     // Domain-level and generic fallbacks, used when a competency has sparse media.
     (compDomain?.videos || []).forEach(pushUnique);
     pushUnique(compDomain?.video);
     pushUnique(lecture?.video);
-    VIDEO_BACKUP_EMBEDS.forEach(pushUnique);
+    if (!isTexesMathLoop) VIDEO_BACKUP_EMBEDS.forEach(pushUnique);
 
     return {
       introVideoEmbed: uniqueEmbeds[0] || null,
-      deepDiveVideoEmbed: uniqueEmbeds[1] || null,
+      deepDiveVideoEmbed: uniqueEmbeds[1] || uniqueEmbeds[0] || null,
     };
-  }, [compDomain, loopCompId, lecture, introLecture, deepDiveLecture, resolvedStdId]);
+  }, [compDomain, loopCompId, lecture, introLecture, deepDiveLecture, resolvedStdId, loopExamId]);
 
   const conceptTitle = useMemo(() => {
     if (currentStdObj) return currentStdObj.name;
@@ -3005,6 +3076,9 @@ export default function PracticeLoop() {
   }, [showUnitCircleTool, unitCircleOpen]);
   const showNumberSetsActivity = !deepDiveVideoEmbed && (comp === 'comp001' || currentStd === 'c001');
   const hasUniqueDeepDiveLecture = !!(deepDiveLecture && loopCompId !== 'comp001' && deepDiveLecture !== introLecture);
+  const showVideoSourceBadge = loopExamId === 'math712' || loopExamId === 'math48';
+  const introVideoSourceId = introLecture?.teks || resolvedStdId || loopCompId || '';
+  const deepDiveVideoSourceId = deepDiveLecture?.teks || introLecture?.teks || resolvedStdId || loopCompId || '';
   const useGeometricRefreshActivity = comp === 'comp005' || currentStd === 'c018';
   const microTeachConcept = useMemo(() => {
     const normalizeConceptText = (v) => String(v || '').replace(/\s+/g, ' ').trim().toLowerCase();
@@ -3159,7 +3233,8 @@ export default function PracticeLoop() {
 
   const buildReturnUrl = (returnPhase) => {
     const base = `/practice-loop?teks=${encodeURIComponent(teks)}&label=${encodeURIComponent(label)}&grade=${encodeURIComponent(grade)}&phase=${returnPhase}`;
-    const compParam = comp ? `&comp=${encodeURIComponent(comp)}` : '';
+    const compForReturn = loopCompId || comp || '';
+    const compParam = compForReturn ? `&comp=${encodeURIComponent(compForReturn)}` : '';
     const stdParam = (forcedLoopStdId || currentStd) ? `&currentStd=${encodeURIComponent(forcedLoopStdId || currentStd)}` : '';
     return `${base}${compParam}${stdParam}&examId=${encodeURIComponent(loopExamId)}`;
   };
@@ -3172,8 +3247,9 @@ export default function PracticeLoop() {
     const returnPhase = returnPhaseOverride ?? 'check-quiz-2';
     const returnUrl = encodeURIComponent(buildReturnUrl(returnPhase));
     const scopedStdForLoop = forcedLoopStdId || currentStd;
-    const gameTeks = singleTeks || scopedStdForLoop || comp || '';
-    const compParam = comp ? `&comp=${encodeURIComponent(comp)}` : '';
+    const gameTeks = singleTeks || scopedStdForLoop || loopCompId || comp || '';
+    const compForGame = loopCompId || comp || '';
+    const compParam = compForGame ? `&comp=${encodeURIComponent(compForGame)}` : '';
     const stdParam = scopedStdForLoop ? `&currentStd=${encodeURIComponent(scopedStdForLoop)}` : '';
     const examParam = loopExamId ? `&examId=${encodeURIComponent(loopExamId)}` : '';
     return `${base}${sep}teks=${encodeURIComponent(gameTeks)}&label=${encodeURIComponent(label)}&grade=${encodeURIComponent(grade)}&sid=${encodeURIComponent(sid)}&cid=${encodeURIComponent(cid)}${compParam}${stdParam}${examParam}&mode=adaptive&from=loop&embed=1&returnPhase=${encodeURIComponent(returnPhase)}&returnUrl=${returnUrl}`;
@@ -3363,6 +3439,7 @@ export default function PracticeLoop() {
 
   useEffect(() => {
     const handler = (e) => {
+      if (phase === 'paywall') return;
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
       if (calcOpen || padOpen || unitCircleOpen) return;
       const quizPhases = ['diagnostic', 'check-quiz', 'check-quiz-2', 'check-quiz-3', 'check-quiz-4', 'check-quiz-5', 'check-quiz-6', 'check-quiz-7', 'check-quiz-8', 'readiness-quiz', 'mastery-check'];
@@ -3775,7 +3852,7 @@ export default function PracticeLoop() {
           </div>
         )}
 
-        {hasTopic && !keyboardOpen && (
+        {hasTopic && !keyboardOpen && phase !== 'paywall' && (
           <div style={{
             position: 'sticky', top: isLandscapeTight ? 0 : (isCompactDock ? (isSmallPhone ? 0 : 2) : 8), zIndex: 20,
             marginBottom: isLandscapeTight ? 8 : (isCompactDock ? 10 : 18),
@@ -4282,6 +4359,11 @@ export default function PracticeLoop() {
             />
             {hasTopic ? (
               <>
+                {showVideoSourceBadge && introVideoSourceId && (
+                  <div style={{ marginBottom: 10, fontSize: 12, fontWeight: 700, color: COLOR.blue }}>
+                    Video Source: {String(introVideoSourceId).toUpperCase()}
+                  </div>
+                )}
                 {hasAnimatedIntroLecture ? (
                   <div style={{ marginBottom: 16 }}>
                     <AnimatedLecture
@@ -4323,7 +4405,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-1' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={coreInteractiveModes[0] || getActivityMode(0)} activityIndex={0} seed={revisitSeed} badgeLabel={getTileLabel('activity-1', 'Activity 1')} onComplete={() => goToPhase('check-quiz-3')} />}
+        {phase === 'activity-1' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={activityComp} currentStd={activityStd} mode={resolvePhaseInteractiveMode(0)} activityIndex={0} seed={revisitSeed} badgeLabel={getTileLabel('activity-1', 'Activity 1')} onComplete={() => goToPhase('check-quiz-3')} />}
 
         {phase === 'check-quiz-2' && (
           <QuizBlock
@@ -4343,7 +4425,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-2' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={coreInteractiveModes[1] || getActivityMode(1)} activityIndex={1} seed={revisitSeed} badgeLabel={getTileLabel('activity-2', 'Activity 2')} onComplete={() => goToPhase('check-quiz-6')} />}
+        {phase === 'activity-2' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={activityComp} currentStd={activityStd} mode={resolvePhaseInteractiveMode(1)} activityIndex={1} seed={revisitSeed} badgeLabel={getTileLabel('activity-2', 'Activity 2')} onComplete={() => goToPhase('check-quiz-6')} />}
 
         {phase === 'game2' && (
           <GamePhase
@@ -4358,7 +4440,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-3' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={coreInteractiveModes[2] || getActivityMode(2)} activityIndex={2} seed={revisitSeed} badgeLabel={getTileLabel('activity-3', 'Activity 3')} onComplete={() => goToPhase('game4')} />}
+        {phase === 'activity-3' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={activityComp} currentStd={activityStd} mode={resolvePhaseInteractiveMode(2)} activityIndex={2} seed={revisitSeed} badgeLabel={getTileLabel('activity-3', 'Activity 3')} onComplete={() => goToPhase('game4')} />}
 
         {phase === 'check-quiz-3' && (
           <QuizBlock
@@ -4378,7 +4460,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-4' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(3)} activityIndex={3} seed={revisitSeed} badgeLabel={getTileLabel('activity-4', 'Activity 4')} onComplete={() => goToPhase('concept-refresh')} />}
+        {phase === 'activity-4' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={activityComp} currentStd={activityStd} mode={resolvePhaseInteractiveMode(3)} activityIndex={3} seed={revisitSeed} badgeLabel={getTileLabel('activity-4', 'Activity 4')} onComplete={() => goToPhase('concept-refresh')} />}
 
         {phase === 'concept-refresh' && (
           <PhaseCard stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase}>
@@ -4419,7 +4501,7 @@ export default function PracticeLoop() {
           </PhaseCard>
         )}
 
-        {phase === 'activity-5' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(4)} activityIndex={4} seed={revisitSeed} badgeLabel={getTileLabel('activity-5', 'Activity 5')} onComplete={() => goToPhase('check-quiz-4')} />}
+        {phase === 'activity-5' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={activityComp} currentStd={activityStd} mode={resolvePhaseInteractiveMode(4)} activityIndex={4} seed={revisitSeed} badgeLabel={getTileLabel('activity-5', 'Activity 5')} onComplete={() => goToPhase('check-quiz-4')} />}
 
         {phase === 'check-quiz-4' && (
           <QuizBlock
@@ -4439,7 +4521,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-6' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(5)} activityIndex={5} seed={revisitSeed} badgeLabel={getTileLabel('activity-6', 'Activity 6')} onComplete={() => goToPhase('game3')} />}
+        {phase === 'activity-6' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={activityComp} currentStd={activityStd} mode={resolvePhaseInteractiveMode(5)} activityIndex={5} seed={revisitSeed} badgeLabel={getTileLabel('activity-6', 'Activity 6')} onComplete={() => goToPhase('game3')} />}
 
         {phase === 'game3' && (
           <GamePhase
@@ -4472,7 +4554,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-7' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(6)} activityIndex={6} seed={revisitSeed} badgeLabel={getTileLabel('activity-7', 'Activity 7')} onComplete={() => goToPhase('check-quiz-5')} />}
+        {phase === 'activity-7' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={activityComp} currentStd={activityStd} mode={resolvePhaseInteractiveMode(6)} activityIndex={6} seed={revisitSeed} badgeLabel={getTileLabel('activity-7', 'Activity 7')} onComplete={() => goToPhase('check-quiz-5')} />}
 
         {phase === 'check-quiz-5' && (
           <QuizBlock
@@ -4492,7 +4574,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-8' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(7, 'intercept')} activityIndex={7} seed={revisitSeed} badgeLabel={getTileLabel('activity-8', 'Activity 8')} onComplete={() => goToPhase('video-2')} />}
+        {phase === 'activity-8' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={activityComp} currentStd={activityStd} mode={resolvePhaseInteractiveMode(7, 'intercept')} activityIndex={7} seed={revisitSeed} badgeLabel={getTileLabel('activity-8', 'Activity 8')} onComplete={() => goToPhase('video-2')} />}
 
         {phase === 'video-2' && (
           <PhaseCard stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase}>
@@ -4504,6 +4586,11 @@ export default function PracticeLoop() {
             />
             {hasTopic ? (
               <>
+                {showVideoSourceBadge && deepDiveVideoSourceId && (
+                  <div style={{ marginBottom: 10, fontSize: 12, fontWeight: 700, color: COLOR.blue }}>
+                    Video Source: {String(deepDiveVideoSourceId).toUpperCase()}
+                  </div>
+                )}
                 {hasUniqueDeepDiveLecture ? (
                   <div style={{ marginBottom: 16 }}>
                     <AnimatedLecture
@@ -4549,7 +4636,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-9' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(8, 'y-intercept-read')} activityIndex={8} seed={revisitSeed} badgeLabel={getTileLabel('activity-9', 'Activity 9')} onComplete={() => goToPhase('game4')} />}
+        {phase === 'activity-9' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={activityComp} currentStd={activityStd} mode={resolvePhaseInteractiveMode(8, 'y-intercept-read')} activityIndex={8} seed={revisitSeed} badgeLabel={getTileLabel('activity-9', 'Activity 9')} onComplete={() => goToPhase('game4')} />}
 
         {phase === 'game4' && (
           <GamePhase
@@ -4564,7 +4651,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-10' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(9)} activityIndex={9} seed={revisitSeed} badgeLabel={getTileLabel('activity-10', 'Activity 10')} onComplete={() => goToPhase('check-quiz-6')} />}
+        {phase === 'activity-10' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={activityComp} currentStd={activityStd} mode={resolvePhaseInteractiveMode(9)} activityIndex={9} seed={revisitSeed} badgeLabel={getTileLabel('activity-10', 'Activity 10')} onComplete={() => goToPhase('check-quiz-6')} />}
 
         {phase === 'check-quiz-6' && (
           <QuizBlock
@@ -4584,7 +4671,7 @@ export default function PracticeLoop() {
           />
         )}
 
-        {phase === 'activity-11' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={comp} currentStd={currentStd} mode={getActivityMode(10)} activityIndex={10} seed={revisitSeed} badgeLabel={getTileLabel('activity-11', 'Activity 11')} onComplete={() => goToPhase('mastery-check')} />}
+        {phase === 'activity-11' && <ActivityPhase stepIndex={displayPhaseIndex} totalSteps={STEPS_PER_CYCLE} phaseKey={phase} subject={subject} examId={examId} comp={activityComp} currentStd={activityStd} mode={resolvePhaseInteractiveMode(10)} activityIndex={10} seed={revisitSeed} badgeLabel={getTileLabel('activity-11', 'Activity 11')} onComplete={() => goToPhase('mastery-check')} />}
 
         {phase === 'readiness-quiz' && (
           <QuizBlock

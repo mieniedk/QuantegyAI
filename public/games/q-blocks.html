@@ -26,6 +26,9 @@ html,body{position:fixed;width:100%;height:100%;overflow:hidden;background:linea
 #username-screen input::placeholder{color:rgba(0,245,255,.4);}
 #username-screen button{padding:14px 48px;border:none;border-radius:12px;background:linear-gradient(135deg,#00f5ff,#00bb99);color:#0a0a1a;font-size:1.1em;font-weight:700;cursor:pointer;transition:all .3s;text-transform:uppercase;letter-spacing:1px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 #username-screen button:active{transform:scale(.95);}
+#username-screen .guest-btn{margin-top:6px;padding:12px 28px;border:2px solid rgba(0,245,255,.45);border-radius:12px;background:transparent;color:#00f5ff;font-size:.95em;font-weight:700;cursor:pointer;transition:all .25s;text-transform:none;letter-spacing:.02em;}
+#username-screen .guest-btn:hover{background:rgba(0,245,255,.08);border-color:#00ff88;}
+#username-screen .guest-btn:active{transform:scale(.97);}
 
 /* Menu */
 #menu{gap:16px;text-align:center;padding:24px 16px;}
@@ -234,6 +237,9 @@ body:has(#game.screen.active) #menu{display:none!important;visibility:hidden!imp
 .rv-diff-medium{background:rgba(255,204,0,.12);color:#ffcc00;}
 .rv-diff-hard{background:rgba(255,68,102,.12);color:#ff4466;}
 .rv-card-body{padding:12px 14px;}
+.rv-result-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:.66em;font-weight:800;letter-spacing:.3px;text-transform:uppercase;margin-bottom:9px;}
+.rv-result-correct{background:rgba(0,255,136,.12);color:#00ff88;border:1px solid rgba(0,255,136,.25);}
+.rv-result-wrong{background:rgba(255,68,102,.12);color:#ff6688;border:1px solid rgba(255,68,102,.25);}
 .rv-answers{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
 .rv-ans-box{flex:1;min-width:100px;padding:8px 10px;border-radius:10px;text-align:center;}
 .rv-ans-box .rv-ans-lbl{font-size:.6em;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px;}
@@ -347,9 +353,10 @@ if(location.hash==='#play'){location.hash='';setTimeout(function(){window.__qbSt
     <rect x="55" y="94" width="10" height="16" rx="3" stroke="#00f5ff" fill="none"/>
   </svg>
   <h1>Q-Blocks</h1>
-  <p>Enter your name to start</p>
+  <p>Enter your name to save scores on the leaderboard — or play as a guest and add a name anytime from the menu.</p>
   <input type="text" id="nameInput" placeholder="Your Name" maxlength="16" autocomplete="off">
   <button type="button" id="startBtn" onclick="typeof window.__qbGoToMenu==='function'&&window.__qbGoToMenu()">START PLAYING</button>
+  <button type="button" id="guestStartBtn" class="guest-btn">Play as Guest — see feedback first</button>
 </div>
 
 <!-- Menu -->
@@ -541,6 +548,7 @@ if(location.hash==='#play'){location.hash='';setTimeout(function(){window.__qbSt
   <div class="rv-actions">
     <button class="back-btn" id="reviewBackBtn">Back to Results</button>
     <button class="retry-btn" id="reviewRetryBtn">Play Again</button>
+    <button type="button" class="continue-quiz-btn" id="reviewContinueLoopBtn" style="display:none;width:100%;max-width:480px;margin:8px auto 0">Continue to practice loop</button>
   </div>
 </div>
 
@@ -571,6 +579,11 @@ var practiceReturnUrl = (urlParams.get('returnUrl') || '').trim();
 try { if (practiceReturnUrl) practiceReturnUrl = decodeURIComponent(practiceReturnUrl); } catch(e) {}
 if (practiceReturnUrl && (!/^\//.test(practiceReturnUrl) || /^\/\//.test(practiceReturnUrl) || /^javascript:/i.test(practiceReturnUrl))) practiceReturnUrl = '';
 var fromLoop = urlParams.get('from') === 'loop';
+var embedMode = urlParams.get('embed') === '1';
+/** Practice loop iframe (from=loop and/or embed=1 from parent). */
+var loopEmbed = fromLoop || embedMode;
+/** When true, show "New High Score" only after Full Review (or after results if no questions). */
+var pendingHighScoreCelebration = false;
 
 const W=8, H=16;
 const PIECES=[
@@ -649,7 +662,7 @@ function compFromStd48(std){
 const scopedCompId=compParam||compFromStd(currentStdParam)||compFromStd48(currentStdParam)||(isMath712Loop||isCalculusLoop?currentStdParam:'');
 const scopedStdId=currentStdParam;
 const mappedCompFromStd=compFromStd(scopedStdId)||compFromStd48(scopedStdId)||'';
-const showScopeDebug=(urlParams.get('from')==='loop')||urlParams.get('scopeDebug')==='1';
+const showScopeDebug=(urlParams.get('from')==='loop')||urlParams.get('embed')==='1'||urlParams.get('scopeDebug')==='1';
 const scopeDebugText=(function(){
   if(scopedStdId&&mappedCompFromStd){
     return 'Map: STD '+String(scopedStdId).toUpperCase()+' → DOMAIN '+String(mappedCompFromStd).toUpperCase();
@@ -708,7 +721,31 @@ const QBLOCKS_STD_BANK={
       {q:'Rewrite 0·∞ before L\'Hospital as a quotient? (yes=1,no=0)',ans:1},
     ],
   },
-  c001:{easy:[{q:'Evaluate: |−8| + 1',ans:9}],medium:[{q:'Compute: 2⁴ ÷ 2²',ans:4}],hard:[{q:'Find gcd(84,30)',ans:6}]},
+  c001:{
+    easy:[
+      {q:'Evaluate: |−8| + 1',ans:9},
+      {q:'Evaluate: |−15| − 2',ans:13},
+      {q:'Evaluate: |7| + |−4|',ans:11},
+      {q:'Which is greater: |−6| or 5? (answer larger value)',ans:6},
+      {q:'Distance from −3 to 5 on the number line',ans:8},
+      {q:'Evaluate: −|−9| + 4',ans:-5}
+    ],
+    medium:[
+      {q:'Compute: 2⁴ ÷ 2²',ans:4},
+      {q:'Compute: 3⁵ ÷ 3²',ans:27},
+      {q:'Compute: 10⁶ ÷ 10³',ans:1000},
+      {q:'If a = −2 and b = 5, evaluate |a − b|',ans:7},
+      {q:'Rational or irrational? √2 (rational=0, irrational=1)',ans:1},
+      {q:'Approximate √50 to nearest whole',ans:7}
+    ],
+    hard:[
+      {q:'Find gcd(84,30)',ans:6},
+      {q:'Find lcm(12,18)',ans:36},
+      {q:'Find gcd(72,60)',ans:12},
+      {q:'Prime factorization exponent sum: 72 = 2^a × 3^b. What is a + b?',ans:5},
+      {q:'How many integers from 1 to 100 are divisible by both 4 and 6?',ans:8}
+    ]
+  },
   c002:{easy:[{q:'Evaluate i²',ans:-1}],medium:[{q:'Compute (2 + 3i)(2 − 3i)',ans:13}],hard:[{q:'Magnitude |3 + 4i|',ans:5}]},
   c003:{easy:[{q:'Compute lcm(6,8)',ans:24}],medium:[{q:'Compute gcd(48,18)',ans:6}],hard:[{q:'How many positive factors does 36 have?',ans:9}]},
   c004:{
@@ -1964,15 +2001,16 @@ function recycleScopeAndBuild(kind,id,diff,type,pool,scopeKey){
   return buildChoiceFromPool(pool,diff,type,scopeKey);
 }
 
-function buildStdQuestion(diff){
-  const bank=QBLOCKS_STD_BANK[scopedStdId];
+function buildStdQuestion(diff, stdOverride){
+  const sid=stdOverride!=null&&stdOverride!==''?String(stdOverride).toLowerCase():scopedStdId;
+  const bank=QBLOCKS_STD_BANK[sid];
   const pool=poolWithFallback(bank,diff);
-  const scopeKey=getScopeKey('std',scopedStdId,diff);
+  const scopeKey=getScopeKey('std',sid,diff);
   const fromPool=buildChoiceFromPool(pool,diff,'standard',scopeKey);
   if(fromPool)return fromPool;
-  const generated=buildGeneratedScopedQuestion('standard',scopedStdId,diff,'standard',scopeKey);
+  const generated=buildGeneratedScopedQuestion('standard',sid,diff,'standard',scopeKey);
   if(generated)return generated;
-  if(pool.length)return recycleScopeAndBuild('standard',scopedStdId,diff,'standard',pool,scopeKey);
+  if(pool.length)return recycleScopeAndBuild('standard',sid,diff,'standard',pool,scopeKey);
   return null;
 }
 
@@ -1988,15 +2026,16 @@ function buildCompQuestion(diff){
   return null;
 }
 
-function buildStdQuestion48(diff){
-  const bank=QBLOCKS_STD_BANK_48[scopedStdId];
+function buildStdQuestion48(diff, stdOverride){
+  const sid=stdOverride!=null&&stdOverride!==''?String(stdOverride).toLowerCase():scopedStdId;
+  const bank=QBLOCKS_STD_BANK_48[sid];
   const pool=poolWithFallback(bank,diff);
-  const scopeKey=getScopeKey('std48',scopedStdId,diff);
+  const scopeKey=getScopeKey('std48',sid,diff);
   const fromPool=buildChoiceFromPool(pool,diff,'standard',scopeKey);
   if(fromPool)return fromPool;
-  const generated=buildGeneratedScopedQuestion('standard',scopedStdId,diff,'standard',scopeKey);
+  const generated=buildGeneratedScopedQuestion('standard',sid,diff,'standard',scopeKey);
   if(generated)return generated;
-  if(pool.length)return recycleScopeAndBuild('standard',scopedStdId,diff,'standard',pool,scopeKey);
+  if(pool.length)return recycleScopeAndBuild('standard',sid,diff,'standard',pool,scopeKey);
   return null;
 }
 
@@ -2135,6 +2174,16 @@ function show(id){
     if(id==='game'){var m=$('menu');if(m){m.style.display='none';m.style.visibility='hidden';}}
     else if(id==='menu'){var m=$('menu');if(m){m.style.display='flex';m.style.visibility='visible';}}
   }
+}
+/** Ask parent practice-loop iframe to grow so game over / Full Review is not clipped. */
+function notifyParentQblocksLayout(){
+  try{
+    if(!window.parent||window.parent===window)return;
+    var root=document.documentElement,body=document.body;
+    var h=Math.max(root&&root.scrollHeight||0,body&&body.scrollHeight||0,620);
+    h=Math.min(960,Math.max(520,Math.round(h)));
+    window.parent.postMessage({type:'qblocksLayout',minHeight:h},'*');
+  }catch(e){}
 }
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
 
@@ -2449,6 +2498,28 @@ function mkQ(){
       return;
     }
   }
+  if(isCalculusLoop&&!scopedStdId){
+    const tileCalc=String(compParam||'').toLowerCase();
+    if(/^calc_c0\d{2}$/.test(tileCalc)&&QBLOCKS_STD_BANK[tileCalc]){
+      diff=level<=3?'easy':level<=6?'medium':'hard';
+      const fromTile=buildStdQuestion(diff,tileCalc);
+      if(fromTile){
+        paintQuestionUI(ensureQuestionPayload(fromTile,'Solve to drop: choose the correct answer.',diff,'standard'),false);
+        return;
+      }
+    }
+  }
+  if(isMath48Loop&&!scopedStdId){
+    const tile48=String(compParam||'').toLowerCase();
+    if(/^m48_c0(0[1-9]|1[0-8])$/.test(tile48)&&QBLOCKS_STD_BANK_48[tile48]){
+      diff=level<=3?'easy':level<=6?'medium':'hard';
+      const fromTile=buildStdQuestion48(diff,tile48);
+      if(fromTile){
+        paintQuestionUI(ensureQuestionPayload(fromTile,'Solve to drop: choose the correct answer.',diff,'standard'),false);
+        return;
+      }
+    }
+  }
   if(useMath48StdBank){
     diff=level<=3?'easy':level<=6?'medium':'hard';
     const std48=buildStdQuestion48(diff);
@@ -2463,6 +2534,18 @@ function mkQ(){
     if(comp48){
       paintQuestionUI(ensureQuestionPayload(comp48,'Solve to drop: choose the correct answer.',diff,'competency'),false);
       return;
+    }
+  }
+  // Practice loop often passes only comp=c### (tile id). When that matches a Math 7–12 standard bank, use it as the standard scope.
+  if(isMath712Loop&&!scopedStdId){
+    const tileStd=String(compParam||'').toLowerCase();
+    if(/^c\d{3}$/.test(tileStd)&&QBLOCKS_STD_BANK[tileStd]){
+      diff=level<=3?'easy':level<=6?'medium':'hard';
+      const fromTile=buildStdQuestion(diff,tileStd);
+      if(fromTile){
+        paintQuestionUI(ensureQuestionPayload(fromTile,'Solve to drop: choose the correct answer.',diff,'standard'),false);
+        return;
+      }
     }
   }
   if(useMath712StdBank){
@@ -2579,12 +2662,32 @@ function checkAnswer(btn){
     playSfx('wrong');
     if(piece&&!hit(px,py+1,piece)){py++;renderBoard();}
     const mb=$('mathBonus');
-    mb.textContent='Wrong! Try again...';
+    var givenNum=Number(btn.textContent);
+    if(!Number.isFinite(givenNum))givenNum=NaN;
+    var hintText='Not quite. The correct answer is '+currentQuestion.ans+'.';
+    try{
+      var ge=generateExplanation({
+        q:qStrAll,fullQ:currentQuestion.q||qStrAll,
+        correct:currentQuestion.ans,given:givenNum,
+        a:currentQuestion.a,b:currentQuestion.b,op:currentQuestion.op,
+        type:currentQuestion.type||'arithmetic',wasCorrect:false,skipped:false
+      });
+      if(ge&&ge.takeaway)hintText='Not quite — '+ge.takeaway;
+      else if(ge&&ge.steps&&ge.steps.length){
+        var plain=String(ge.steps[0]).replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim();
+        if(plain.length>0&&plain.length<240)hintText='Not quite. '+plain;
+      }
+    }catch(e){}
+    var qt=$('qText');
+    if(qt){qt.textContent=hintText;qt.style.fontWeight='700';}
+    mb.textContent='Full step-by-step for every problem is in Review after the game.';
     mb.classList.add('show');
+    var delayMs=Math.min(4800,Math.max(2200,900+Math.min(hintText.length*28,2200)));
     setTimeout(()=>{
       mb.classList.remove('show');
-      if(!over) mkQ();
-    },600);
+      if(qt){qt.style.fontWeight='';}
+      if(!over)mkQ();
+    },delayMs);
   }
 }
 
@@ -2636,14 +2739,21 @@ function end(){
     }
   }catch(e){console.log('postMessage error:',e);}
 
-  if(score>best){
-    best=score;savePlayerData();showHighScoreCelebration();
-  }else{
-    showGameOver();
+  var beatPersonalBest=score>best;
+  if(beatPersonalBest){
+    best=score;
+    savePlayerData();
   }
+  // Loop / practice: no celebration popup; still show results + review.
+  // Standalone: defer "New High Score!" until after Full Review (or after results if no questions)
+  // so learners see detailed solutions and help before any celebration / name prompts.
+  var skipCelebration=loopEmbed||practiceReturnUrl;
+  pendingHighScoreCelebration=beatPersonalBest&&!skipCelebration;
+  showGameOver();
 }
 
 function showHighScoreCelebration(){
+  pendingHighScoreCelebration=false;
   $('hsScore').textContent=score;
   $('highscore-popup').classList.add('active');
   var hsBtn = $('hsDone');
@@ -2772,14 +2882,26 @@ function showGameOver(){
   $('goDetailsToggle').classList.remove('open');
   $('goDetailsBody').classList.remove('open');
 
-  $('reviewBtn').style.display=allAnswers.length>0?'block':'none';
-  var inIframe = window.parent && window.parent !== window;
-  var showContinue = !inIframe && !!(practiceReturnUrl || fromLoop);
+  var hasQuestionHistory=allAnswers.length>0;
+  $('reviewBtn').style.display=hasQuestionHistory?'block':'none';
+  var showContinue = !!(practiceReturnUrl || loopEmbed);
   var wrap = document.getElementById('continueToQuizWrap');
   if (wrap) {
     wrap.style.display = showContinue ? 'block' : 'none';
   }
   show('gameover');
+  notifyParentQblocksLayout();
+  // Always surface the full tutoring review when questions were answered (before any high-score popup).
+  // Students can still go back to summary via "Back to Results"; then we show celebration if pending.
+  if(hasQuestionHistory){
+    setTimeout(function(){
+      if(over)showReviewScreen();
+    },120);
+  }else if(pendingHighScoreCelebration){
+    setTimeout(function(){
+      if(over&&pendingHighScoreCelebration)showHighScoreCelebration();
+    },400);
+  }
 }
 
 /* ─── Detailed step-by-step solution generator for standard / competency questions ─── */
@@ -3669,6 +3791,7 @@ function showReviewScreen(){
     html+='<span class="rv-diff '+diffClass+'">'+diffLabel+'</span>';
     html+='</div>';
     html+='<div class="rv-card-body">';
+    html+='<div class="rv-result-tag '+(isRight?'rv-result-correct':'rv-result-wrong')+'">'+(isRight?'Correct — strong reasoning':'Needs Work — review the steps below')+'</div>';
     if(isRight){
       html+='<div class="rv-answers">';
       html+='<div class="rv-ans-box rv-ans-right"><div class="rv-ans-lbl">Your Answer</div><div class="rv-ans-val">'+w.correct+' ✓</div></div>';
@@ -3696,7 +3819,10 @@ function showReviewScreen(){
     html+='</div>';
     cards.appendChild(createElementFromHTML(html));
   });
+  var rcl=document.getElementById('reviewContinueLoopBtn');
+  if(rcl)rcl.style.display=(practiceReturnUrl||loopEmbed)?'block':'none';
   show('reviewScreen');
+  notifyParentQblocksLayout();
 }
 
 function createElementFromHTML(htmlString){
@@ -3771,8 +3897,10 @@ function init(){
   var params = new URLSearchParams(qs);
   var inIframe = window.parent && window.parent !== window;
   var fromLoopParam = params.get('from') === 'loop';
+  var embedLoopParam = params.get('embed') === '1';
+  var practiceLoopEmbedParam = fromLoopParam || embedLoopParam;
   var hasReturnUrl = (params.get('returnUrl') || '').trim().length > 0;
-  var skipNameScreen = inIframe || fromLoopParam || hasReturnUrl;
+  var skipNameScreen = inIframe || fromLoopParam || hasReturnUrl || (embedLoopParam && inIframe);
 
   try { loadPlayerData(); } catch(e) {}
   try { loadCloudLeaderboard(); } catch(e) {}
@@ -3793,6 +3921,21 @@ function init(){
   if (startBtn) {
     startBtn.addEventListener('click', function(e){ e.preventDefault(); goToMenuFromName(); });
     startBtn.addEventListener('touchstart', function(e){ e.preventDefault(); goToMenuFromName(); }, {passive: false});
+  }
+  var guestStartBtn = $('guestStartBtn');
+  if (guestStartBtn) {
+    guestStartBtn.addEventListener('click', function(e){
+      e.preventDefault();
+      currentPlayer = 'Guest';
+      savePlayerData();
+      var us = document.getElementById('username-screen');
+      var me = document.getElementById('menu');
+      if (us) { us.classList.remove('active'); us.style.display = 'none'; }
+      if (me) { me.classList.add('active'); me.style.display = 'flex'; me.style.flexDirection = 'column'; }
+      show('menu');
+      showMenu();
+    });
+    guestStartBtn.addEventListener('touchstart', function(e){ e.preventDefault(); guestStartBtn.click(); }, {passive: false});
   }
   var nameInput = $('nameInput');
   if (nameInput) nameInput.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();goToMenuFromName();}});
@@ -3816,7 +3959,7 @@ function init(){
   }
 
   // Auto-start when from practice loop — avoids PLAY button issues when running standalone
-  if (fromLoopParam) {
+  if (fromLoopParam || (embedLoopParam && hasReturnUrl)) {
     setTimeout(function(){
       try {
         var m = document.getElementById('menu');
@@ -3953,7 +4096,7 @@ function init(){
       window.location.href = '/practice-loop';
     }
   }
-  if ((practiceReturnUrl || fromLoopParam) && loopContinueFloat && loopContinueBtn) {
+  if ((practiceReturnUrl || practiceLoopEmbedParam) && loopContinueFloat && loopContinueBtn) {
     if (!inIframe) {
       loopContinueFloat.style.display = 'flex';
       setTimeout(sizeBoard, 50);
@@ -3961,7 +4104,7 @@ function init(){
     loopContinueBtn.addEventListener('click', navigateBack);
     loopContinueBtn.addEventListener('touchstart', function(e){ e.preventDefault(); loopContinueBtn.click(); }, {passive: false});
   }
-  if (skipGameBtn && (practiceReturnUrl || fromLoopParam)) {
+  if (skipGameBtn && (practiceReturnUrl || practiceLoopEmbedParam)) {
     skipGameBtn.addEventListener('click', navigateBack);
     skipGameBtn.addEventListener('touchstart', function(e){ e.preventDefault(); skipGameBtn.click(); }, {passive: false});
   }
@@ -3983,32 +4126,33 @@ function init(){
     paused=false;$('pause').classList.remove('active');if(!over)end();
   });
 
-  $('retryBtn').addEventListener('click',startGame);
-  $('goBackBtn').addEventListener('click',showMenu);
+  $('retryBtn').addEventListener('click',function(){pendingHighScoreCelebration=false;startGame();});
+  $('goBackBtn').addEventListener('click',function(){pendingHighScoreCelebration=false;showMenu();});
   $('reviewBtn').addEventListener('click',showReviewScreen);
   $('goDetailsToggle').addEventListener('click',function(){
     this.classList.toggle('open');
     $('goDetailsBody').classList.toggle('open');
   });
-  $('reviewBackBtn').addEventListener('click',()=>show('gameover'));
-  $('reviewRetryBtn').addEventListener('click',startGame);
+  $('reviewBackBtn').addEventListener('click',function(){
+    show('gameover');
+    if(pendingHighScoreCelebration)showHighScoreCelebration();
+  });
+  $('reviewRetryBtn').addEventListener('click',function(){pendingHighScoreCelebration=false;startGame();});
   var continueBtn = document.getElementById('continueToQuizBtn');
   if (continueBtn) {
+    if (practiceReturnUrl || loopEmbed) continueBtn.textContent = 'Continue to practice loop';
     continueBtn.addEventListener('click', function(){
       navigateBack();
     });
   }
+  var reviewContinueLoopBtn = document.getElementById('reviewContinueLoopBtn');
+  if (reviewContinueLoopBtn) {
+    reviewContinueLoopBtn.addEventListener('click', navigateBack);
+    reviewContinueLoopBtn.addEventListener('touchstart', function(e){ e.preventDefault(); reviewContinueLoopBtn.click(); }, {passive: false});
+  }
   $('hsDone').addEventListener('click',function(){
     $('highscore-popup').classList.remove('active');
-    if (inIframe) {
-      showGameOver();
-      return;
-    }
-    if (practiceReturnUrl || fromLoop) {
-      navigateBack();
-      return;
-    }
-    showGameOver();
+    // Results screen is already visible behind the popup (Full Review may have run first).
   });
 
   // ═══════════════════════════════════════════════════════

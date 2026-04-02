@@ -55,10 +55,9 @@ export default function useGameReturn() {
   };
 
   const returnUrl = useMemo(() => {
-    if (isEmbedded) return '';
     const candidate = fromParams || fromStorage || buildFallback();
     return normalizeLoopReturnUrl(candidate);
-  }, [isEmbedded, fromParams, fromStorage, teksParam, gradeParam, labelParam, compParam, stdParam, examParam, explicitReturnPhase]);
+  }, [fromParams, fromStorage, teksParam, gradeParam, labelParam, compParam, stdParam, examParam, explicitReturnPhase]);
 
   useEffect(() => {
     if (fromParams) {
@@ -67,6 +66,13 @@ export default function useGameReturn() {
   }, [fromParams]);
 
   const goBack = () => {
+    if (typeof window !== 'undefined' && isEmbedded && window.parent && window.parent !== window) {
+      try {
+        const url = returnUrl || '/practice-loop';
+        window.parent.postMessage({ type: 'loopGameNavigate', url }, '*');
+      } catch (_) {}
+      return;
+    }
     if (returnUrl) navigate(returnUrl);
     else navigate('/games');
   };

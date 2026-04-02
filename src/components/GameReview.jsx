@@ -24,6 +24,7 @@ function reviewMathHtml(text) {
  *   backLabel   – label for back button (default "Back")
  *   continueUrl – if set, show "Next" button that navigates here (e.g. back to practice loop)
  *   continueLabel – label for Continue button (default "Continue")
+ *   onContinue – if set (e.g. practice-loop iframe handoff), called instead of react-router navigate
  */
 const GameReview = ({
   questions = [],
@@ -38,6 +39,7 @@ const GameReview = ({
   backLabel = 'Back',
   continueUrl,
   continueLabel = 'Continue',
+  onContinue,
 }) => {
   const [filter, setFilter] = useState('all'); // all | wrong | correct
   const navigate = useNavigate();
@@ -142,13 +144,17 @@ const GameReview = ({
         {resolvedGameTitle && (
           <p style={{ margin: '2px 0 0', color: '#94a3b8', fontSize: 12 }}>{resolvedGameTitle}</p>
         )}
-        {continueUrl && (
+        {(continueUrl || onContinue) && (
           <div style={{ marginTop: 16 }}>
-            <button type="button" onClick={() => navigate(continueUrl)} style={{
-              width: '100%', padding: '14px 24px', fontSize: 16, fontWeight: 700, cursor: 'pointer',
-              background: 'linear-gradient(135deg, #059669, #047857)', color: '#fff',
-              border: '2px solid #34d399', borderRadius: 12, boxShadow: '0 0 14px rgba(5,150,105,0.35)',
-            }}>
+            <button
+              type="button"
+              onClick={() => (onContinue ? onContinue() : navigate(continueUrl))}
+              style={{
+                width: '100%', padding: '14px 24px', fontSize: 16, fontWeight: 700, cursor: 'pointer',
+                background: 'linear-gradient(135deg, #059669, #047857)', color: '#fff',
+                border: '2px solid #34d399', borderRadius: 12, boxShadow: '0 0 14px rgba(5,150,105,0.35)',
+              }}
+            >
               {continueLabel}
             </button>
           </div>

@@ -1056,8 +1056,15 @@ function ParallelPerpLab({ onComplete, continueLabel, badgeLabel, embedded }) {
    ═══════════════════════════════════════════════════════════════════════════ */
 const MODES = ['transform-lab', 'angle-explorer', 'area-builder', 'parallel-perp-lab'];
 
-export default function GeoExplorer({ activityIndex = 0, onComplete, continueLabel = 'Continue', badgeLabel = 'Interactive activity', embedded = false }) {
-  const mode = MODES[activityIndex % MODES.length];
+export default function GeoExplorer({
+  activityIndex = 0,
+  onComplete,
+  continueLabel = 'Continue',
+  badgeLabel = 'Interactive activity',
+  embedded = false,
+  modeOverride,
+}) {
+  const mode = MODES.includes(modeOverride) ? modeOverride : MODES[activityIndex % MODES.length];
   if (mode === 'transform-lab') return <TransformLab onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'angle-explorer') return <AngleExplorer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'parallel-perp-lab') return <ParallelPerpLab onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;

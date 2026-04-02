@@ -630,8 +630,15 @@ function AssessmentMatcher({ onComplete, continueLabel, badgeLabel, embedded }) 
    ═══════════════════════════════════════════════════════════════════════════ */
 const MODES = ['lesson-sequencer', 'misconception-detector', 'assessment-matcher'];
 
-export default function PedagogyExplorer({ activityIndex = 0, onComplete, continueLabel = 'Continue', badgeLabel = 'Interactive activity', embedded = false }) {
-  const mode = MODES[activityIndex % MODES.length];
+export default function PedagogyExplorer({
+  activityIndex = 0,
+  onComplete,
+  continueLabel = 'Continue',
+  badgeLabel = 'Interactive activity',
+  embedded = false,
+  modeOverride,
+}) {
+  const mode = MODES.includes(modeOverride) ? modeOverride : MODES[activityIndex % MODES.length];
   if (mode === 'lesson-sequencer') return <LessonSequencer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'misconception-detector') return <MisconceptionDetector onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   return <AssessmentMatcher onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;

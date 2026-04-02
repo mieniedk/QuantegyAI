@@ -24,6 +24,9 @@ import {
   OPTION_BASE, OPTION_SELECTED, OPTION_DISABLED,
 } from '../utils/loopStyles';
 
+/** Domain II standards where slope / intercept micro-activities apply */
+const LINEAR_SLOPE_STANDARDS = new Set(['c005', 'c006']);
+
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -257,17 +260,21 @@ export default function CompetencyActivity({
 
   /* ── Math: topic-specific interactive activities ── */
   if (subject === 'math' && mode) {
-    if (mode === 'intercept') return <SlopeExplorer mode="intercept" onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
-    if (mode === 'both') return <SlopeExplorer mode="both" onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
-    if (mode === 'y-intercept-read') return <YInterceptExplorer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
-    if (mode === 'slope') return <SlopeExplorer mode="slope" onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+    const slopeFamily = ['slope', 'intercept', 'both', 'y-intercept-read'];
+    const allowSlopeFamily = comp === 'comp002' && (!currentStd || LINEAR_SLOPE_STANDARDS.has(currentStd));
+    if (slopeFamily.includes(mode) && allowSlopeFamily) {
+      if (mode === 'intercept') return <SlopeExplorer mode="intercept" onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+      if (mode === 'both') return <SlopeExplorer mode="both" onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+      if (mode === 'y-intercept-read') return <YInterceptExplorer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+      if (mode === 'slope') return <SlopeExplorer mode="slope" onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+    }
     if (comp === 'comp002' && ['sequence-patterns', 'function-transform', 'quadratic', 'trig-circle'].includes(mode)) {
       return <AlgebraExplorer mode={mode} activityIndex={activityIndex} onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
     }
   }
   if (subject === 'math' && comp === 'comp001') {
     const numberModeSet = currentStd === 'c001'
-      ? ['number-line', 'prime-blast', 'factor-lab']
+      ? ['number-line']
       : currentStd === 'c002'
         ? ['complex-plane']
         : currentStd === 'c003'
@@ -285,19 +292,95 @@ export default function CompetencyActivity({
     );
   }
   if (subject === 'math' && comp === 'comp002' && !mode) {
+    const stdAlgebraDefault = {
+      c004: 'sequence-patterns',
+      c005: 'function-transform',
+      c006: 'quadratic',
+      c007: 'quadratic',
+      c008: 'function-transform',
+      c009: 'trig-circle',
+      c010: 'quadratic',
+    }[currentStd];
+    if (stdAlgebraDefault) {
+      return (
+        <AlgebraExplorer
+          mode={stdAlgebraDefault}
+          activityIndex={activityIndex}
+          onComplete={onComplete}
+          continueLabel={continueLabel}
+          badgeLabel={badgeLabel}
+          embedded={embedded}
+        />
+      );
+    }
     return <AlgebraExplorer activityIndex={activityIndex} onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   }
   if (subject === 'math' && comp === 'comp003') {
-    return <GeoExplorer activityIndex={activityIndex} onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+    const geoModeByStd = {
+      c011: 'area-builder',
+      c012: 'angle-explorer',
+      c013: 'parallel-perp-lab',
+      c014: 'transform-lab',
+    };
+    return (
+      <GeoExplorer
+        activityIndex={activityIndex}
+        modeOverride={geoModeByStd[currentStd]}
+        onComplete={onComplete}
+        continueLabel={continueLabel}
+        badgeLabel={badgeLabel}
+        embedded={embedded}
+      />
+    );
   }
   if (subject === 'math' && comp === 'comp004') {
-    return <StatsExplorer activityIndex={activityIndex} onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+    const statsModeByStd = {
+      c015: 'box-plot',
+      c016: 'prob-sim',
+      c017: 'bell-curve',
+    };
+    return (
+      <StatsExplorer
+        activityIndex={activityIndex}
+        modeOverride={statsModeByStd[currentStd]}
+        onComplete={onComplete}
+        continueLabel={continueLabel}
+        badgeLabel={badgeLabel}
+        embedded={embedded}
+      />
+    );
   }
   if (subject === 'math' && comp === 'comp005') {
-    return <ReasoningExplorer activityIndex={activityIndex} onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+    const reasoningModeByStd = {
+      c018: 'proof-sorter',
+      c019: 'representation-match',
+    };
+    return (
+      <ReasoningExplorer
+        activityIndex={activityIndex}
+        modeOverride={reasoningModeByStd[currentStd]}
+        onComplete={onComplete}
+        continueLabel={continueLabel}
+        badgeLabel={badgeLabel}
+        embedded={embedded}
+      />
+    );
   }
   if (subject === 'math' && comp === 'comp006') {
-    return <PedagogyExplorer activityIndex={activityIndex} onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+    const pedagogyModeByStd = {
+      c020: 'lesson-sequencer',
+      c021: 'assessment-matcher',
+    };
+    return (
+      <PedagogyExplorer
+        activityIndex={activityIndex}
+        modeOverride={pedagogyModeByStd[currentStd]}
+        onComplete={onComplete}
+        continueLabel={continueLabel}
+        badgeLabel={badgeLabel}
+        embedded={embedded}
+      />
+    );
   }
   if (subject === 'math' && examId === 'calculus') {
     return (

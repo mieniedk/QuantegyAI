@@ -8,6 +8,7 @@ import qbotImg from '../assets/qbot.svg';
 import { fireConfetti } from '../utils/confetti';
 import { motionTransition } from '../utils/motion';
 import { trackEvent } from '../utils/telemetry';
+import { explainMathLoopExpression } from '../utils/loopGameTutoring';
 
 /* ═══════════════════════════════════════════════════════════
    MATH BINGO — 5×5 bingo card
@@ -739,6 +740,13 @@ const MathBingo = () => {
     trackEvent('math_bingo_start', { teksFilter: teksFilter || 'all' });
   }, [teksFilter, compFilter, currentStd, strictScope]);
 
+  // Move directly into detailed review at game end.
+  useEffect(() => {
+    if (!gameOver || showReview || answeredQuestions.length === 0) return;
+    const timer = setTimeout(() => setShowReview(true), 120);
+    return () => clearTimeout(timer);
+  }, [gameOver, showReview, answeredQuestions.length]);
+
   const nextCall = useCallback(() => {
     if (gameOver) return;
     const nextIdx = callIndex + 1;
@@ -785,6 +793,7 @@ const MathBingo = () => {
         studentAnswer: String(currentCall.ans),
         correct: true,
         teks: currentCall.teks,
+        explanation: explainMathLoopExpression(String(currentCall.expr), currentCall.ans),
       }]);
 
       // Check win
@@ -815,8 +824,9 @@ const MathBingo = () => {
         }
       }
     } else {
-      // Wrong cell
+      // Wrong cell — show correct value immediately (tutoring); full steps in post-game review.
       setWrongPick(idx);
+      setShowAnswer(true);
       setMissedCount(prev => prev + 1);
       setTimeout(() => setWrongPick(null), 600);
 
@@ -826,6 +836,8 @@ const MathBingo = () => {
         studentAnswer: String(cellValue),
         correct: false,
         teks: currentCall.teks,
+        explanation: explainMathLoopExpression(String(currentCall.expr), currentCall.ans),
+        misconception: `You marked ${cellValue}, but this call matches ${currentCall.ans}. Find ${currentCall.ans} on your card, then use Next call when ready.`,
       }]);
     }
   }, [gameOver, currentCall, marked, card, score, answeredQuestions, sid, aid, cid, teksFilter]);
@@ -863,21 +875,29 @@ const MathBingo = () => {
           No competency-aligned Bingo deck is available for this loop step yet.
         </div>
         <div style={{ marginTop: 12 }}>
-          {returnUrl ? <LoopContinueButton onClick={goBack} /> : !isEmbedded ? <Link to="/games">Back to Games</Link> : null}
+          {returnUrl && (!isEmbedded ? <LoopContinueButton onClick={goBack} /> : (
+            <button type="button" onClick={goBack} style={{ ...btnStyle('#059669'), width: '100%' }}>Continue to practice loop</button>
+          ))}
+          {!returnUrl && !isEmbedded ? <Link to="/games">Back to Games</Link> : null}
         </div>
       </div>
     );
   }
 
   if (showReview) {
+    const questionScore = answeredQuestions.filter((q) => q.correct).length;
+    const questionTotal = answeredQuestions.length;
     return (
       <div style={{ maxWidth: 700, margin: '0 auto', padding: 20 }}>
         <GameReview
           questions={answeredQuestions}
-          score={score}
-          total={25 * 100 + 500}
+          score={questionScore}
+          total={questionTotal}
           gameName="Math Bingo"
           onClose={() => setShowReview(false)}
+          continueUrl={returnUrl || undefined}
+          continueLabel={isEmbedded ? 'Continue to practice loop' : 'Continue'}
+          onContinue={returnUrl ? goBack : undefined}
         />
         <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 16 }}>
           <button onClick={resetGame} style={btnStyle('#22c55e')}>Play Again</button>
@@ -901,7 +921,7 @@ const MathBingo = () => {
         background: 'rgba(255,255,255,0.05)',
         borderBottom: '1px solid rgba(255,255,255,0.1)',
       }}>
-        {returnUrl ? (
+        {returnUrl && (!isEmbedded || gameOver) ? (
           <button type="button" onClick={goBack} style={{ background: 'none', border: 'none', color: '#34d399', fontWeight: 700, fontSize: 14, cursor: 'pointer', padding: 0 }}>← Continue</button>
         ) : !isEmbedded ? (
           <Link to="/games" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>← Games</Link>
@@ -1197,7 +1217,7 @@ const MathBingo = () => {
           * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
         }
       `}</style>
-      {returnUrl && <LoopContinueButton onClick={goBack} />}
+      {returnUrl && !isEmbedded && <LoopContinueButton onClick={goBack} />}
     </div>
   );
 };

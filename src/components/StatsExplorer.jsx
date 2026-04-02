@@ -1381,8 +1381,15 @@ function BellCurveExplorer({ onComplete, continueLabel, badgeLabel, embedded }) 
    ═══════════════════════════════════════════════════════════════════════════ */
 const MODES = ['mean-builder', 'median-sorter', 'box-plot', 'bell-curve', 'line-fit', 'prob-sim'];
 
-export default function StatsExplorer({ activityIndex = 0, onComplete, continueLabel = 'Continue', badgeLabel = 'Interactive activity', embedded = false }) {
-  const mode = MODES[activityIndex % MODES.length];
+export default function StatsExplorer({
+  activityIndex = 0,
+  onComplete,
+  continueLabel = 'Continue',
+  badgeLabel = 'Interactive activity',
+  embedded = false,
+  modeOverride,
+}) {
+  const mode = MODES.includes(modeOverride) ? modeOverride : MODES[activityIndex % MODES.length];
   if (mode === 'mean-builder') return <MeanBuilder onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'median-sorter') return <MedianSorter onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'box-plot') return <BoxPlotBuilder onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
