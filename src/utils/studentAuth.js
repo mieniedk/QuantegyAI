@@ -289,6 +289,13 @@ export async function getStudentSubscription() {
 }
 
 export async function hasExamAccess(examId) {
+  try {
+    const examKey = String(examId || '').trim();
+    const examCoupon = examKey ? localStorage.getItem(`coupon-redeemed:${examKey}`) : null;
+    const globalMathCoupon = localStorage.getItem('coupon-redeemed:all-math');
+    if (examCoupon || globalMathCoupon) return true;
+  } catch { /* best-effort */ }
+
   const token = localStorage.getItem(TOKEN_KEY);
   const decoded = token ? decodeJwt(token) : null;
   if (decoded?.local) return false;

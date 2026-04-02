@@ -2812,7 +2812,13 @@ export default function PracticeLoop() {
   }, [phase, quizResetMap]);
 
   const fourGames = useMemo(() => {
-    const isOk = (g) => g && (!Array.isArray(g.grades) || g.grades.includes(grade));
+    // Calculus loops should always use the standardized game lineup, even if
+    // the legacy catalog grade tags do not yet include "calculus".
+    const isOk = (g) => g && (
+      loopExamId === 'calculus'
+      || !Array.isArray(g.grades)
+      || g.grades.includes(grade)
+    );
     const fixed = STANDARD_LOOP_GAME_IDS
       .map((id) => GAMES_CATALOG.find((g) => g.id === id && isOk(g)))
       .filter(Boolean);
@@ -2823,7 +2829,7 @@ export default function PracticeLoop() {
       return padded;
     }
     return [COMPETENCY_EXPLORER];
-  }, [grade]);
+  }, [grade, loopExamId]);
 
   const activityModes = useMemo(() => {
     if (subject !== 'math') return [];

@@ -25,9 +25,46 @@ function reviewMathHtml(text) {
  *   continueUrl – if set, show "Next" button that navigates here (e.g. back to practice loop)
  *   continueLabel – label for Continue button (default "Continue")
  */
-const GameReview = ({ questions = [], score, total, time, gameTitle, onPlayAgain, onBack, backLabel = 'Back', continueUrl, continueLabel = 'Continue' }) => {
+const GameReview = ({
+  questions = [],
+  score,
+  total,
+  time,
+  gameTitle,
+  gameName,
+  onPlayAgain,
+  onBack,
+  onClose,
+  backLabel = 'Back',
+  continueUrl,
+  continueLabel = 'Continue',
+}) => {
   const [filter, setFilter] = useState('all'); // all | wrong | correct
   const navigate = useNavigate();
+  const resolvedGameTitle = gameTitle || gameName || '';
+  const resolvedOnBack = onBack || onClose;
+
+  const normalizedQuestions = questions.map((q) => {
+    const isCorrect = q?.isCorrect ?? q?.correct ?? false;
+    const question = q?.question ?? q?.prompt ?? '';
+    const userAnswer = q?.userAnswer ?? q?.studentAnswer ?? q?.selectedAnswer ?? '';
+    const correctAnswer = q?.correctAnswer ?? q?.answer ?? '';
+    const explanation = q?.explanation || (isCorrect
+      ? 'Great work. You matched the expected result for this item.'
+      : 'Compare your response to the correct answer and identify where the setup or arithmetic changed the outcome.');
+    const misconception = q?.misconception || (!isCorrect
+      ? 'Re-read the prompt, identify the operation or rule first, then recompute one step at a time.'
+      : '');
+    return {
+      ...q,
+      isCorrect,
+      question,
+      userAnswer,
+      correctAnswer,
+      explanation,
+      misconception,
+    };
+  });
 
   const pct = total > 0 ? Math.round((score / total) * 100) : 0;
   const emoji = pct >= 90 ? '🌟' : pct >= 70 ? '🎉' : pct >= 50 ? '👍' : '💪';
@@ -39,14 +76,14 @@ const GameReview = ({ questions = [], score, total, time, gameTitle, onPlayAgain
       : 'linear-gradient(135deg, #fef2f2, #fee2e2)';
   const borderColor = pct >= 70 ? '#86efac' : pct >= 50 ? '#fcd34d' : '#fca5a5';
 
-  const wrongCount = questions.filter((q) => !q.isCorrect).length;
-  const correctCount = questions.filter((q) => q.isCorrect).length;
+  const wrongCount = normalizedQuestions.filter((q) => !q.isCorrect).length;
+  const correctCount = normalizedQuestions.filter((q) => q.isCorrect).length;
 
   const filtered = filter === 'all'
-    ? questions
+    ? normalizedQuestions
     : filter === 'wrong'
-      ? questions.filter((q) => !q.isCorrect)
-      : questions.filter((q) => q.isCorrect);
+      ? normalizedQuestions.filter((q) => !q.isCorrect)
+      : normalizedQuestions.filter((q) => q.isCorrect);
 
   const formatTime = (s) => {
     if (!s && s !== 0) return null;
@@ -77,13 +114,33 @@ const GameReview = ({ questions = [], score, total, time, gameTitle, onPlayAgain
         }}>
           {pct}%
         </div>
+        <div style={{
+          margin: '8px auto 0',
+          maxWidth: 420,
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: 8,
+        }}>
+          <div style={{ background: '#ffffffaa', border: '1px solid #e2e8f0', borderRadius: 8, padding: '6px 8px' }}>
+            <div style={{ fontSize: 10, color: '#64748b', fontWeight: 700 }}>Attempted</div>
+            <div style={{ fontSize: 16, color: '#0f172a', fontWeight: 800 }}>{normalizedQuestions.length}</div>
+          </div>
+          <div style={{ background: '#ffffffaa', border: '1px solid #bbf7d0', borderRadius: 8, padding: '6px 8px' }}>
+            <div style={{ fontSize: 10, color: '#166534', fontWeight: 700 }}>Correct</div>
+            <div style={{ fontSize: 16, color: '#166534', fontWeight: 800 }}>{correctCount}</div>
+          </div>
+          <div style={{ background: '#ffffffaa', border: '1px solid #fecaca', borderRadius: 8, padding: '6px 8px' }}>
+            <div style={{ fontSize: 10, color: '#991b1b', fontWeight: 700 }}>Needs Work</div>
+            <div style={{ fontSize: 16, color: '#991b1b', fontWeight: 800 }}>{wrongCount}</div>
+          </div>
+        </div>
         {time !== undefined && time !== null && (
           <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: 14 }}>
             Time: {formatTime(time)}
           </p>
         )}
-        {gameTitle && (
-          <p style={{ margin: '2px 0 0', color: '#94a3b8', fontSize: 12 }}>{gameTitle}</p>
+        {resolvedGameTitle && (
+          <p style={{ margin: '2px 0 0', color: '#94a3b8', fontSize: 12 }}>{resolvedGameTitle}</p>
         )}
         {continueUrl && (
           <div style={{ marginTop: 16 }}>
@@ -99,10 +156,10 @@ const GameReview = ({ questions = [], score, total, time, gameTitle, onPlayAgain
       </div>
 
       {/* Filter tabs */}
-      {questions.length > 0 && (
+      {normalizedQuestions.length > 0 && (
         <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
           {[
-            { id: 'all', label: `All (${questions.length})` },
+            { id: 'all', label: `All (${normalizedQuestions.length})` },
             { id: 'wrong', label: `Wrong (${wrongCount})`, color: '#dc2626' },
             { id: 'correct', label: `Correct (${correctCount})`, color: '#16a34a' },
           ].map((f) => (
@@ -121,7 +178,7 @@ const GameReview = ({ questions = [], score, total, time, gameTitle, onPlayAgain
       {/* Question review cards */}
       <div style={{ display: 'grid', gap: 12, marginBottom: 20 }}>
         {filtered.map((q, i) => {
-          const idx = questions.indexOf(q) + 1;
+          const idx = normalizedQuestions.indexOf(q) + 1;
           return (
             <div key={i} style={{
               padding: '16px 18px', borderRadius: 12,
@@ -168,18 +225,20 @@ const GameReview = ({ questions = [], score, total, time, gameTitle, onPlayAgain
 
               {/* Answer comparison */}
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: q.explanation ? 10 : 0 }}>
-                {!q.isCorrect && q.userAnswer && (
+                {q.userAnswer && (
                   <div style={{
                     padding: '8px 14px', borderRadius: 8,
-                    background: '#fee2e2', border: '1px solid #fca5a5',
+                    background: q.isCorrect ? '#eef2ff' : '#fee2e2',
+                    border: q.isCorrect ? '1px solid #c7d2fe' : '1px solid #fca5a5',
                     flex: 1, minWidth: 120,
                   }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: '#991b1b', textTransform: 'uppercase', marginBottom: 2 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: q.isCorrect ? '#3730a3' : '#991b1b', textTransform: 'uppercase', marginBottom: 2 }}>
                       Your Answer
                     </div>
                     <div style={{
-                      fontSize: 16, fontWeight: 800, color: '#dc2626',
-                      textDecoration: 'line-through', textDecorationThickness: 2,
+                      fontSize: 16, fontWeight: 800, color: q.isCorrect ? '#4338ca' : '#dc2626',
+                      textDecoration: q.isCorrect ? 'none' : 'line-through',
+                      textDecorationThickness: q.isCorrect ? 'initial' : 2,
                     }}
                       dangerouslySetInnerHTML={{ __html: reviewMathHtml(q.userAnswer) }}
                     />
@@ -248,8 +307,8 @@ const GameReview = ({ questions = [], score, total, time, gameTitle, onPlayAgain
             Play Again
           </button>
         )}
-        {onBack && (
-          <button type="button" onClick={onBack} style={{
+        {resolvedOnBack && (
+          <button type="button" onClick={resolvedOnBack} style={{
             padding: '12px 28px', fontSize: 15, fontWeight: 600, cursor: 'pointer',
             background: '#f8fafc', color: '#475569',
             border: '1px solid #d1d5db', borderRadius: 10,

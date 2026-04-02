@@ -64,7 +64,7 @@ function isAccountExistsError(message) {
     || text.includes('duplicate');
 }
 
-const VALID_COUPONS = new Set(['ALLEN100', 'FREEACCESS', 'TEXES2025', 'MATHPREP', 'PIONEER']);
+const VALID_COUPONS = new Set(['ALLEN100', 'FREEACCESS', 'TEXES2025', 'MATHPREP', 'PIONEER', 'MATH']);
 
 /** Set VITE_SUPPORT_EMAIL in env so paywall errors include a contact path. */
 const SUPPORT_EMAIL = (import.meta.env.VITE_SUPPORT_EMAIL || '').trim();
@@ -123,6 +123,16 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked, check
   }, [busy]);
 
   const sleep = useCallback((ms) => new Promise((resolve) => setTimeout(resolve, ms)), []);
+
+  useEffect(() => {
+    try {
+      const examCoupon = localStorage.getItem(`coupon-redeemed:${effectiveExamId}`);
+      const globalMathCoupon = localStorage.getItem('coupon-redeemed:all-math');
+      if (examCoupon || globalMathCoupon) {
+        onUnlocked?.();
+      }
+    } catch { /* best-effort */ }
+  }, [effectiveExamId, onUnlocked]);
 
   // On mount: if user has a stale local token, proactively wake the server
   // so the subsequent signup/login call against the real API is fast.
@@ -284,7 +294,11 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked, check
     const code = couponCode.trim().toUpperCase();
     if (!code) { setCouponError('Please enter a coupon code.'); return; }
     if (VALID_COUPONS.has(code)) {
-      try { localStorage.setItem(`coupon-redeemed:${effectiveExamId}`, code); } catch {}
+      try {
+        localStorage.setItem(`coupon-redeemed:${effectiveExamId}`, code);
+        // "MATH" is a global free-access coupon for math exam tracks.
+        if (code === 'MATH') localStorage.setItem('coupon-redeemed:all-math', code);
+      } catch {}
       onUnlocked?.();
     } else {
       setCouponError('Invalid coupon code. Please check and try again.');
