@@ -13,6 +13,7 @@ import useGameReturn from '../hooks/useGameReturn';
 function gradeToExamId(grade) {
   if (grade === 'grade7-12') return 'math712';
   if (grade === 'grade4-8') return 'math48';
+  if (grade === 'calculus') return 'calculus';
   if (grade === 'grade-ec6') return 'ec6';
   if (grade === 'grade-ec6-ela') return 'ec6_ela';
   if (grade === 'grade-ec6-science') return 'ec6_science';

@@ -704,7 +704,6 @@ const MathBingo = () => {
   const teksFilter = searchParams.get('teks');
   const compFilter = searchParams.get('comp') || '';
   const currentStd = searchParams.get('currentStd') || searchParams.get('std') || '';
-  const teksLabel = searchParams.get('label') || teksFilter;
   const strictScope = searchParams.get('from') === 'loop' && !!(teksFilter || compFilter || currentStd);
   const sid = searchParams.get('sid');
   const aid = searchParams.get('aid');
@@ -739,19 +738,6 @@ const MathBingo = () => {
     setCard(g.card);
     trackEvent('math_bingo_start', { teksFilter: teksFilter || 'all' });
   }, [teksFilter, compFilter, currentStd, strictScope]);
-
-  if (strictScope && (!deck || deck.length === 0)) {
-    return (
-      <div style={{ maxWidth: 720, margin: '0 auto', padding: 20 }}>
-        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: 16, color: '#7f1d1d' }}>
-          No competency-aligned Bingo deck is available for this loop step yet.
-        </div>
-        <div style={{ marginTop: 12 }}>
-          {returnUrl ? <LoopContinueButton onClick={goBack} /> : !isEmbedded ? <Link to="/games">Back to Games</Link> : null}
-        </div>
-      </div>
-    );
-  }
 
   const nextCall = useCallback(() => {
     if (gameOver) return;
@@ -869,6 +855,19 @@ const MathBingo = () => {
     setMissedCount(0);
     setSaveError('');
   };
+
+  if (strictScope && (!deck || deck.length === 0)) {
+    return (
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: 20 }}>
+        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: 16, color: '#7f1d1d' }}>
+          No competency-aligned Bingo deck is available for this loop step yet.
+        </div>
+        <div style={{ marginTop: 12 }}>
+          {returnUrl ? <LoopContinueButton onClick={goBack} /> : !isEmbedded ? <Link to="/games">Back to Games</Link> : null}
+        </div>
+      </div>
+    );
+  }
 
   if (showReview) {
     return (
@@ -1033,13 +1032,11 @@ const MathBingo = () => {
           gap: 4,
         }}>
           {card.map((value, idx) => {
-            const row = Math.floor(idx / GRID);
             const col = idx % GRID;
             const isMarked = marked.has(idx);
             const isFree = value === 'FREE';
             const isWinCell = winLine && winLine.includes(idx);
             const isWrong = wrongPick === idx;
-            const isAnswer = currentCall && value === currentCall.ans && !isMarked;
             const colColor = CELL_COLORS[col];
 
             return (

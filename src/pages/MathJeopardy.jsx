@@ -563,34 +563,18 @@ const MathJeopardy = () => {
   const [answeredQuestions, setAnsweredQuestions] = useState([]);
   const [streak, setStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
-  const [dailyDouble, setDailyDouble] = useState(null); // "col-row" key
+  const [dailyDouble, setDailyDouble] = useState(() => {
+    const col = Math.floor(Math.random() * categories.length);
+    const row = Math.floor(Math.random() * 5);
+    return `${col}-${row}`;
+  }); // "col-row" key
   const [showDailyDouble, setShowDailyDouble] = useState(false);
   const [wager, setWager] = useState(0);
 
   const { returnUrl, goBack, isEmbedded } = useGameReturn();
 
-  // Set a random daily double on mount
-  useEffect(() => {
-    const col = Math.floor(Math.random() * categories.length);
-    const row = Math.floor(Math.random() * 5);
-    setDailyDouble(`${col}-${row}`);
-  }, [categories]);
-
   const totalCells = categories.length * 5;
   const maxScore = categories.length * POINT_VALUES.reduce((a, b) => a + b, 0);
-
-  if (strictScope && categories.length === 0) {
-    return (
-      <div style={{ maxWidth: 720, margin: '0 auto', padding: 20 }}>
-        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: 16, color: '#7f1d1d' }}>
-          No competency-aligned Jeopardy categories are available for this loop step yet.
-        </div>
-        <div style={{ marginTop: 12 }}>
-          {returnUrl ? <LoopContinueButton onClick={goBack} /> : !isEmbedded ? <Link to="/games">Back to Games</Link> : null}
-        </div>
-      </div>
-    );
-  }
 
   const handleCellClick = useCallback((col, row) => {
     const key = `${col}-${row}`;
@@ -682,6 +666,19 @@ const MathJeopardy = () => {
     const row = Math.floor(Math.random() * 5);
     setDailyDouble(`${col}-${row}`);
   };
+
+  if (strictScope && categories.length === 0) {
+    return (
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: 20 }}>
+        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: 16, color: '#7f1d1d' }}>
+          No competency-aligned Jeopardy categories are available for this loop step yet.
+        </div>
+        <div style={{ marginTop: 12 }}>
+          {returnUrl ? <LoopContinueButton onClick={goBack} /> : !isEmbedded ? <Link to="/games">Back to Games</Link> : null}
+        </div>
+      </div>
+    );
+  }
 
   if (showReview) {
     return (

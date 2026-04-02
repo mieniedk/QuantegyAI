@@ -986,6 +986,7 @@ export default function TestPrepPage({ config }) {
                     p.set('comp', compId);
                     if (stdId) p.set('currentStd', stdId);
                     p.set('phase', 'diagnostic');
+                    p.set('examId', examId);
                     if (examId === 'math712') { p.set('grade', 'grade7-12'); p.set('label', 'Math 7\u201312'); }
                     else if (examId === 'math48') { p.set('grade', 'grade4-8'); p.set('label', 'Math 4\u20138'); }
                     else { p.set('grade', examId === 'ec6' ? 'grade-ec6' : String(examId)); p.set('label', dom.name || examId); }
@@ -1081,6 +1082,7 @@ export default function TestPrepPage({ config }) {
                 to={(() => {
                   const params = new URLSearchParams();
                   params.set('phase', 'diagnostic');
+                  params.set('examId', examId);
                   if (isTexesResultsKey) {
                     if (examId === 'math712') {
                       params.set('grade', 'grade7-12');
@@ -1097,11 +1099,13 @@ export default function TestPrepPage({ config }) {
                       if (firstDomain?.id) params.set('comp', firstDomain.id);
                       if (firstStd?.id) params.set('currentStd', firstStd.id);
                     } else {
-                      const domains = configGetDomains(examId) || [];
-                      const first = domains[0];
+                      const examDomains = configGetDomains(examId) || [];
+                      const first = examDomains[0];
                       if (first) {
                         params.set('grade', examId === 'ec6' ? 'grade-ec6' : examId === 'ec6_ela' ? 'grade-ec6-ela' : examId === 'ec6_science' ? 'grade-ec6-science' : examId === 'ec6_social' ? 'grade-ec6-social' : examId === 'ec6_full' ? 'grade-ec6-full' : String(examId));
-                        params.set('teks', first.id);
+                        params.set('comp', first.id);
+                        const firstStd = first.standards?.[0];
+                        if (firstStd?.id) params.set('currentStd', firstStd.id);
                         params.set('label', examLabelsForHistory[examId] || first.name || examId);
                       }
                     }
@@ -1181,6 +1185,7 @@ export default function TestPrepPage({ config }) {
                   const params = new URLSearchParams();
                   params.set('comp', dom.id);
                   params.set('phase', 'diagnostic');
+                  params.set('examId', examId);
                   if (examId === 'math712') {
                     params.set('grade', 'grade7-12');
                     params.set('label', 'Math 7\u201312');

@@ -229,6 +229,55 @@ const LHOSPITAL_ITEMS = [
   },
 ];
 
+const LHOSPITAL_GUIDED_QUESTIONS = [
+  {
+    prompt: 'For lim(x->0) (sin x)/x, which indeterminate form do you get by direct substitution?',
+    choices: ['0/0', 'infinity/infinity', '0*infinity', '1^infinity'],
+    answer: '0/0',
+    steps: [
+      'Step 1: Substitute x = 0 into the numerator: sin(0) = 0.',
+      'Step 2: Substitute x = 0 into the denominator: x = 0.',
+      'Step 3: The quotient becomes 0/0, which is indeterminate.',
+      "Step 4: Because the form is 0/0 and both parts are differentiable near 0, L'Hospital's Rule is valid.",
+    ],
+  },
+  {
+    prompt: "After one L'Hospital step, what is lim(x->0) (sin x)/x equal to?",
+    choices: ['0', '1', 'does not exist', 'infinity'],
+    answer: '1',
+    steps: [
+      "Step 1: Differentiate the numerator: d/dx[sin x] = cos x.",
+      'Step 2: Differentiate the denominator: d/dx[x] = 1.',
+      "Step 3: Rewrite the limit as lim(x->0) cos(x)/1.",
+      'Step 4: Evaluate directly: cos(0) = 1.',
+      'Step 5: Final answer = 1.',
+    ],
+  },
+  {
+    prompt: "For lim(x->infinity) (ln x)/x, what does one L'Hospital step produce?",
+    choices: ['(1/x)/1', 'x/(1/x)', '1/(ln x)', 'e^x/x'],
+    answer: '(1/x)/1',
+    steps: [
+      'Step 1: Check the original form as x->infinity: ln(x)->infinity and x->infinity, so it is infinity/infinity.',
+      "Step 2: Differentiate top and bottom once: d/dx[ln x] = 1/x and d/dx[x] = 1.",
+      "Step 3: New limit: lim(x->infinity) (1/x)/1.",
+      'Step 4: Since 1/x -> 0 as x->infinity, the limit is 0.',
+    ],
+  },
+  {
+    prompt: 'For lim(x->infinity) x*e^(-x), what is the best first move before applying L\'Hospital?',
+    choices: ['Rewrite as x/e^x', 'Differentiate product directly in the limit', 'Take log of both sides', 'Square both terms'],
+    answer: 'Rewrite as x/e^x',
+    steps: [
+      "Step 1: Recognize x*e^(-x) is a product form (infinity*0), not a direct L'Hospital form.",
+      'Step 2: Rewrite e^(-x) as 1/e^x, giving x/e^x.',
+      "Step 3: Now the form is infinity/infinity, which is valid for L'Hospital.",
+      'Step 4: Differentiate once: numerator -> 1, denominator -> e^x.',
+      'Step 5: Evaluate lim(x->infinity) 1/e^x = 0.',
+    ],
+  },
+];
+
 function buildSeriesPath({ fn, xMin, xMax, yMin, yMax, width, height, pad }) {
   const toX = (x) => pad + ((x - xMin) / (xMax - xMin)) * (width - 2 * pad);
   const toY = (y) => height - pad - ((y - yMin) / (yMax - yMin)) * (height - 2 * pad);
@@ -341,9 +390,16 @@ function LHospitalLab({ onComplete, continueLabel, badgeLabel, embedded, activit
   const [choice, setChoice] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [showStep, setShowStep] = useState(false);
+  const [guidedChoice, setGuidedChoice] = useState('');
+  const [guidedSubmitted, setGuidedSubmitted] = useState(false);
   const item = useMemo(() => LHOSPITAL_ITEMS[activityIndex % LHOSPITAL_ITEMS.length], [activityIndex]);
+  const guided = useMemo(
+    () => LHOSPITAL_GUIDED_QUESTIONS[activityIndex % LHOSPITAL_GUIDED_QUESTIONS.length],
+    [activityIndex],
+  );
   const correct = item.direct ? 'yes' : 'no';
   const isCorrect = submitted && choice === correct;
+  const guidedCorrect = guidedSubmitted && guidedChoice === guided.answer;
 
   return cardShell({
     embedded,
@@ -417,6 +473,60 @@ function LHospitalLab({ onComplete, continueLabel, badgeLabel, embedded, activit
             <span style={{ color: COLOR.textSecondary, fontWeight: 600 }}>{item.reason}</span>
           </p>
         )}
+        <div style={{ marginBottom: 12, padding: '10px 12px', borderRadius: 12, border: `1px solid ${COLOR.border}`, background: '#f8fafc' }}>
+          <p style={{ margin: '0 0 8px', fontSize: 13, color: COLOR.text, fontWeight: 800 }}>
+            Guided question (step-by-step)
+          </p>
+          <p style={{ margin: '0 0 8px', fontSize: 13, color: COLOR.textSecondary, lineHeight: 1.5 }}>
+            {guided.prompt}
+          </p>
+          <div style={{ display: 'grid', gap: 8, marginBottom: 8 }}>
+            {guided.choices.map((c) => (
+              <button
+                key={c}
+                type="button"
+                disabled={guidedSubmitted}
+                onClick={() => setGuidedChoice(c)}
+                style={{
+                  padding: '9px 10px',
+                  borderRadius: 10,
+                  textAlign: 'left',
+                  fontWeight: 700,
+                  border: `2px solid ${guidedChoice === c ? COLOR.blue : COLOR.border}`,
+                  background: guidedChoice === c ? COLOR.blueBg : '#fff',
+                  color: COLOR.text,
+                  cursor: guidedSubmitted ? 'default' : 'pointer',
+                }}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+          {!guidedSubmitted && (
+            <button
+              type="button"
+              onClick={() => setGuidedSubmitted(true)}
+              disabled={!guidedChoice}
+              style={!guidedChoice ? { ...BTN_PRIMARY, opacity: 0.6, cursor: 'not-allowed' } : BTN_PRIMARY}
+            >
+              Check guided answer
+            </button>
+          )}
+          {guidedSubmitted && (
+            <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 10, border: `1px solid ${guidedCorrect ? COLOR.successBorder : '#fecaca'}`, background: guidedCorrect ? COLOR.successBg : '#fef2f2' }}>
+              <p style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 800, color: guidedCorrect ? COLOR.successText : '#b91c1c' }}>
+                {guidedCorrect ? 'Correct.' : `Not yet. Correct answer: ${guided.answer}.`}
+              </p>
+              <div style={{ display: 'grid', gap: 4 }}>
+                {guided.steps.map((step) => (
+                  <p key={step} style={{ margin: 0, fontSize: 12, color: COLOR.textSecondary, lineHeight: 1.45 }}>
+                    {step}
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
         <button type="button" onClick={onComplete} style={BTN_PRIMARY}>{continueLabel}</button>
       </>
     ),

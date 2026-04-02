@@ -139,7 +139,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked, check
   useEffect(() => {
     if (!isLocalToken()) return;
     retryServerConnection().catch(() => {});
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const recoverServerAndCheckout = useCallback(async (planId) => {
     const started = Date.now();
@@ -287,7 +287,7 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked, check
       setError(err.message || 'Network error.');
     }
     setBusy(false);
-  }, [effectiveExamId, isOffline, authEmail, authPassword, recoverServerAndCheckout, checkoutReturnSearch]);
+  }, [effectiveExamId, isOffline, recoverServerAndCheckout, checkoutReturnSearch]);
 
   const handleCoupon = useCallback(() => {
     setCouponError('');
