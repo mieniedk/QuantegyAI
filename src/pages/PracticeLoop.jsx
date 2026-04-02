@@ -2927,22 +2927,25 @@ export default function PracticeLoop() {
 
   const lecture = useMemo(() => (singleTeks && !compDomain ? getLecture(singleTeks) : null), [singleTeks, compDomain]);
   const introLecture = useMemo(() => {
-    if (isLHospitalLoop) return getLecture('calc_c002');
-    if (comp) return getLectureForComp(comp, resolvedStdId || singleTeks);
+    if (isLHospitalLoop || resolvedStdId === 'calc_c002') return getLecture('calc_c002');
+    if (resolvedStdId) return getLecture(resolvedStdId) || getLectureForComp(loopCompId, resolvedStdId);
+    if (loopCompId) return getLectureForComp(loopCompId, singleTeks);
     return lecture || null;
-  }, [comp, lecture, resolvedStdId, singleTeks, isLHospitalLoop]);
+  }, [loopCompId, lecture, resolvedStdId, singleTeks, isLHospitalLoop]);
 
   const deepDiveLecture = useMemo(() => {
+    if (isLHospitalLoop || resolvedStdId === 'calc_c002') return getLecture('calc_c002');
     // When a specific standard is active, keep both videos aligned to that standard.
     if (resolvedStdId) return introLecture;
     if (!compDomain) return introLecture;
     const otherStd = (compDomain.standards || []).find((s) => s.id && s.id !== currentStd);
     if (otherStd?.id) {
-      const l = getLectureForComp(comp, otherStd.id);
+      const l = getLectureForComp(loopCompId, otherStd.id);
       if (l) return l;
     }
     return introLecture;
-  }, [resolvedStdId, compDomain, introLecture, currentStd, comp]);
+  }, [isLHospitalLoop, resolvedStdId, compDomain, introLecture, currentStd, loopCompId]);
+  const hasAnimatedIntroLecture = !!introLecture && loopCompId !== 'comp001';
   const bankCount = useMemo(() => queryBank({ teks: singleTeks, grade, format: 'multiple-choice' }).length, [singleTeks, grade]);
   const usedBank = bankCount >= Math.max(DIAGNOSTIC_COUNT, CHECK_QUIZ_COUNT);
   const reminderText = useMemo(() => {
@@ -2968,7 +2971,7 @@ export default function PracticeLoop() {
     // Then pull from other standards in this competency to keep Video B relevant.
     (compDomain?.standards || []).forEach((std) => {
       if (!std?.id || std.id === resolvedStdId) return;
-      pushUnique(getLectureForComp(comp, std.id)?.video);
+      pushUnique(getLectureForComp(loopCompId, std.id)?.video);
     });
 
     // Domain-level and generic fallbacks, used when a competency has sparse media.
@@ -2981,7 +2984,7 @@ export default function PracticeLoop() {
       introVideoEmbed: uniqueEmbeds[0] || null,
       deepDiveVideoEmbed: uniqueEmbeds[1] || null,
     };
-  }, [compDomain, lecture, introLecture, deepDiveLecture, resolvedStdId]);
+  }, [compDomain, loopCompId, lecture, introLecture, deepDiveLecture, resolvedStdId]);
 
   const conceptTitle = useMemo(() => {
     if (currentStdObj) return currentStdObj.name;
@@ -3001,7 +3004,7 @@ export default function PracticeLoop() {
     if (!showUnitCircleTool && unitCircleOpen) setUnitCircleOpen(false);
   }, [showUnitCircleTool, unitCircleOpen]);
   const showNumberSetsActivity = !deepDiveVideoEmbed && (comp === 'comp001' || currentStd === 'c001');
-  const hasUniqueDeepDiveLecture = !!(deepDiveLecture && comp !== 'comp001' && deepDiveLecture !== introLecture);
+  const hasUniqueDeepDiveLecture = !!(deepDiveLecture && loopCompId !== 'comp001' && deepDiveLecture !== introLecture);
   const useGeometricRefreshActivity = comp === 'comp005' || currentStd === 'c018';
   const microTeachConcept = useMemo(() => {
     const normalizeConceptText = (v) => String(v || '').replace(/\s+/g, ' ').trim().toLowerCase();
@@ -4279,7 +4282,7 @@ export default function PracticeLoop() {
             />
             {hasTopic ? (
               <>
-                {(introLecture && comp !== 'comp001') ? (
+                {hasAnimatedIntroLecture ? (
                   <div style={{ marginBottom: 16 }}>
                     <AnimatedLecture
                       lecture={introLecture}
@@ -4293,7 +4296,7 @@ export default function PracticeLoop() {
                     <iframe title={getTileLabel('video', 'Intro video')} src={introVideoEmbed} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ width: '100%', aspectRatio: '16/9', border: 'none' }} />
                   </div>
                 ) : null}
-                {!(introLecture && comp !== 'comp001') && <p style={BODY} dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(reminderText)) }} />}
+                {!hasAnimatedIntroLecture && <p style={BODY} dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(reminderText)) }} />}
                 <button type="button" onClick={() => goToPhase('check-quiz')} style={BTN_PRIMARY}>Continue</button>
               </>
             ) : (
