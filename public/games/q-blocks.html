@@ -726,7 +726,7 @@ const QBLOCKS_STD_BANK={
       {q:'Evaluate: |−8| + 1',ans:9},
       {q:'Evaluate: |−15| − 2',ans:13},
       {q:'Evaluate: |7| + |−4|',ans:11},
-      {q:'Which is greater: |−6| or 5? (answer larger value)',ans:6},
+      {q:'Which is greater: |−6| or 5? (tap the larger value)',ans:6,wrong:5},
       {q:'Distance from −3 to 5 on the number line',ans:8},
       {q:'Evaluate: −|−9| + 4',ans:-5}
     ],
@@ -1374,8 +1374,14 @@ function buildChoiceFromPool(pool,diff,type,poolKey){
   if(!prompt)return null;
   const ans=Number(item.ans);
   if(!Number.isFinite(ans))return null;
-  const offsets=(diff==='hard'?[2,-2,3,-3,5,-5,7,-7]:[1,-1,2,-2,3,-3]).filter(function(d){return ans+d!==ans;});
-  const wrong=ans+offsets[Math.floor(Math.random()*offsets.length)];
+  const explicitWrong=Number(item.wrong);
+  var wrong;
+  if(Number.isFinite(explicitWrong)&&explicitWrong!==ans){
+    wrong=explicitWrong;
+  }else{
+    const offsets=(diff==='hard'?[2,-2,3,-3,5,-5,7,-7]:[1,-1,2,-2,3,-3]).filter(function(d){return ans+d!==ans;});
+    wrong=ans+offsets[Math.floor(Math.random()*offsets.length)];
+  }
   if(!Number.isFinite(wrong))return null;
   if(poolKey)markPoolQuestionUsed(poolKey,item);
   return {type:type,q:prompt,ans:ans,wrong:wrong,diff:diff};

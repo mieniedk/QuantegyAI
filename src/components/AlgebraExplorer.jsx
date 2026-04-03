@@ -1076,8 +1076,17 @@ function TrigCircle({ onComplete, continueLabel, badgeLabel, embedded }) {
    ═══════════════════════════════════════════════════════════════════════════ */
 const MODES = ['function-transform', 'quadratic', 'trig-circle', 'sequence-patterns'];
 
-export default function AlgebraExplorer({ activityIndex = 0, mode, onComplete, continueLabel = 'Continue', badgeLabel = 'Interactive activity', embedded = false }) {
-  const resolvedMode = mode || MODES[activityIndex % MODES.length];
+function resolveAlgebraMode({ mode, modeSet, activityIndex }) {
+  if (mode) return mode;
+  if (Array.isArray(modeSet) && modeSet.length > 0) {
+    const valid = modeSet.filter((m) => MODES.includes(m));
+    if (valid.length) return valid[activityIndex % valid.length];
+  }
+  return MODES[activityIndex % MODES.length];
+}
+
+export default function AlgebraExplorer({ activityIndex = 0, mode, modeSet, onComplete, continueLabel = 'Continue', badgeLabel = 'Interactive activity', embedded = false }) {
+  const resolvedMode = resolveAlgebraMode({ mode, modeSet, activityIndex });
   if (resolvedMode === 'sequence-patterns') return <SequencePatterns onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (resolvedMode === 'function-transform') return <FunctionMachine onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (resolvedMode === 'function-transform-legacy') return <FunctionTransform onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;

@@ -3045,9 +3045,16 @@ export default function PracticeLoop() {
       });
     }
 
-    // Domain-level and generic fallbacks, used when a competency has sparse media.
-    (compDomain?.videos || []).forEach(pushUnique);
-    pushUnique(compDomain?.video);
+    // Domain-level `videos` arrays are often a mixed playlist across standards in the same domain
+    // (e.g. comp001 listed real numbers + imaginary/complex + number theory). For Math 7–12 / 4–8,
+    // when `lectures.js` already supplies a video for the active standard, do not append that
+    // playlist — it was forcing Video B (step 14) to the wrong sibling topic. Math 4–8 domains
+    // often have no per-standard lecture entry; keep using `compDomain.videos` in that case.
+    const skipDomainVideoPlaylist = isTexesMathLoop && resolvedStdId && Boolean(introLecture?.video);
+    if (!skipDomainVideoPlaylist) {
+      (compDomain?.videos || []).forEach(pushUnique);
+      pushUnique(compDomain?.video);
+    }
     pushUnique(lecture?.video);
     if (!isTexesMathLoop) VIDEO_BACKUP_EMBEDS.forEach(pushUnique);
 
@@ -3169,25 +3176,25 @@ export default function PracticeLoop() {
     const fallbackCandidates = [
       microConcept?.misconception ? {
         ...microConcept,
-        title: microConcept?.title ? `${microConcept.title} - New Angle` : conceptTitle,
+        title: microConcept?.title || conceptTitle,
         conceptText: `Watch out focus: ${microConcept.misconception}`,
         illustrationHtml: microConcept?.misconceptionIllustrationHtml || undefined,
       } : null,
       microConcept?.workedExample ? {
         ...microConcept,
-        title: microConcept?.title ? `${microConcept.title} - New Angle` : conceptTitle,
+        title: microConcept?.title || conceptTitle,
         conceptText: `Worked-example focus: ${microConcept.workedExample}`,
         illustrationHtml: undefined,
       } : null,
       conceptSentence ? {
         ...microConcept,
-        title: microConcept?.title ? `${microConcept.title} - New Angle` : conceptTitle,
+        title: microConcept?.title || conceptTitle,
         conceptText: `Key idea focus: ${conceptSentence}.`,
         illustrationHtml: undefined,
       } : null,
       reminderText ? {
         ...microConcept,
-        title: microConcept?.title ? `${microConcept.title} - New Angle` : conceptTitle,
+        title: microConcept?.title || conceptTitle,
         conceptText: `Quick connection: ${reminderText}`,
         illustrationHtml: undefined,
       } : null,
@@ -3207,7 +3214,7 @@ export default function PracticeLoop() {
 
     return {
       ...microConcept,
-      title: microConcept?.title ? `${microConcept.title} — New Angle` : conceptTitle,
+      title: microConcept?.title || conceptTitle,
       conceptText: fallbackText,
       illustrationHtml: undefined,
     };
@@ -3263,11 +3270,8 @@ export default function PracticeLoop() {
   const game4DisplayName = game4?.name || gameDisplayName;
   const continueAfterGame = useCallback((nextPhase, _gameDef) => {
     if (!isPaid && !isStudentLoggedIn()) {
-      if (!saveProgressPromptedRef.current) {
-        saveProgressPromptedRef.current = true;
-        try { window.sessionStorage.setItem(savePromptSessionKey, '1'); } catch {}
-        setShowSaveProgressModal(true);
-      }
+      // Do not open SaveProgressModal here: it sits above the paywall (z-index 100) and hides
+      // the free "MATH" unlock on PaywallGate. Save prompt still runs at SAVE_PROGRESS_TILE_THRESHOLD.
       pendingPaywallPhaseRef.current = nextPhase;
       setPendingPaywallPhase(nextPhase);
       setPhase('paywall');
@@ -3275,7 +3279,7 @@ export default function PracticeLoop() {
       return;
     }
     goToPhase(nextPhase);
-  }, [isPaid, goToPhase, savePromptSessionKey]);
+  }, [isPaid, goToPhase]);
   const showScopedGameDebug = (examId === 'math712' || examId === 'math48') && !!currentStd;
   const scopedGameDebugText = showScopedGameDebug
     ? `Scoped games for ${currentStd.toUpperCase()}: 1) ${gameDisplayName}  2) ${game2DisplayName}  3) ${game3DisplayName}  4) ${game4DisplayName}`

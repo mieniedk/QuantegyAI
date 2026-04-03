@@ -617,6 +617,15 @@ function PatternFinder({ onComplete, continueLabel, badgeLabel, embedded, forceP
    ═══════════════════════════════════════════════════════════════════════════ */
 const MODES = ['proof-sorter', 'representation-match', 'pattern-finder'];
 
+function resolveReasoningMode({ modeSet, modeOverride, activityIndex }) {
+  if (Array.isArray(modeSet) && modeSet.length > 0) {
+    const valid = modeSet.filter((m) => MODES.includes(m));
+    if (valid.length) return valid[activityIndex % valid.length];
+  }
+  if (modeOverride && MODES.includes(modeOverride)) return modeOverride;
+  return MODES[activityIndex % MODES.length];
+}
+
 export default function ReasoningExplorer({
   activityIndex = 0,
   onComplete,
@@ -624,9 +633,10 @@ export default function ReasoningExplorer({
   badgeLabel = 'Interactive activity',
   embedded = false,
   modeOverride,
+  modeSet,
   forcePatternType,
 }) {
-  const mode = modeOverride || MODES[activityIndex % MODES.length];
+  const mode = resolveReasoningMode({ modeSet, modeOverride, activityIndex });
   if (mode === 'proof-sorter') return <ProofSorter onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'representation-match') return <RepresentationMatch onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   return <PatternFinder onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} forcePatternType={forcePatternType} />;

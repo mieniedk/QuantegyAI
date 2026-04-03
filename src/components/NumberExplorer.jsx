@@ -9,6 +9,7 @@
  */
 import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { COLOR, CARD, BTN_PRIMARY, BADGE } from '../utils/loopStyles';
+import { sanitizeHtml } from '../utils/sanitize';
 import ComplexPlaneExplorer from './ComplexPlaneExplorer';
 import qbotImg from '../assets/qbot.svg';
 
@@ -268,6 +269,590 @@ function NumberLinePlot({ onComplete, continueLabel, badgeLabel, embedded }) {
         <button type="button" onClick={onComplete} style={{ ...BTN_PRIMARY, flex: '1 1 auto' }}>{continueLabel}</button>
       </div>
       <style>{`@keyframes fadeIn { 0%{opacity:0;transform:translateY(6px)} 100%{opacity:1;transform:translateY(0)} }`}</style>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODE — Real number sets (ℕ ⊂ 𝕎 ⊂ ℤ ⊂ ℚ ⊂ ℝ)
+   Classify each value by the **smallest** set in the chain that contains it.
+   ℕ = {1,2,…}; 𝕎 adds 0; ℤ adds negatives; ℚ adds non-integer rationals; last = irrationals.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const REAL_SET_ZONES = [
+  {
+    id: 'N',
+    short: 'ℕ',
+    title: 'Natural numbers',
+    subtitle: 'Counting numbers 1, 2, 3, …',
+    accent: '#15803d',
+    bg: '#ecfdf5',
+    border: '#86efac',
+  },
+  {
+    id: 'W',
+    short: '𝕎',
+    title: 'Whole numbers',
+    subtitle: 'Use for 0 here — we take ℕ = 1, 2, 3, …',
+    accent: '#0d9488',
+    bg: '#f0fdfa',
+    border: '#5eead4',
+  },
+  {
+    id: 'Z',
+    short: 'ℤ',
+    title: 'Integers',
+    subtitle: 'Negative integers (…, −2, −1) — positives are naturals in this activity',
+    accent: '#2563eb',
+    bg: '#eff6ff',
+    border: '#93c5fd',
+  },
+  {
+    id: 'Q',
+    short: 'ℚ',
+    title: 'Rational numbers',
+    subtitle: 'Ratios of integers: fractions, terminating or repeating decimals (not integers)',
+    accent: '#7c3aed',
+    bg: '#f5f3ff',
+    border: '#c4b5fd',
+  },
+  {
+    id: 'R',
+    short: 'Irrational',
+    title: 'Irrational (ℝ \\ ℚ)',
+    subtitle: 'Real but not rational — e.g. √2, π',
+    accent: '#c2410c',
+    bg: '#fff7ed',
+    border: '#fdba74',
+  },
+];
+
+/** @type {{ label: string, zone: string, explain: string }[]} */
+const REAL_SET_ITEMS = [
+  { label: '17', zone: 'N', explain: '17 is a counting number, so it lives in ℕ (and every larger set).' },
+  { label: '1', zone: 'N', explain: '1 is the smallest natural in this activity’s ℕ = {1, 2, 3, …}.' },
+  { label: '0', zone: 'W', explain: '0 is whole. We treat ℕ as 1, 2, 3, …, so 0’s smallest set here is 𝕎.' },
+  { label: '−9', zone: 'Z', explain: 'Negative integers are in ℤ; they are not whole numbers in the usual school sense.' },
+  { label: '−1', zone: 'Z', explain: 'Same idea: negative integers belong to ℤ.' },
+  { label: '3/4', zone: 'Q', explain: 'A fraction of two integers (denominator ≠ 0) that is not an integer sits in ℚ.' },
+  { label: '−2.5', zone: 'Q', explain: 'Terminating decimals are rational; this is not an integer.' },
+  { label: '0.\\overline{3}', zone: 'Q', explain: 'A repeating decimal is rational (here 1/3).' },
+  { label: '2.\\overline{7}', zone: 'Q', explain: 'Repeating decimals are rational numbers.' },
+  { label: '√5', zone: 'R', explain: '√5 cannot be written as a ratio of integers; it is irrational (still real).' },
+  { label: 'π', zone: 'R', explain: 'π is real but not rational.' },
+  { label: '√2 / 2', zone: 'R', explain: 'This is irrational (not a ratio of two integers in lowest terms as a rational would be).' },
+  { label: '6', zone: 'N', explain: 'Positive counting number → ℕ.' },
+  { label: '−3/1', zone: 'Z', explain: '−3/1 equals −3, an integer (not whole), so smallest set is ℤ.' },
+];
+
+function shuffleRealSetItems(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function RealNumberSetsExplorer({ onComplete, continueLabel, badgeLabel, embedded }) {
+  const [round, setRound] = useState(0);
+  const items = useMemo(() => shuffleRealSetItems(REAL_SET_ITEMS).slice(0, 8), [round]);
+  const [assignments, setAssignments] = useState({});
+  const [selectedLabel, setSelectedLabel] = useState(null);
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    setAssignments({});
+    setSelectedLabel(null);
+    setChecked(false);
+  }, [round]);
+
+  const allAssigned = items.length > 0 && items.every((it) => assignments[it.label] != null);
+  const correctCount = checked
+    ? items.filter((it) => assignments[it.label] === it.zone).length
+    : 0;
+  const allCorrect = checked && correctCount === items.length;
+
+  const assign = (zoneId) => {
+    if (!selectedLabel || checked) return;
+    setAssignments((prev) => ({ ...prev, [selectedLabel]: zoneId }));
+    setSelectedLabel(null);
+  };
+
+  const qbot = !checked
+    ? { msg: 'Tap a number, then tap the **smallest** set that still contains it — from ℕ out to irrationals.', mood: 'wave' }
+    : allCorrect
+      ? { msg: 'Nice! You matched each value to its tightest set in ℕ ⊂ 𝕎 ⊂ ℤ ⊂ ℚ ⊂ ℝ.', mood: 'celebrate' }
+      : { msg: `You have ${correctCount}/${items.length} correct. Read the hints and try Check again.`, mood: 'think' };
+
+  return (
+    <div style={embedded ? {} : CARD}>
+      {!embedded && <div style={{ ...BADGE, background: `${COLOR.purple}14`, color: COLOR.purple }}>{badgeLabel}</div>}
+      <p style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 800, color: COLOR.text }}>
+        Place numbers in the real number system
+      </p>
+      <p style={{ margin: '0 0 8px', fontSize: 13, color: COLOR.textSecondary, lineHeight: 1.5 }}>
+        Sets nest like Russian dolls: <strong>ℕ</strong> (naturals) ⊂ <strong>𝕎</strong> (wholes) ⊂ <strong>ℤ</strong> (integers) ⊂ <strong>ℚ</strong> (rationals) ⊂ <strong>ℝ</strong> (reals).
+        For each value, choose the <strong>innermost</strong> set it belongs to. Irrationals use the last row (real but not rational).
+      </p>
+
+      <QBotBubble message={qbot.msg} mood={qbot.mood} />
+
+      <div style={{ marginBottom: 12, padding: '10px 12px', borderRadius: 10, background: '#f8fafc', border: `1px solid ${COLOR.border}`, fontSize: 12, color: COLOR.textSecondary, lineHeight: 1.45 }}>
+        <strong>How:</strong> Tap a chip below, then tap the matching set. ℕ = 1, 2, 3, … only; 𝕎 is for 0 here; negative integers go under ℤ; non-integer rationals under ℚ; √2, π, etc. under the last row.
+      </div>
+
+      {/* Nested visual (conceptual) */}
+      <div style={{ marginBottom: 14, padding: '12px 10px', borderRadius: 14, background: 'linear-gradient(180deg,#fffbeb 0%,#fef3c7 100%)', border: '1px solid #fcd34d' }}>
+        <div style={{ fontSize: 11, fontWeight: 800, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, textAlign: 'center' }}>
+          Smallest set wins
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'stretch' }}>
+          {REAL_SET_ZONES.map((z) => (
+            <button
+              key={z.id}
+              type="button"
+              onClick={() => assign(z.id)}
+              disabled={checked}
+              style={{
+                textAlign: 'left',
+                padding: '10px 12px',
+                borderRadius: 12,
+                border: `2px solid ${z.border}`,
+                background: z.bg,
+                cursor: checked ? 'default' : 'pointer',
+                opacity: checked ? 0.85 : 1,
+                transition: 'transform 0.12s',
+              }}
+            >
+              <div style={{ fontSize: 13, fontWeight: 800, color: z.accent }}>
+                {z.short} · {z.title}
+              </div>
+              <div style={{ fontSize: 11, color: COLOR.textSecondary, marginTop: 2, lineHeight: 1.35 }}>{z.subtitle}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.text, marginBottom: 8 }}>Number bank — tap one, then a set:</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+        {items.map((it) => {
+          const placed = assignments[it.label] != null;
+          const zoneMeta = placed ? REAL_SET_ZONES.find((z) => z.id === assignments[it.label]) : null;
+          const wrong = checked && placed && assignments[it.label] !== it.zone;
+          const right = checked && placed && assignments[it.label] === it.zone;
+          return (
+            <button
+              key={`${round}-${it.label}`}
+              type="button"
+              disabled={checked}
+              onClick={() => !checked && setSelectedLabel((s) => (s === it.label ? null : it.label))}
+              style={{
+                padding: '8px 12px',
+                borderRadius: 10,
+                fontWeight: 800,
+                fontSize: 14,
+                border: `2px solid ${
+                  right ? COLOR.greenBorder : wrong ? '#fca5a5' : selectedLabel === it.label ? COLOR.blue : COLOR.border
+                }`,
+                background: right ? COLOR.greenLight : wrong ? '#fef2f2' : selectedLabel === it.label ? COLOR.blueBg : '#fff',
+                color: wrong ? '#b91c1c' : COLOR.text,
+                cursor: checked ? 'default' : 'pointer',
+                opacity: placed && !checked ? 0.75 : 1,
+              }}
+            >
+              <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(it.label.replace(/\.\\overline\{([^}]+)\}/g, '<span style="text-decoration:overline">$1</span>')) }} />
+              {placed && !checked && zoneMeta && (
+                <span style={{ fontSize: 10, fontWeight: 700, marginLeft: 6, color: zoneMeta.accent }}>→ {zoneMeta.short}</span>
+              )}
+              {right && ' ✓'}
+              {wrong && ' ✗'}
+            </button>
+          );
+        })}
+      </div>
+
+      {checked && !allCorrect && (
+        <div style={{ marginBottom: 12, padding: '10px 12px', borderRadius: 10, background: '#fffbeb', border: '1px solid #fcd34d', fontSize: 12, color: '#92400e', lineHeight: 1.5 }}>
+          {items.filter((it) => assignments[it.label] !== it.zone).map((it) => (
+            <p key={it.label} style={{ margin: '0 0 6px' }}>
+              <strong>{it.label.replace(/\.\\overline\{([^}]+)\}/g, '$1̅')}</strong>: {it.explain}
+            </p>
+          ))}
+        </div>
+      )}
+
+      {allCorrect && (
+        <div style={{ margin: '0 0 12px', padding: '10px 14px', borderRadius: 12, background: COLOR.greenLight, border: `1px solid ${COLOR.greenBorder}`, textAlign: 'center' }}>
+          <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: COLOR.green }}>✓ Every value is in its tightest set.</p>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+        {!checked && (
+          <button
+            type="button"
+            onClick={() => setChecked(true)}
+            disabled={!allAssigned}
+            style={{ ...BTN_PRIMARY, background: `linear-gradient(135deg, ${COLOR.blue}, #1d4ed8)`, opacity: allAssigned ? 1 : 0.45 }}
+          >
+            Check classifications
+          </button>
+        )}
+        {checked && !allCorrect && (
+          <button type="button" onClick={() => { setChecked(false); setAssignments({}); setSelectedLabel(null); }} style={{ ...BTN_PRIMARY, background: 'linear-gradient(135deg,#d97706,#b45309)' }}>
+            Clear and retry
+          </button>
+        )}
+        <button type="button" onClick={() => setRound((r) => r + 1)} style={{ ...BTN_PRIMARY, background: 'linear-gradient(135deg,#64748b,#475569)' }}>
+          New set of numbers
+        </button>
+        <button type="button" onClick={onComplete} style={BTN_PRIMARY}>{continueLabel}</button>
+      </div>
+      <style>{`@keyframes fadeIn { 0%{opacity:0;transform:translateY(6px)} 100%{opacity:1;transform:translateY(0)} }`}</style>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Real number properties — commutative, associative, distributive, identities
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const PROPERTY_LABELS = {
+  commutative: 'Commutative',
+  associative: 'Associative',
+  distributive: 'Distributive',
+  identity: 'Identity / inverse idea',
+};
+
+const PROPERTY_ITEMS = [
+  { id: 'p1', text: 'a + b = b + a', answer: 'commutative', hint: 'Order of terms swapped; sum unchanged.' },
+  { id: 'p2', text: '(a + b) + c = a + (b + c)', answer: 'associative', hint: 'Grouping of addition changes, not order of numbers.' },
+  { id: 'p3', text: 'a(b + c) = ab + ac', answer: 'distributive', hint: 'Multiplication spreads across a sum.' },
+  { id: 'p4', text: 'a + (−a) = 0', answer: 'identity', hint: 'Additive inverse pairs with addition to give the additive identity 0.' },
+  { id: 'p5', text: 'x · 1 = x', answer: 'identity', hint: 'Multiplying by 1 leaves x unchanged (multiplicative identity).' },
+  { id: 'p6', text: '(xy)z = x(yz)', answer: 'associative', hint: 'Grouping of multiplication changes.' },
+];
+
+function RealNumberPropertiesExplorer({ onComplete, continueLabel, badgeLabel, embedded }) {
+  const [round, setRound] = useState(0);
+  const batch = useMemo(() => {
+    const a = [...PROPERTY_ITEMS];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a.slice(0, 4);
+  }, [round]);
+  const [picked, setPicked] = useState({});
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    setPicked({});
+    setChecked(false);
+  }, [round]);
+
+  const allPicked = batch.every((it) => picked[it.id]);
+  const nCorrect = checked ? batch.filter((it) => picked[it.id] === it.answer).length : 0;
+  const allRight = checked && nCorrect === batch.length;
+
+  return (
+    <div style={embedded ? {} : CARD}>
+      {!embedded && <div style={{ ...BADGE, background: `${COLOR.purple}14`, color: COLOR.purple }}>{badgeLabel}</div>}
+      <p style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 800, color: COLOR.text }}>
+        Properties of the real numbers
+      </p>
+      <p style={{ margin: '0 0 10px', fontSize: 13, color: COLOR.textSecondary, lineHeight: 1.5 }}>
+        For each statement, choose whether it illustrates commutativity, associativity, the distributive property, or an identity / additive-inverse idea.
+      </p>
+      <QBotBubble
+        message={!checked ? 'These properties justify every algebra move you make on the real numbers.' : allRight ? 'Strong! You separated structure (how numbers combine) from the particular values.' : 'Use each hint — focus on whether order, grouping, or factoring across a sum changed.'}
+        mood={!checked ? 'wave' : allRight ? 'celebrate' : 'think'}
+      />
+      {batch.map((it) => (
+        <div key={it.id} style={{ marginBottom: 12, padding: '10px 12px', borderRadius: 12, border: `1px solid ${COLOR.border}`, background: '#fafafa' }}>
+          <p style={{ margin: '0 0 8px', fontSize: 14, fontWeight: 800, color: COLOR.text }}>{it.text}</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {Object.entries(PROPERTY_LABELS).map(([key, label]) => {
+              const sel = picked[it.id] === key;
+              const show = checked;
+              const ok = show && key === it.answer;
+              const bad = show && sel && key !== it.answer;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  disabled={checked}
+                  onClick={() => !checked && setPicked((p) => ({ ...p, [it.id]: key }))}
+                  style={{
+                    padding: '6px 10px',
+                    borderRadius: 8,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    border: `2px solid ${ok ? COLOR.greenBorder : bad ? '#fca5a5' : sel ? COLOR.blue : COLOR.border}`,
+                    background: ok ? COLOR.greenLight : bad ? '#fef2f2' : sel ? COLOR.blueBg : '#fff',
+                    color: bad ? '#b91c1c' : COLOR.text,
+                    cursor: checked ? 'default' : 'pointer',
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          {checked && picked[it.id] !== it.answer && (
+            <p style={{ margin: '8px 0 0', fontSize: 11, color: COLOR.textSecondary }}>{it.hint}</p>
+          )}
+        </div>
+      ))}
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+        {!checked && (
+          <button type="button" disabled={!allPicked} onClick={() => setChecked(true)} style={{ ...BTN_PRIMARY, opacity: allPicked ? 1 : 0.45 }}>
+            Check
+          </button>
+        )}
+        {checked && !allRight && (
+          <button type="button" onClick={() => { setPicked({}); setChecked(false); }} style={{ ...BTN_PRIMARY, background: 'linear-gradient(135deg,#d97706,#b45309)' }}>
+            Retry
+          </button>
+        )}
+        <button type="button" onClick={() => setRound((r) => r + 1)} style={{ ...BTN_PRIMARY, background: 'linear-gradient(135deg,#64748b,#475569)' }}>
+          New set
+        </button>
+        <button type="button" onClick={onComplete} style={BTN_PRIMARY}>{continueLabel}</button>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Complex arithmetic quick-check (same standard as complex plane, different UI)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const COMPLEX_MC_ROUNDS = [
+  { q: '(2 + 3i) + (1 − 2i) = ?', choices: ['3 + i', '3 − i', '1 + 5i', '3 + 5i'], a: '3 + i', why: 'Add real parts (2+1) and imaginary parts (3i−2i).' },
+  { q: '(1 + i)(1 − i) = ?', choices: ['2', '−2', '2i', '0'], a: '2', why: 'Difference of squares: 1 − i² = 1 − (−1) = 2.' },
+  { q: 'i⁴ = ?', choices: ['1', '−1', 'i', '−i'], a: '1', why: 'Powers of i cycle every 4: i⁴ = (i²)² = (−1)² = 1.' },
+  { q: 'Conjugate of 4 − 5i is ?', choices: ['4 + 5i', '−4 − 5i', '−4 + 5i', '4 − 5i'], a: '4 + 5i', why: 'Flip the sign on the imaginary part.' },
+  { q: '|3 + 4i| = ?', choices: ['5', '7', '12', '25'], a: '5', why: '√(3² + 4²) = √25 = 5.' },
+  { q: '(2i)(3i) = ?', choices: ['−6', '6', '6i', '5i'], a: '−6', why: '2·3·i² = 6(−1) = −6.' },
+];
+
+function shuffleChoices(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function ComplexArithmeticExplorer({ onComplete, continueLabel, badgeLabel, embedded }) {
+  const [round, setRound] = useState(0);
+  const deck = useMemo(() => {
+    const a = [...COMPLEX_MC_ROUNDS];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a.slice(0, 4).map((r) => ({ ...r, shuffled: shuffleChoices(r.choices) }));
+  }, [round]);
+  const [idx, setIdx] = useState(0);
+  const [sel, setSel] = useState(null);
+  const [revealed, setRevealed] = useState(false);
+  const [score, setScore] = useState(0);
+  const [finished, setFinished] = useState(false);
+
+  useEffect(() => {
+    setIdx(0);
+    setSel(null);
+    setRevealed(false);
+    setScore(0);
+    setFinished(false);
+  }, [round]);
+
+  const cur = deck[idx];
+  const pick = (c) => {
+    if (revealed || finished) return;
+    setSel(c);
+    setRevealed(true);
+    if (c === cur.a) setScore((s) => s + 1);
+  };
+
+  const goNextOrFinish = () => {
+    if (idx + 1 >= deck.length) {
+      setFinished(true);
+      return;
+    }
+    setIdx((i) => i + 1);
+    setSel(null);
+    setRevealed(false);
+  };
+
+  if (finished) {
+    return (
+      <div style={embedded ? {} : CARD}>
+        {!embedded && <div style={{ ...BADGE, background: `${COLOR.purple}14`, color: COLOR.purple }}>{badgeLabel}</div>}
+        <p style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 800, color: COLOR.text }}>Complex skills check: {score}/{deck.length}</p>
+        <QBotBubble message={score >= deck.length - 1 ? 'Solid command of operations, conjugates, and modulus on ℂ.' : 'Review i² = −1, adding like parts, and |a+bi| = √(a²+b²).'} mood={score >= deck.length - 1 ? 'celebrate' : 'encourage'} />
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button type="button" onClick={() => setRound((r) => r + 1)} style={BTN_PRIMARY}>New questions</button>
+          <button type="button" onClick={onComplete} style={BTN_PRIMARY}>{continueLabel}</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!cur) return null;
+
+  return (
+    <div style={embedded ? {} : CARD}>
+      {!embedded && <div style={{ ...BADGE, background: `${COLOR.purple}14`, color: COLOR.purple }}>{badgeLabel}</div>}
+      <p style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 800, color: COLOR.text }}>
+        Complex number quick checks
+      </p>
+      <p style={{ margin: '0 0 8px', fontSize: 12, color: COLOR.textMuted, fontWeight: 700 }}>Question {idx + 1} of {deck.length}</p>
+      <p style={{ margin: '0 0 12px', fontSize: 15, fontWeight: 800, color: COLOR.text }}>{cur.q}</p>
+      <QBotBubble message={revealed ? (sel === cur.a ? 'Yes — ' + cur.why : 'Not quite — ' + cur.why) : 'Use i² = −1 and combine real with real, imaginary with imaginary.'} mood={revealed ? (sel === cur.a ? 'celebrate' : 'think') : 'wave'} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+        {cur.shuffled.map((c) => {
+          const isSel = sel === c;
+          const showOk = revealed && c === cur.a;
+          const showBad = revealed && isSel && c !== cur.a;
+          return (
+            <button
+              key={c}
+              type="button"
+              disabled={revealed}
+              onClick={() => pick(c)}
+              style={{
+                ...BTN_PRIMARY,
+                textAlign: 'left',
+                background: showOk ? COLOR.successBg : showBad ? '#fef2f2' : BTN_PRIMARY.background,
+                borderColor: showOk ? COLOR.successBorder : showBad ? '#fca5a5' : COLOR.blueBorder,
+                color: showBad ? '#b91c1c' : COLOR.text,
+                opacity: revealed && !showOk && !showBad ? 0.65 : 1,
+              }}
+            >
+              {c}
+            </button>
+          );
+        })}
+      </div>
+      {revealed && (
+        <button type="button" onClick={goNextOrFinish} style={{ ...BTN_PRIMARY, marginBottom: 10 }}>
+          {idx + 1 >= deck.length ? 'See results' : 'Next question'}
+        </button>
+      )}
+    </div>
+  );
+}
+
+const COMPLEX_EQ_ROUNDS = [
+  { q: 'In ℂ, the solutions of z² = −16 are:', choices: ['±4i', '±4', '±8i', 'no solutions'], a: '±4i', why: 'z = ±√(−16) = ±4i.' },
+  { q: 'A real polynomial with root 2 + i must also have root:', choices: ['2 − i', '−2 + i', '−2 − i', 'i only'], a: '2 − i', why: 'Non-real roots of real-coefficient polynomials come in conjugate pairs.' },
+  { q: '(1 + i)² equals:', choices: ['2i', '−2i', '2', '−2'], a: '2i', why: '1 + 2i + i² = 1 + 2i − 1 = 2i.' },
+  { q: 'Multiplicative inverse of i (number you multiply by i to get 1) is:', choices: ['−i', 'i', '1', '−1'], a: '−i', why: 'i · (−i) = −i² = 1.' },
+];
+
+function ComplexEquationsExplorer({ onComplete, continueLabel, badgeLabel, embedded }) {
+  const [round, setRound] = useState(0);
+  const deck = useMemo(() => {
+    const a = [...COMPLEX_EQ_ROUNDS];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a.map((r) => ({ ...r, shuffled: shuffleChoices(r.choices) }));
+  }, [round]);
+  const [idx, setIdx] = useState(0);
+  const [sel, setSel] = useState(null);
+  const [revealed, setRevealed] = useState(false);
+  const [score, setScore] = useState(0);
+  const [finished, setFinished] = useState(false);
+
+  useEffect(() => {
+    setIdx(0);
+    setSel(null);
+    setRevealed(false);
+    setScore(0);
+    setFinished(false);
+  }, [round]);
+
+  const cur = deck[idx];
+
+  const pick = (c) => {
+    if (revealed || finished || !cur) return;
+    setSel(c);
+    setRevealed(true);
+    if (c === cur.a) setScore((s) => s + 1);
+  };
+
+  const goNextOrFinish = () => {
+    if (idx + 1 >= deck.length) {
+      setFinished(true);
+      return;
+    }
+    setIdx((i) => i + 1);
+    setSel(null);
+    setRevealed(false);
+  };
+
+  if (finished) {
+    return (
+      <div style={embedded ? {} : CARD}>
+        {!embedded && <div style={{ ...BADGE, background: `${COLOR.purple}14`, color: COLOR.purple }}>{badgeLabel}</div>}
+        <p style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 800, color: COLOR.text }}>Complex equations & structure: {score}/{deck.length}</p>
+        <QBotBubble message={score === deck.length ? 'Great — conjugate pairs, powers of i, and simple quadratics in ℂ are TExES staples.' : 'Revisit conjugate root theorem and solving z² = negative real using i.'} mood={score === deck.length ? 'celebrate' : 'encourage'} />
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button type="button" onClick={() => setRound((r) => r + 1)} style={BTN_PRIMARY}>New set</button>
+          <button type="button" onClick={onComplete} style={BTN_PRIMARY}>{continueLabel}</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!cur) return null;
+
+  return (
+    <div style={embedded ? {} : CARD}>
+      {!embedded && <div style={{ ...BADGE, background: `${COLOR.purple}14`, color: COLOR.purple }}>{badgeLabel}</div>}
+      <p style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 800, color: COLOR.text }}>
+        Complex equations & conjugate reasoning
+      </p>
+      <p style={{ margin: '0 0 8px', fontSize: 12, color: COLOR.textMuted, fontWeight: 700 }}>Question {idx + 1} of {deck.length}</p>
+      <p style={{ margin: '0 0 12px', fontSize: 15, fontWeight: 800, color: COLOR.text }}>{cur.q}</p>
+      <QBotBubble message={revealed ? (sel === cur.a ? 'Right — ' + cur.why : cur.why) : 'Think about i² = −1, conjugate pairs for real polynomials, and inverse of i.'} mood={revealed ? (sel === cur.a ? 'celebrate' : 'think') : 'wave'} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+        {cur.shuffled.map((c) => {
+          const isSel = sel === c;
+          const showOk = revealed && c === cur.a;
+          const showBad = revealed && isSel && c !== cur.a;
+          return (
+            <button
+              key={c}
+              type="button"
+              disabled={revealed}
+              onClick={() => pick(c)}
+              style={{
+                ...BTN_PRIMARY,
+                textAlign: 'left',
+                background: showOk ? COLOR.successBg : showBad ? '#fef2f2' : BTN_PRIMARY.background,
+                borderColor: showOk ? COLOR.successBorder : showBad ? '#fca5a5' : COLOR.blueBorder,
+                color: showBad ? '#b91c1c' : COLOR.text,
+                opacity: revealed && !showOk && !showBad ? 0.65 : 1,
+              }}
+            >
+              {c}
+            </button>
+          );
+        })}
+      </div>
+      {revealed && (
+        <button type="button" onClick={goNextOrFinish} style={{ ...BTN_PRIMARY, marginBottom: 10 }}>
+          {idx + 1 >= deck.length ? 'See results' : 'Next'}
+        </button>
+      )}
     </div>
   );
 }
@@ -719,7 +1304,11 @@ export default function NumberExplorer({ activityIndex = 0, modeSet = null, onCo
   const activeModes = Array.isArray(modeSet) && modeSet.length > 0 ? modeSet : MODES;
   const mode = activeModes[activityIndex % activeModes.length];
   if (mode === 'number-line') return <NumberLinePlot onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+  if (mode === 'real-number-sets') return <RealNumberSetsExplorer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+  if (mode === 'real-properties') return <RealNumberPropertiesExplorer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'complex-plane') return <ComplexPlaneExplorer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+  if (mode === 'complex-arithmetic') return <ComplexArithmeticExplorer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+  if (mode === 'complex-equations') return <ComplexEquationsExplorer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'prime-blast') return <PrimeNumberBlast onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   return <FactorLab onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
 }

@@ -347,6 +347,67 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked, check
               {mode === 'signup' ? 'Create Your Free Account' : 'Log In'}
             </h3>
 
+            <div style={{ marginBottom: 18, paddingBottom: 16, borderBottom: `1px solid ${COLOR.border}` }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: COLOR.text, marginBottom: 6 }}>Continue free for math prep</div>
+              <p style={{ fontSize: 12, color: COLOR.textMuted, lineHeight: 1.45, margin: '0 0 10px' }}>
+                No account needed: type <strong style={{ color: COLOR.text }}>MATH</strong> or tap the button below.
+              </p>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
+                <input
+                  id="paywall-coupon-signup"
+                  type="text"
+                  name="coupon-code"
+                  inputMode="text"
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  value={couponCode}
+                  onChange={(e) => { setCouponCode(e.target.value); setCouponError(''); }}
+                  placeholder="MATH"
+                  style={{ ...INPUT_STYLE, flex: 1, padding: '8px 12px', fontSize: 16, position: 'relative', zIndex: 1 }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleCoupon(); } }}
+                />
+                <button
+                  type="button"
+                  onClick={handleCoupon}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: 10,
+                    border: `1.5px solid #7c3aed`,
+                    background: 'rgba(124, 58, 237, 0.06)',
+                    color: '#7c3aed',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                  }}
+                >
+                  Apply
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => redeemCouponCode('MATH')}
+                style={{
+                  marginTop: 8,
+                  width: '100%',
+                  padding: '10px 14px',
+                  borderRadius: 10,
+                  border: `1.5px solid ${COLOR.green}`,
+                  background: COLOR.successBg,
+                  color: COLOR.green,
+                  fontSize: 13,
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                Continue free — use code MATH
+              </button>
+              {couponError && (
+                <p style={{ color: COLOR.red, fontSize: 12, fontWeight: 600, marginTop: 8, marginBottom: 0 }}>{couponError}</p>
+              )}
+            </div>
+
             <form onSubmit={(e) => { e.preventDefault(); runAuthFlow(); }}>
               {mode === 'signup' && (
                 <div style={{ marginBottom: 12 }}>
@@ -458,67 +519,6 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked, check
                 </>
               )}
             </p>
-
-            <div style={{ marginTop: 10, borderTop: `1px solid ${COLOR.border}`, paddingTop: 10 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.textSecondary, marginBottom: 6 }}>Continue free for math prep</div>
-              <p style={{ fontSize: 12, color: COLOR.textMuted, lineHeight: 1.45, margin: '0 0 8px' }}>
-                Type <strong style={{ color: COLOR.text }}>MATH</strong> in the box and tap Apply, or use the button below (no account required for this code).
-              </p>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
-                <input
-                  id="paywall-coupon-signup"
-                  type="text"
-                  name="coupon-code"
-                  inputMode="text"
-                  autoComplete="off"
-                  autoCapitalize="characters"
-                  spellCheck={false}
-                  value={couponCode}
-                  onChange={(e) => { setCouponCode(e.target.value); setCouponError(''); }}
-                  placeholder="MATH"
-                  style={{ ...INPUT_STYLE, flex: 1, padding: '8px 12px', fontSize: 16, position: 'relative', zIndex: 1 }}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleCoupon(); } }}
-                />
-                <button
-                  type="button"
-                  onClick={handleCoupon}
-                  style={{
-                    padding: '8px 14px',
-                    borderRadius: 10,
-                    border: `1.5px solid #7c3aed`,
-                    background: 'rgba(124, 58, 237, 0.06)',
-                    color: '#7c3aed',
-                    fontSize: 12,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    flexShrink: 0,
-                  }}
-                >
-                  Apply
-                </button>
-              </div>
-              <button
-                type="button"
-                onClick={() => redeemCouponCode('MATH')}
-                style={{
-                  marginTop: 8,
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: 10,
-                  border: `1.5px solid ${COLOR.green}`,
-                  background: COLOR.successBg,
-                  color: COLOR.green,
-                  fontSize: 13,
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                }}
-              >
-                Continue free — use code MATH
-              </button>
-              {couponError && (
-                <p style={{ color: COLOR.red, fontSize: 12, fontWeight: 600, marginTop: 4, marginBottom: 0 }}>{couponError}</p>
-              )}
-            </div>
           </div>
         )}
 
@@ -553,57 +553,10 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked, check
               </p>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: 12, marginBottom: 24 }}>
-              {PLANS.map((plan) => (
-                <div
-                  key={plan.id}
-                  style={{
-                    ...CARD,
-                    padding: isMobile ? 16 : 20,
-                    textAlign: 'center',
-                    border: plan.highlight ? `2px solid ${COLOR.green}` : `1px solid ${COLOR.border}`,
-                    position: 'relative',
-                  }}
-                >
-                  {plan.highlight && (
-                    <span style={{
-                      position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)',
-                      background: COLOR.green, color: '#fff', fontSize: 10, fontWeight: 700,
-                      padding: '2px 10px', borderRadius: 6, textTransform: 'uppercase', letterSpacing: '0.05em',
-                    }}>
-                      Best Value
-                    </span>
-                  )}
-                  <h4 style={{ ...HEADING, fontSize: 16, marginBottom: 6 }}>{plan.title}</h4>
-                  <div style={{ fontSize: 28, fontWeight: 800, color: COLOR.text, marginBottom: 2 }}>
-                    {plan.price}
-                    <span style={{ fontSize: 14, fontWeight: 500, color: COLOR.textSecondary }}>{plan.interval === 'one-time' ? '' : plan.interval}</span>
-                  </div>
-                  <p style={{ fontSize: 13, color: COLOR.textSecondary, lineHeight: 1.4, marginBottom: 16 }}>{plan.desc}</p>
-                  <button
-                    onClick={() => handleCheckout(plan.id)}
-                    disabled={busy}
-                    style={{
-                      ...(busy ? BTN_PRIMARY_DISABLED : BTN_PRIMARY),
-                      padding: '10px 16px',
-                      minHeight: 42,
-                      fontSize: 14,
-                    }}
-                  >
-                    {busy && retrying ? 'Connecting...' : busy ? '...' : isOffline ? 'Retry & Pay' : 'Start Now'}
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            {error && (
-              <p style={{ color: COLOR.red, fontSize: 13, fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>{error}</p>
-            )}
-
-            <div style={{ ...CARD, marginBottom: 16, padding: isMobile ? 14 : 18, position: 'relative', zIndex: 1 }}>
+            <div style={{ ...CARD, marginBottom: 20, padding: isMobile ? 14 : 18, position: 'relative', zIndex: 1, border: `1.5px solid ${COLOR.green}` }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: COLOR.text, marginBottom: 6 }}>Continue free for math prep</div>
               <p style={{ fontSize: 12, color: COLOR.textMuted, lineHeight: 1.45, margin: '0 0 10px' }}>
-                Type <strong style={{ color: COLOR.text }}>MATH</strong> and tap Apply, or use the button below.
+                Type <strong style={{ color: COLOR.text }}>MATH</strong> and tap Apply, or use the button below — no payment required.
               </p>
               <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
                 <input
@@ -657,6 +610,53 @@ export default function PaywallGate({ examId, diagnosticScore, onUnlocked, check
                 <p style={{ color: COLOR.red, fontSize: 12, fontWeight: 600, marginTop: 6, marginBottom: 0 }}>{couponError}</p>
               )}
             </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: 12, marginBottom: 24 }}>
+              {PLANS.map((plan) => (
+                <div
+                  key={plan.id}
+                  style={{
+                    ...CARD,
+                    padding: isMobile ? 16 : 20,
+                    textAlign: 'center',
+                    border: plan.highlight ? `2px solid ${COLOR.green}` : `1px solid ${COLOR.border}`,
+                    position: 'relative',
+                  }}
+                >
+                  {plan.highlight && (
+                    <span style={{
+                      position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)',
+                      background: COLOR.green, color: '#fff', fontSize: 10, fontWeight: 700,
+                      padding: '2px 10px', borderRadius: 6, textTransform: 'uppercase', letterSpacing: '0.05em',
+                    }}>
+                      Best Value
+                    </span>
+                  )}
+                  <h4 style={{ ...HEADING, fontSize: 16, marginBottom: 6 }}>{plan.title}</h4>
+                  <div style={{ fontSize: 28, fontWeight: 800, color: COLOR.text, marginBottom: 2 }}>
+                    {plan.price}
+                    <span style={{ fontSize: 14, fontWeight: 500, color: COLOR.textSecondary }}>{plan.interval === 'one-time' ? '' : plan.interval}</span>
+                  </div>
+                  <p style={{ fontSize: 13, color: COLOR.textSecondary, lineHeight: 1.4, marginBottom: 16 }}>{plan.desc}</p>
+                  <button
+                    onClick={() => handleCheckout(plan.id)}
+                    disabled={busy}
+                    style={{
+                      ...(busy ? BTN_PRIMARY_DISABLED : BTN_PRIMARY),
+                      padding: '10px 16px',
+                      minHeight: 42,
+                      fontSize: 14,
+                    }}
+                  >
+                    {busy && retrying ? 'Connecting...' : busy ? '...' : isOffline ? 'Retry & Pay' : 'Start Now'}
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {error && (
+              <p style={{ color: COLOR.red, fontSize: 13, fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>{error}</p>
+            )}
 
             <p style={{ textAlign: 'center', fontSize: 12, color: COLOR.textMuted, lineHeight: 1.5 }}>
               Secure payment via Stripe. Cancel anytime.

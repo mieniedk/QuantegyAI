@@ -1381,6 +1381,15 @@ function BellCurveExplorer({ onComplete, continueLabel, badgeLabel, embedded }) 
    ═══════════════════════════════════════════════════════════════════════════ */
 const MODES = ['mean-builder', 'median-sorter', 'box-plot', 'bell-curve', 'line-fit', 'prob-sim'];
 
+function resolveStatsMode({ modeSet, modeOverride, activityIndex }) {
+  if (Array.isArray(modeSet) && modeSet.length > 0) {
+    const valid = modeSet.filter((m) => MODES.includes(m));
+    if (valid.length) return valid[activityIndex % valid.length];
+  }
+  if (MODES.includes(modeOverride)) return modeOverride;
+  return MODES[activityIndex % MODES.length];
+}
+
 export default function StatsExplorer({
   activityIndex = 0,
   onComplete,
@@ -1388,8 +1397,9 @@ export default function StatsExplorer({
   badgeLabel = 'Interactive activity',
   embedded = false,
   modeOverride,
+  modeSet,
 }) {
-  const mode = MODES.includes(modeOverride) ? modeOverride : MODES[activityIndex % MODES.length];
+  const mode = resolveStatsMode({ modeSet, modeOverride, activityIndex });
   if (mode === 'mean-builder') return <MeanBuilder onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'median-sorter') return <MedianSorter onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'box-plot') return <BoxPlotBuilder onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;

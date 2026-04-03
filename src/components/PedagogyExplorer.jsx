@@ -630,6 +630,15 @@ function AssessmentMatcher({ onComplete, continueLabel, badgeLabel, embedded }) 
    ═══════════════════════════════════════════════════════════════════════════ */
 const MODES = ['lesson-sequencer', 'misconception-detector', 'assessment-matcher'];
 
+function resolvePedagogyMode({ modeSet, modeOverride, activityIndex }) {
+  if (Array.isArray(modeSet) && modeSet.length > 0) {
+    const valid = modeSet.filter((m) => MODES.includes(m));
+    if (valid.length) return valid[activityIndex % valid.length];
+  }
+  if (MODES.includes(modeOverride)) return modeOverride;
+  return MODES[activityIndex % MODES.length];
+}
+
 export default function PedagogyExplorer({
   activityIndex = 0,
   onComplete,
@@ -637,8 +646,9 @@ export default function PedagogyExplorer({
   badgeLabel = 'Interactive activity',
   embedded = false,
   modeOverride,
+  modeSet,
 }) {
-  const mode = MODES.includes(modeOverride) ? modeOverride : MODES[activityIndex % MODES.length];
+  const mode = resolvePedagogyMode({ modeSet, modeOverride, activityIndex });
   if (mode === 'lesson-sequencer') return <LessonSequencer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'misconception-detector') return <MisconceptionDetector onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   return <AssessmentMatcher onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;

@@ -27,6 +27,37 @@ import {
 /** Domain II standards where slope / intercept micro-activities apply */
 const LINEAR_SLOPE_STANDARDS = new Set(['c005', 'c006']);
 
+/** Three distinct interactives per standard (activity A/B/C); topics stay within the loop scope. */
+const GEO_INTERACTIVE_MODE_SETS = {
+  c011: ['area-builder', 'angle-explorer', 'transform-lab'],
+  c012: ['angle-explorer', 'parallel-perp-lab', 'transform-lab'],
+  c013: ['area-builder', 'parallel-perp-lab', 'angle-explorer'],
+  c014: ['transform-lab', 'area-builder', 'parallel-perp-lab'],
+};
+const STATS_INTERACTIVE_MODE_SETS = {
+  c015: ['mean-builder', 'median-sorter', 'box-plot'],
+  c016: ['prob-sim', 'mean-builder', 'bell-curve'],
+  c017: ['bell-curve', 'line-fit', 'box-plot'],
+};
+const REASONING_INTERACTIVE_MODE_SETS = {
+  c018: ['proof-sorter', 'pattern-finder', 'representation-match'],
+  c019: ['representation-match', 'pattern-finder', 'proof-sorter'],
+};
+const PEDAGOGY_INTERACTIVE_MODE_SETS = {
+  c020: ['lesson-sequencer', 'misconception-detector', 'assessment-matcher'],
+  c021: ['assessment-matcher', 'lesson-sequencer', 'misconception-detector'],
+};
+/** When Domain II has no explicit `mode` from the loop, rotate these algebra modes by activity index. */
+const DOMAIN2_ALGEBRA_FALLBACK_MODE_SET = {
+  c004: ['sequence-patterns', 'function-transform', 'quadratic'],
+  c005: ['function-transform', 'quadratic', 'sequence-patterns'],
+  c006: ['quadratic', 'function-transform', 'sequence-patterns'],
+  c007: ['quadratic', 'function-transform', 'sequence-patterns'],
+  c008: ['function-transform', 'quadratic', 'sequence-patterns'],
+  c009: ['trig-circle', 'function-transform', 'quadratic'],
+  c010: ['quadratic', 'function-transform', 'trig-circle'],
+};
+
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -274,11 +305,11 @@ export default function CompetencyActivity({
   }
   if (subject === 'math' && comp === 'comp001') {
     const numberModeSet = currentStd === 'c001'
-      ? ['number-line']
+      ? ['number-line', 'real-number-sets', 'real-properties']
       : currentStd === 'c002'
-        ? ['complex-plane']
+        ? ['complex-plane', 'complex-arithmetic', 'complex-equations']
         : currentStd === 'c003'
-          ? ['prime-blast', 'factor-lab', 'number-line']
+          ? ['prime-blast', 'factor-lab', 'number-line', 'prime-blast', 'factor-lab', 'number-line']
           : null;
     return (
       <NumberExplorer
@@ -292,19 +323,11 @@ export default function CompetencyActivity({
     );
   }
   if (subject === 'math' && comp === 'comp002' && !mode) {
-    const stdAlgebraDefault = {
-      c004: 'sequence-patterns',
-      c005: 'function-transform',
-      c006: 'quadratic',
-      c007: 'quadratic',
-      c008: 'function-transform',
-      c009: 'trig-circle',
-      c010: 'quadratic',
-    }[currentStd];
-    if (stdAlgebraDefault) {
+    const fb = DOMAIN2_ALGEBRA_FALLBACK_MODE_SET[currentStd];
+    if (fb?.length) {
       return (
         <AlgebraExplorer
-          mode={stdAlgebraDefault}
+          modeSet={fb}
           activityIndex={activityIndex}
           onComplete={onComplete}
           continueLabel={continueLabel}
@@ -316,16 +339,11 @@ export default function CompetencyActivity({
     return <AlgebraExplorer activityIndex={activityIndex} onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   }
   if (subject === 'math' && comp === 'comp003') {
-    const geoModeByStd = {
-      c011: 'area-builder',
-      c012: 'angle-explorer',
-      c013: 'parallel-perp-lab',
-      c014: 'transform-lab',
-    };
+    const geoSet = GEO_INTERACTIVE_MODE_SETS[currentStd];
     return (
       <GeoExplorer
         activityIndex={activityIndex}
-        modeOverride={geoModeByStd[currentStd]}
+        modeSet={geoSet}
         onComplete={onComplete}
         continueLabel={continueLabel}
         badgeLabel={badgeLabel}
@@ -334,15 +352,11 @@ export default function CompetencyActivity({
     );
   }
   if (subject === 'math' && comp === 'comp004') {
-    const statsModeByStd = {
-      c015: 'box-plot',
-      c016: 'prob-sim',
-      c017: 'bell-curve',
-    };
+    const statsSet = STATS_INTERACTIVE_MODE_SETS[currentStd];
     return (
       <StatsExplorer
         activityIndex={activityIndex}
-        modeOverride={statsModeByStd[currentStd]}
+        modeSet={statsSet}
         onComplete={onComplete}
         continueLabel={continueLabel}
         badgeLabel={badgeLabel}
@@ -351,14 +365,11 @@ export default function CompetencyActivity({
     );
   }
   if (subject === 'math' && comp === 'comp005') {
-    const reasoningModeByStd = {
-      c018: 'proof-sorter',
-      c019: 'representation-match',
-    };
+    const reasoningSet = REASONING_INTERACTIVE_MODE_SETS[currentStd];
     return (
       <ReasoningExplorer
         activityIndex={activityIndex}
-        modeOverride={reasoningModeByStd[currentStd]}
+        modeSet={reasoningSet}
         onComplete={onComplete}
         continueLabel={continueLabel}
         badgeLabel={badgeLabel}
@@ -367,14 +378,11 @@ export default function CompetencyActivity({
     );
   }
   if (subject === 'math' && comp === 'comp006') {
-    const pedagogyModeByStd = {
-      c020: 'lesson-sequencer',
-      c021: 'assessment-matcher',
-    };
+    const pedagogySet = PEDAGOGY_INTERACTIVE_MODE_SETS[currentStd];
     return (
       <PedagogyExplorer
         activityIndex={activityIndex}
-        modeOverride={pedagogyModeByStd[currentStd]}
+        modeSet={pedagogySet}
         onComplete={onComplete}
         continueLabel={continueLabel}
         badgeLabel={badgeLabel}
