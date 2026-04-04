@@ -1,16 +1,21 @@
 /**
  * NumberExplorer — Interactive activities for Domain I: Number Concepts.
  *
- * Modes (rotated by activityIndex):
- *   0  "number-line"    Drag number tokens to correct positions on a number line.
- *   1  "complex-plane"  Reuses the existing ComplexPlaneExplorer component.
- *   2  "prime-blast"    Select all prime numbers from 1 to 50.
- *   3  "factor-lab"     Build prime factorization trees, then find GCF / LCM.
+ * Modes (rotated by activityIndex from CompetencyActivity `modeSet` per standard):
+ *   c001: number-line, real-number-sets, real-properties, commutativity explorer
+ *   c002: slot A/C rotate geometry/fractal/card-sort + arithmetic + equations; slot B real-number-sets.
+ *   c003: prime-blast, real-number-sets, factor-lab, gcd-lcm (repeating pattern in modeSet)
+ *   Fallback MODES: number-line, complex-plane, complex-geometry, prime-blast, factor-lab
  */
 import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { COLOR, CARD, BTN_PRIMARY, BADGE } from '../utils/loopStyles';
 import { sanitizeHtml } from '../utils/sanitize';
 import ComplexPlaneExplorer from './ComplexPlaneExplorer';
+import ComplexPlaneGeometryExplorer from './ComplexPlaneGeometryExplorer';
+import CommutativityExplorer from './CommutativityExplorer';
+import GcdLcmExplorer from './GcdLcmExplorer';
+import ComplexFractalExplorer from './ComplexFractalExplorer';
+import ComplexCardSortExplorer from './ComplexCardSortExplorer';
 import qbotImg from '../assets/qbot.svg';
 
 const rand = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
@@ -342,6 +347,12 @@ const REAL_SET_ITEMS = [
   { label: 'π', zone: 'R', explain: 'π is real but not rational.' },
   { label: '√2 / 2', zone: 'R', explain: 'This is irrational (not a ratio of two integers in lowest terms as a rational would be).' },
   { label: '6', zone: 'N', explain: 'Positive counting number → ℕ.' },
+  { label: '100', zone: 'N', explain: '100 is a counting number, so it belongs in ℕ.' },
+  { label: '2', zone: 'N', explain: '2 is a natural number in this activity (ℕ = 1, 2, 3, …).' },
+  { label: '−101', zone: 'Z', explain: 'Negative integers live in ℤ; they are not whole numbers.' },
+  { label: '−1/3', zone: 'Q', explain: 'A ratio of two integers (non-integer) is rational — in ℚ.' },
+  { label: '1/2', zone: 'Q', explain: 'A fraction that is not an integer sits in ℚ.' },
+  { label: '√2', zone: 'R', explain: '√2 is irrational: real, but not a ratio of two integers.' },
   { label: '−3/1', zone: 'Z', explain: '−3/1 equals −3, an integer (not whole), so smallest set is ℤ.' },
 ];
 
@@ -354,12 +365,70 @@ function shuffleRealSetItems(arr) {
   return a;
 }
 
+function renderChipLabelHtml(label) {
+  return sanitizeHtml(label.replace(/\.\\overline\{([^}]+)\}/g, '<span style="text-decoration:overline">$1</span>'));
+}
+
+/** Ellipse model in SVG viewBox coords (outer Q → inner N). Hit-test innermost first. cx left of center so legend fits without overlapping ℚ. */
+const REAL_NEST_ELLIPSES = [
+  { id: 'Q', cx: 175, cy: 178, rx: 178, ry: 132 },
+  { id: 'Z', cx: 175, cy: 178, rx: 128, ry: 98 },
+  { id: 'W', cx: 175, cy: 178, rx: 84, ry: 64 },
+  { id: 'N', cx: 175, cy: 178, rx: 44, ry: 34 },
+];
+
+/** Wider viewBox so diagram + on-canvas legend fit without crowding ovals. */
+const REAL_NEST_SVG_VIEW_W = 480;
+const REAL_NEST_SVG_VIEW_H = 360;
+
+function clientPointInRect(clientX, clientY, rect) {
+  return clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
+}
+
+function nestEllipseContains(px, py, cx, cy, rx, ry) {
+  if (rx < 1e-6 || ry < 1e-6) return false;
+  const dx = (px - cx) / rx;
+  const dy = (py - cy) / ry;
+  return dx * dx + dy * dy <= 1.0002;
+}
+
+function resolveRationalZoneFromNestSvg(svgEl, clientX, clientY) {
+  if (!svgEl || typeof svgEl.createSVGPoint !== 'function') return null;
+  const rect = svgEl.getBoundingClientRect();
+  if (!clientPointInRect(clientX, clientY, rect)) return null;
+  let pt;
+  try {
+    const svgPt = svgEl.createSVGPoint();
+    svgPt.x = clientX;
+    svgPt.y = clientY;
+    const ctm = svgEl.getScreenCTM();
+    if (!ctm) return null;
+    pt = svgPt.matrixTransform(ctm.inverse());
+  } catch (_) {
+    return null;
+  }
+  for (let i = REAL_NEST_ELLIPSES.length - 1; i >= 0; i--) {
+    const ell = REAL_NEST_ELLIPSES[i];
+    if (nestEllipseContains(pt.x, pt.y, ell.cx, ell.cy, ell.rx, ell.ry)) return ell.id;
+  }
+  return null;
+}
+
+/** Chips assigned to nested rational zones; pen/touch/mouse use pointer capture + ellipse hit-test. */
 function RealNumberSetsExplorer({ onComplete, continueLabel, badgeLabel, embedded }) {
   const [round, setRound] = useState(0);
   const items = useMemo(() => shuffleRealSetItems(REAL_SET_ITEMS).slice(0, 8), [round]);
   const [assignments, setAssignments] = useState({});
   const [selectedLabel, setSelectedLabel] = useState(null);
   const [checked, setChecked] = useState(false);
+  const boardRef = useRef(null);
+  const nestSvgRef = useRef(null);
+  const irrPanelRef = useRef(null);
+  const dragRef = useRef({ label: null, x0: 0, y0: 0, moved: false });
+  const lastGhostRef = useRef({ x: 0, y: 0 });
+  const capturePointerIdRef = useRef(null);
+  const suppressBankClickRef = useRef(false);
+  const [dragGhost, setDragGhost] = useState(null);
 
   useEffect(() => {
     setAssignments({});
@@ -373,17 +442,147 @@ function RealNumberSetsExplorer({ onComplete, continueLabel, badgeLabel, embedde
     : 0;
   const allCorrect = checked && correctCount === items.length;
 
-  const assign = (zoneId) => {
-    if (!selectedLabel || checked) return;
-    setAssignments((prev) => ({ ...prev, [selectedLabel]: zoneId }));
+  const assignToZone = useCallback((zoneId, label) => {
+    if (!label || checked) return;
+    setAssignments((prev) => ({ ...prev, [label]: zoneId }));
     setSelectedLabel(null);
+  }, [checked]);
+
+  const assignFromTap = (zoneId) => {
+    if (!selectedLabel || checked) return;
+    assignToZone(zoneId, selectedLabel);
+  };
+
+  const resolveDropZone = useCallback((clientX, clientY) => {
+    const irrEl = irrPanelRef.current;
+    if (irrEl) {
+      const r = irrEl.getBoundingClientRect();
+      if (clientPointInRect(clientX, clientY, r)) return 'R';
+    }
+    const root = boardRef.current;
+    if (!root) return null;
+    const svgHit = resolveRationalZoneFromNestSvg(nestSvgRef.current, clientX, clientY);
+    if (svgHit) return svgHit;
+    const el = document.elementFromPoint(clientX, clientY);
+    if (!el || !root.contains(el)) return null;
+    const irr = el.closest('[data-real-nest="irrational"]');
+    if (irr) return 'R';
+    const hit = el.closest('[data-real-nest]');
+    if (!hit) return null;
+    const id = hit.getAttribute('data-real-nest');
+    if (id === 'irrational' || id === 'nested-root') return null;
+    return id;
+  }, []);
+
+  useEffect(() => {
+    if (!dragGhost?.label) return undefined;
+    let ended = false;
+    const pid = capturePointerIdRef.current;
+    const runEnd = (ev) => {
+      if (ended) return;
+      if (pid != null && ev.pointerId !== pid) return;
+      ended = true;
+      const label = dragRef.current.label;
+      const moved = dragRef.current.moved;
+      dragRef.current = { label: null, x0: 0, y0: 0, moved: false };
+      capturePointerIdRef.current = null;
+      setDragGhost(null);
+      if (moved) suppressBankClickRef.current = true;
+      let x = ev.clientX;
+      let y = ev.clientY;
+      if (x == null || y == null || Number.isNaN(x) || Number.isNaN(y)) {
+        x = lastGhostRef.current.x;
+        y = lastGhostRef.current.y;
+      }
+      if (!label || checked) return;
+      if (moved && x != null && y != null) {
+        const z = resolveDropZone(x, y);
+        if (z) assignToZone(z, label);
+      }
+    };
+    const onMove = (e) => {
+      if (pid != null && e.pointerId !== pid) return;
+      if (e.cancelable) e.preventDefault();
+      const x = e.clientX;
+      const y = e.clientY;
+      if (x == null || y == null) return;
+      lastGhostRef.current = { x, y };
+      setDragGhost((g) => (g ? { ...g, x, y } : null));
+      const dx = x - dragRef.current.x0;
+      const dy = y - dragRef.current.y0;
+      if (Math.hypot(dx, dy) > 10) dragRef.current.moved = true;
+    };
+    window.addEventListener('pointermove', onMove, { passive: false, capture: true });
+    window.addEventListener('pointerup', runEnd, { capture: true });
+    window.addEventListener('pointercancel', runEnd, { capture: true });
+    window.addEventListener('lostpointercapture', runEnd, { capture: true });
+    return () => {
+      ended = true;
+      window.removeEventListener('pointermove', onMove, { capture: true });
+      window.removeEventListener('pointerup', runEnd, { capture: true });
+      window.removeEventListener('pointercancel', runEnd, { capture: true });
+      window.removeEventListener('lostpointercapture', runEnd, { capture: true });
+    };
+  }, [dragGhost?.label, checked, resolveDropZone, assignToZone]);
+
+  const startDragChip = useCallback((e, label) => {
+    if (checked || assignments[label] != null) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const el = e.currentTarget;
+    capturePointerIdRef.current = e.pointerId;
+    try {
+      el.setPointerCapture(e.pointerId);
+    } catch (_) { /* some embedded browsers */ }
+    const x = e.clientX ?? 0;
+    const y = e.clientY ?? 0;
+    lastGhostRef.current = { x, y };
+    dragRef.current = { label, x0: x, y0: y, moved: false };
+    setDragGhost({ label, x, y });
+  }, [checked, assignments]);
+
+  const zoneById = useMemo(() => Object.fromEntries(REAL_SET_ZONES.map((z) => [z.id, z])), []);
+
+  const renderPlacedChip = (it) => {
+    const zoneMeta = zoneById[assignments[it.label]];
+    const wrong = checked && assignments[it.label] !== it.zone;
+    const right = checked && assignments[it.label] === it.zone;
+    return (
+      <button
+        key={`placed-${it.label}`}
+        type="button"
+        disabled={checked}
+        onClick={(ev) => {
+          ev.stopPropagation();
+          if (!checked) setSelectedLabel((s) => (s === it.label ? null : it.label));
+        }}
+        style={{
+          padding: '4px 8px',
+          borderRadius: 8,
+          fontWeight: 800,
+          fontSize: 12,
+          border: `2px solid ${right ? COLOR.greenBorder : wrong ? '#fca5a5' : selectedLabel === it.label ? COLOR.blue : zoneMeta?.border || COLOR.border}`,
+          background: right ? COLOR.greenLight : wrong ? '#fef2f2' : selectedLabel === it.label ? COLOR.blueBg : '#fff',
+          color: wrong ? '#b91c1c' : COLOR.text,
+          cursor: checked ? 'default' : 'pointer',
+          lineHeight: 1.2,
+        }}
+      >
+        <span dangerouslySetInnerHTML={{ __html: renderChipLabelHtml(it.label) }} />
+        {right ? ' ✓' : ''}{wrong ? ' ✗' : ''}
+      </button>
+    );
   };
 
   const qbot = !checked
-    ? { msg: 'Tap a number, then tap the **smallest** set that still contains it — from ℕ out to irrationals.', mood: 'wave' }
+    ? { msg: '**Drag** each number onto the **labeled ovals** (ℕ, ℤ, ℚ) or the **Irrational** zone. Pick the **smallest** set that fits — or tap a chip, then tap a region.', mood: 'wave' }
     : allCorrect
-      ? { msg: 'Nice! You matched each value to its tightest set in ℕ ⊂ 𝕎 ⊂ ℤ ⊂ ℚ ⊂ ℝ.', mood: 'celebrate' }
+      ? { msg: 'Nice! You matched each value to its tightest set: ℕ ⊂ 𝕎 ⊂ ℤ ⊂ ℚ, with irrationals beside ℚ inside ℝ.', mood: 'celebrate' }
       : { msg: `You have ${correctCount}/${items.length} correct. Read the hints and try Check again.`, mood: 'think' };
+
+  const nestZones = REAL_SET_ZONES.filter((z) => z.id !== 'R');
+  const irrZone = REAL_SET_ZONES.find((z) => z.id === 'R');
 
   return (
     <div style={embedded ? {} : CARD}>
@@ -392,81 +591,328 @@ function RealNumberSetsExplorer({ onComplete, continueLabel, badgeLabel, embedde
         Place numbers in the real number system
       </p>
       <p style={{ margin: '0 0 8px', fontSize: 13, color: COLOR.textSecondary, lineHeight: 1.5 }}>
-        Sets nest like Russian dolls: <strong>ℕ</strong> (naturals) ⊂ <strong>𝕎</strong> (wholes) ⊂ <strong>ℤ</strong> (integers) ⊂ <strong>ℚ</strong> (rationals) ⊂ <strong>ℝ</strong> (reals).
-        For each value, choose the <strong>innermost</strong> set it belongs to. Irrationals use the last row (real but not rational).
+        The picture is a <strong>nested “Venn”</strong>: each oval is a set of numbers. <strong>ℕ</strong> (naturals) is the smallest oval; <strong>𝕎</strong> and <strong>ℤ</strong> are the next rings; the big <strong>ℚ</strong> oval is all rationals.
+        <strong>Irrationals</strong> are still real numbers but are <em>not</em> inside ℚ — drop them in the orange zone. Use the <strong>innermost</strong> oval that fits each number.
       </p>
 
       <QBotBubble message={qbot.msg} mood={qbot.mood} />
 
       <div style={{ marginBottom: 12, padding: '10px 12px', borderRadius: 10, background: '#f8fafc', border: `1px solid ${COLOR.border}`, fontSize: 12, color: COLOR.textSecondary, lineHeight: 1.45 }}>
-        <strong>How:</strong> Tap a chip below, then tap the matching set. ℕ = 1, 2, 3, … only; 𝕎 is for 0 here; negative integers go under ℤ; non-integer rationals under ℚ; √2, π, etc. under the last row.
+        <strong>How:</strong> Drag from the bank onto the ovals (each oval is a set), or tap a chip then tap a region. ℕ = 1, 2, 3, …; 𝕎 adds 0; ℤ adds negatives; ℚ adds non-integer rationals; the orange zone is for √2, π, and similar irrationals.
       </div>
 
-      {/* Nested visual (conceptual) */}
-      <div style={{ marginBottom: 14, padding: '12px 10px', borderRadius: 14, background: 'linear-gradient(180deg,#fffbeb 0%,#fef3c7 100%)', border: '1px solid #fcd34d' }}>
-        <div style={{ fontSize: 11, fontWeight: 800, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, textAlign: 'center' }}>
-          Smallest set wins
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'stretch' }}>
-          {REAL_SET_ZONES.map((z) => (
-            <button
-              key={z.id}
-              type="button"
-              onClick={() => assign(z.id)}
-              disabled={checked}
-              style={{
-                textAlign: 'left',
-                padding: '10px 12px',
-                borderRadius: 12,
-                border: `2px solid ${z.border}`,
-                background: z.bg,
-                cursor: checked ? 'default' : 'pointer',
-                opacity: checked ? 0.85 : 1,
-                transition: 'transform 0.12s',
-              }}
-            >
-              <div style={{ fontSize: 13, fontWeight: 800, color: z.accent }}>
-                {z.short} · {z.title}
+      <div
+        ref={boardRef}
+        style={{
+          marginBottom: 14,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+          alignItems: 'stretch',
+          touchAction: 'none',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+        }}
+      >
+        <div
+          style={{
+            borderRadius: 18,
+            border: '3px solid #94a3b8',
+            background: 'linear-gradient(180deg,#f1f5f9 0%,#e2e8f0 8%,#f8fafc 100%)',
+            padding: '12px 14px 14px',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.75)',
+          }}
+        >
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a', textAlign: 'center', marginBottom: 4, letterSpacing: '0.02em' }}>
+            ℝ Real numbers
+          </div>
+          <p style={{ margin: '0 0 10px', fontSize: 12, color: COLOR.textSecondary, textAlign: 'center', lineHeight: 1.45 }}>
+            Everything you sort lives in ℝ. Rationals fill the nested ovals on the left; irrationals use the zone on the right (still real, not in ℚ).
+          </p>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 12,
+              alignItems: 'stretch',
+              justifyContent: 'center',
+            }}
+          >
+        {/* Concentric ℚ ⊃ ℤ ⊃ 𝕎 ⊃ ℕ — SVG ovals (sketch-style) + HTML targets for chips */}
+        <div
+          data-real-nest="nested-root"
+          role="presentation"
+          onClick={(e) => {
+            if (checked) return;
+            const t = e.target.closest('[data-real-nest]');
+            const id = t?.getAttribute('data-real-nest');
+            if (!id || id === 'nested-root' || id === 'irrational') return;
+            assignFromTap(id);
+          }}
+          style={{
+            flex: '1 1 300px',
+            maxWidth: 460,
+            position: 'relative',
+            padding: 12,
+            borderRadius: 20,
+            background: 'linear-gradient(160deg,#faf5ff 0%,#ede9fe 100%)',
+            border: `2px solid ${nestZones[3]?.border || '#c4b5fd'}`,
+            cursor: selectedLabel && !checked ? 'pointer' : 'default',
+            minHeight: 340,
+          }}
+        >
+          <svg
+            ref={nestSvgRef}
+            viewBox={`0 0 ${REAL_NEST_SVG_VIEW_W} ${REAL_NEST_SVG_VIEW_H}`}
+            preserveAspectRatio="xMidYMid meet"
+            style={{
+              position: 'absolute',
+              left: 8,
+              right: 8,
+              top: 40,
+              height: 'calc(100% - 48px)',
+              width: 'calc(100% - 16px)',
+              pointerEvents: 'none',
+              zIndex: 0,
+            }}
+            aria-hidden
+          >
+            <defs>
+              <linearGradient id="rn-q" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#f5f3ff" />
+                <stop offset="100%" stopColor="#ede9fe" />
+              </linearGradient>
+              <linearGradient id="rn-z" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#eff6ff" />
+                <stop offset="100%" stopColor="#dbeafe" />
+              </linearGradient>
+              <linearGradient id="rn-w" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#f0fdfa" />
+                <stop offset="100%" stopColor="#ccfbf1" />
+              </linearGradient>
+              <linearGradient id="rn-n" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#ecfdf5" />
+                <stop offset="100%" stopColor="#bbf7d0" />
+              </linearGradient>
+              <filter id="rn-soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="1" stdDeviation="1.2" floodOpacity="0.12" />
+              </filter>
+            </defs>
+            {REAL_NEST_ELLIPSES.map((ell) => (
+              <ellipse
+                key={ell.id}
+                cx={ell.cx}
+                cy={ell.cy}
+                rx={ell.rx}
+                ry={ell.ry}
+                fill={
+                  ell.id === 'Q' ? 'url(#rn-q)'
+                    : ell.id === 'Z' ? 'url(#rn-z)'
+                      : ell.id === 'W' ? 'url(#rn-w)'
+                        : 'url(#rn-n)'
+                }
+                stroke={ell.id === 'Q' ? '#a78bfa' : ell.id === 'Z' ? '#60a5fa' : ell.id === 'W' ? '#2dd4bf' : '#4ade80'}
+                strokeWidth={ell.id === 'N' ? 2.5 : 2}
+                opacity={ell.id === 'Q' ? 0.95 : 0.92}
+                filter="url(#rn-soft-shadow)"
+              />
+            ))}
+            {/* Large on-diagram set labels (annular regions); x matches REAL_NEST_ELLIPSES cx */}
+            <text x="175" y="52" textAnchor="middle" fontSize="15" fontWeight="800" fill="#5b21b6">ℚ Rational numbers</text>
+            <text x="175" y="70" textAnchor="middle" fontSize="10" fontWeight="600" fill="#6d28d9">(fractions, terminating / repeating decimals)</text>
+            <text x="175" y="100" textAnchor="middle" fontSize="13" fontWeight="800" fill="#1d4ed8">ℤ Integers</text>
+            <text x="175" y="116" textAnchor="middle" fontSize="9" fontWeight="600" fill="#2563eb">…, −2, −1, 0, 1, 2, …</text>
+            <text x="175" y="142" textAnchor="middle" fontSize="12" fontWeight="800" fill="#0f766e">𝕎 Whole numbers</text>
+            <text x="175" y="156" textAnchor="middle" fontSize="9" fontWeight="600" fill="#0d9488">0, 1, 2, 3, …</text>
+            <text x="175" y="182" textAnchor="middle" fontSize="14" fontWeight="800" fill="#166534">ℕ Natural numbers</text>
+            <text x="175" y="198" textAnchor="middle" fontSize="9" fontWeight="600" fill="#15803d">1, 2, 3, … (counting)</text>
+            {/* Legend: maps colors to set names (right of ℚ oval: cx+rx ≈ 353) */}
+            <rect x="362" y="36" width="112" height="168" rx="10" fill="#ffffff" fillOpacity="0.92" stroke="#cbd5e1" strokeWidth="1.5" />
+            <text x="418" y="54" textAnchor="middle" fontSize="11" fontWeight="800" fill="#334155">Sets</text>
+            <circle cx="374" cy="72" r="7" fill="url(#rn-n)" stroke="#4ade80" strokeWidth="1.5" />
+            <text x="388" y="76" fontSize="10" fontWeight="700" fill="#166534">ℕ Natural</text>
+            <circle cx="374" cy="92" r="7" fill="url(#rn-w)" stroke="#2dd4bf" strokeWidth="1.5" />
+            <text x="388" y="96" fontSize="10" fontWeight="700" fill="#0f766e">𝕎 Whole</text>
+            <circle cx="374" cy="112" r="7" fill="url(#rn-z)" stroke="#60a5fa" strokeWidth="1.5" />
+            <text x="388" y="116" fontSize="10" fontWeight="700" fill="#1d4ed8">ℤ Integer</text>
+            <circle cx="374" cy="132" r="7" fill="url(#rn-q)" stroke="#a78bfa" strokeWidth="1.5" />
+            <text x="388" y="136" fontSize="10" fontWeight="700" fill="#5b21b6">ℚ Rational</text>
+            <text x="370" y="158" fontSize="9" fontWeight="600" fill="#64748b">Inner oval =</text>
+            <text x="370" y="172" fontSize="9" fontWeight="600" fill="#64748b">tightest fit.</text>
+            <text x="370" y="188" fontSize="9" fontWeight="600" fill="#c2410c">Orange zone →</text>
+            <text x="370" y="200" fontSize="9" fontWeight="600" fill="#c2410c">Irrational</text>
+          </svg>
+          <div style={{ position: 'relative', zIndex: 1, fontSize: 12, fontWeight: 800, color: '#6b21a8', textAlign: 'center', marginBottom: 8, letterSpacing: '0.04em' }}>
+            Nested sets on the diagram — drop on the matching oval
+          </div>
+          {(() => {
+            let inner = (
+              <div
+                data-real-nest="N"
+                style={{
+                  minHeight: 52,
+                  minWidth: 72,
+                  padding: 8,
+                  borderRadius: '50%',
+                  border: `2px solid ${zoneById.N.border}`,
+                  background: 'rgba(236,253,245,0.88)',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 6,
+                  alignContent: 'flex-start',
+                  alignItems: 'flex-start',
+                  justifyContent: 'center',
+                  margin: '0 auto',
+                  maxWidth: '42%',
+                  touchAction: 'none',
+                }}
+              >
+                <div style={{ width: '100%', fontSize: 9, fontWeight: 800, color: zoneById.N.accent, marginBottom: 2, textAlign: 'center' }}>
+                  {zoneById.N.short} natural
+                </div>
+                {items.filter((it) => assignments[it.label] === 'N').map(renderPlacedChip)}
               </div>
-              <div style={{ fontSize: 11, color: COLOR.textSecondary, marginTop: 2, lineHeight: 1.35 }}>{z.subtitle}</div>
-            </button>
-          ))}
+            );
+            const wrapOrder = ['W', 'Z', 'Q'];
+            for (const zid of wrapOrder) {
+              const z = zoneById[zid];
+              const padPct = zid === 'Q' ? '10%' : zid === 'Z' ? '8%' : '7%';
+              inner = (
+                <div
+                  key={zid}
+                  data-real-nest={zid}
+                  style={{
+                    padding: padPct,
+                    borderRadius: '50%',
+                    border: `2px solid ${z.border}`,
+                    background: zid === 'Q' ? 'rgba(245,243,255,0.35)' : zid === 'Z' ? 'rgba(239,246,255,0.4)' : 'rgba(240,253,250,0.45)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: zid === 'Q' ? 260 : undefined,
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    touchAction: 'none',
+                  }}
+                >
+                  <div style={{ fontSize: 9, fontWeight: 800, color: z.accent, marginBottom: 4, lineHeight: 1.3, textAlign: 'center', maxWidth: 200 }}>
+                    {z.short} {z.title}
+                  </div>
+                  {inner}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', marginTop: 6 }}>
+                    {items.filter((it) => assignments[it.label] === zid).map(renderPlacedChip)}
+                  </div>
+                </div>
+              );
+            }
+            return inner;
+          })()}
+        </div>
+
+        {/* Irrationals — sibling to ℚ, not inside it */}
+        {irrZone && (
+          <div
+            ref={irrPanelRef}
+            data-real-nest="irrational"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if ((e.key === 'Enter' || e.key === ' ') && selectedLabel && !checked) {
+                e.preventDefault();
+                assignFromTap('R');
+              }
+            }}
+            onClick={() => assignFromTap('R')}
+            style={{
+              flex: '1 1 200px',
+              maxWidth: 320,
+              minHeight: 200,
+              padding: 14,
+              borderRadius: 16,
+              border: `2px dashed ${irrZone.border}`,
+              background: irrZone.bg,
+              cursor: selectedLabel && !checked ? 'pointer' : 'default',
+              display: 'flex',
+              flexDirection: 'column',
+              touchAction: 'none',
+            }}
+          >
+            <div style={{ fontSize: 13, fontWeight: 800, color: irrZone.accent, marginBottom: 6 }}>
+              {irrZone.short} {irrZone.title}
+            </div>
+            <p style={{ margin: '0 0 10px', fontSize: 11, color: COLOR.textSecondary, lineHeight: 1.4 }}>
+              {irrZone.subtitle} (not inside ℚ — sits next to it in ℝ)
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, flex: 1, alignContent: 'flex-start' }}>
+              {items.filter((it) => assignments[it.label] === 'R').map(renderPlacedChip)}
+            </div>
+          </div>
+        )}
+          </div>
         </div>
       </div>
 
-      <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.text, marginBottom: 8 }}>Number bank — tap one, then a set:</div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+      {dragGhost?.label && (
+        <div
+          style={{
+            position: 'fixed',
+            left: dragGhost.x,
+            top: dragGhost.y,
+            transform: 'translate(-50%, -50%)',
+            zIndex: 9999,
+            pointerEvents: 'none',
+            padding: '8px 12px',
+            borderRadius: 10,
+            fontWeight: 800,
+            fontSize: 14,
+            border: `2px solid ${COLOR.blue}`,
+            background: '#fff',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+          }}
+        >
+          <span dangerouslySetInnerHTML={{ __html: renderChipLabelHtml(dragGhost.label) }} />
+        </div>
+      )}
+
+      <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.text, marginBottom: 8 }}>Number bank — drag into a set, or tap then tap a region:</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14, touchAction: 'none', msTouchAction: 'none' }}>
         {items.map((it) => {
           const placed = assignments[it.label] != null;
-          const zoneMeta = placed ? REAL_SET_ZONES.find((z) => z.id === assignments[it.label]) : null;
           const wrong = checked && placed && assignments[it.label] !== it.zone;
           const right = checked && placed && assignments[it.label] === it.zone;
+          if (placed && !checked) return null;
           return (
             <button
               key={`${round}-${it.label}`}
               type="button"
               disabled={checked}
-              onClick={() => !checked && setSelectedLabel((s) => (s === it.label ? null : it.label))}
+              onClick={() => {
+                if (checked) return;
+                if (suppressBankClickRef.current) {
+                  suppressBankClickRef.current = false;
+                  return;
+                }
+                setSelectedLabel((s) => (s === it.label ? null : it.label));
+              }}
+              onPointerDown={(e) => startDragChip(e, it.label)}
               style={{
                 padding: '8px 12px',
                 borderRadius: 10,
                 fontWeight: 800,
                 fontSize: 14,
+                touchAction: 'none',
+                msTouchAction: 'none',
                 border: `2px solid ${
                   right ? COLOR.greenBorder : wrong ? '#fca5a5' : selectedLabel === it.label ? COLOR.blue : COLOR.border
                 }`,
                 background: right ? COLOR.greenLight : wrong ? '#fef2f2' : selectedLabel === it.label ? COLOR.blueBg : '#fff',
                 color: wrong ? '#b91c1c' : COLOR.text,
-                cursor: checked ? 'default' : 'pointer',
-                opacity: placed && !checked ? 0.75 : 1,
+                cursor: checked ? 'default' : 'grab',
               }}
             >
-              <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(it.label.replace(/\.\\overline\{([^}]+)\}/g, '<span style="text-decoration:overline">$1</span>')) }} />
-              {placed && !checked && zoneMeta && (
-                <span style={{ fontSize: 10, fontWeight: 700, marginLeft: 6, color: zoneMeta.accent }}>→ {zoneMeta.short}</span>
-              )}
-              {right && ' ✓'}
-              {wrong && ' ✗'}
+              <span dangerouslySetInnerHTML={{ __html: renderChipLabelHtml(it.label) }} />
+              {right ? ' ✓' : ''}{wrong ? ' ✗' : ''}
             </button>
           );
         })}
@@ -525,14 +971,338 @@ const PROPERTY_LABELS = {
   identity: 'Identity / inverse idea',
 };
 
+/** lab: which manipulative row to show before naming the property */
 const PROPERTY_ITEMS = [
-  { id: 'p1', text: 'a + b = b + a', answer: 'commutative', hint: 'Order of terms swapped; sum unchanged.' },
-  { id: 'p2', text: '(a + b) + c = a + (b + c)', answer: 'associative', hint: 'Grouping of addition changes, not order of numbers.' },
-  { id: 'p3', text: 'a(b + c) = ab + ac', answer: 'distributive', hint: 'Multiplication spreads across a sum.' },
-  { id: 'p4', text: 'a + (−a) = 0', answer: 'identity', hint: 'Additive inverse pairs with addition to give the additive identity 0.' },
-  { id: 'p5', text: 'x · 1 = x', answer: 'identity', hint: 'Multiplying by 1 leaves x unchanged (multiplicative identity).' },
-  { id: 'p6', text: '(xy)z = x(yz)', answer: 'associative', hint: 'Grouping of multiplication changes.' },
+  { id: 'p1', text: 'a + b = b + a', answer: 'commutative', hint: 'Order of terms swapped; sum unchanged.', lab: 'swapAdd' },
+  { id: 'p2', text: '(a + b) + c = a + (b + c)', answer: 'associative', hint: 'Grouping of addition changes, not order of numbers.', lab: 'parenAdd' },
+  { id: 'p3', text: 'a(b + c) = ab + ac', answer: 'distributive', hint: 'Multiplication spreads across a sum.', lab: 'distribute' },
+  { id: 'p4', text: 'a + (−a) = 0', answer: 'identity', hint: 'Additive inverse pairs with addition to give the additive identity 0.', lab: 'inverseAdd' },
+  { id: 'p5', text: 'x · 1 = x', answer: 'identity', hint: 'Multiplying by 1 leaves x unchanged (multiplicative identity).', lab: 'swapMul' },
+  { id: 'p6', text: '(xy)z = x(yz)', answer: 'associative', hint: 'Grouping of multiplication changes.', lab: 'parenMul' },
 ];
+
+const BLOCK = {
+  a: { label: 'a', color: '#2563eb' },
+  b: { label: 'b', color: '#059669' },
+  c: { label: 'c', color: '#d97706' },
+  x: { label: 'x', color: '#7c3aed' },
+  one: { label: '1', color: '#64748b' },
+  na: { label: '−a', color: '#dc2626' },
+};
+
+function PropBlock({ spec, selected, dim, onTap, disabled }) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={() => !disabled && onTap?.()}
+      style={{
+        minWidth: 48,
+        minHeight: 48,
+        padding: '0 12px',
+        borderRadius: 12,
+        fontWeight: 800,
+        fontSize: 17,
+        fontFamily: 'Georgia, "Times New Roman", serif',
+        border: `3px solid ${selected ? COLOR.blue : spec.color}`,
+        background: selected ? COLOR.blueBg : `${spec.color}18`,
+        color: '#111827',
+        cursor: disabled ? 'default' : 'pointer',
+        touchAction: 'manipulation',
+        boxShadow: selected ? `0 0 0 2px ${COLOR.blue}` : '0 2px 0 rgba(0,0,0,0.06)',
+        opacity: dim ? 0.45 : 1,
+        lineHeight: 1,
+      }}
+    >
+      {spec.label}
+    </button>
+  );
+}
+
+/** Swap two addends / factors around a fixed operator (+ or ·) */
+function LabSwapCommute({ op, leftKey, rightKey, disabled, onExplored }) {
+  const [order, setOrder] = useState([leftKey, rightKey]);
+  const [sel, setSel] = useState(null);
+  const L = BLOCK[order[0]];
+  const R = BLOCK[order[1]];
+  const swapped = order[0] === rightKey;
+
+  useEffect(() => {
+    if (swapped) onExplored?.();
+  }, [swapped, onExplored]);
+
+  const tap = (side) => {
+    if (disabled) return;
+    if (sel == null) {
+      setSel(side);
+      return;
+    }
+    if (sel === side) {
+      setSel(null);
+      return;
+    }
+    setOrder((o) => [o[1], o[0]]);
+    setSel(null);
+  };
+
+  return (
+    <div style={{ marginTop: 10 }}>
+      <p style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 700, color: COLOR.textSecondary }}>
+        Tap one block, then the other, to <strong>swap</strong> — the value of the expression stays the same.
+      </p>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', padding: '12px 8px', borderRadius: 14, background: '#f8fafc', border: `1px dashed ${COLOR.border}` }}>
+        <PropBlock spec={L} selected={sel === 'L'} dim={disabled} disabled={disabled} onTap={() => tap('L')} />
+        <span style={{ fontSize: 22, fontWeight: 800, color: COLOR.textSecondary }}>{op}</span>
+        <PropBlock spec={R} selected={sel === 'R'} dim={disabled} disabled={disabled} onTap={() => tap('R')} />
+        {swapped && !disabled && (
+          <span style={{ width: '100%', textAlign: 'center', fontSize: 12, fontWeight: 800, color: COLOR.green, marginTop: 4 }}>
+            Same result — only the order on the page changed.
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Move parentheses between (a+b)+c and a+(b+c) — or × version */
+function LabParenGroup({ times, disabled, onExplored }) {
+  const [groupFirst, setGroupFirst] = useState(true);
+
+  const op = times ? (
+    <span style={{ fontSize: 20, fontWeight: 800, color: COLOR.textSecondary }}>·</span>
+  ) : (
+    <span style={{ fontSize: 20, fontWeight: 800, color: COLOR.textSecondary }}>+</span>
+  );
+
+  const row = (firstPair) => {
+    const A = BLOCK.a;
+    const B = BLOCK.b;
+    const C = BLOCK.c;
+    const wrap = (inner) => (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 10, border: `3px solid ${COLOR.purple}`, background: COLOR.purpleBg }}>
+        {inner}
+      </span>
+    );
+    if (firstPair) {
+      return (
+        <>
+          {wrap(
+            <>
+              <PropBlock spec={A} dim disabled />
+              {op}
+              <PropBlock spec={B} dim disabled />
+            </>,
+          )}
+          {op}
+          <PropBlock spec={C} dim disabled />
+        </>
+      );
+    }
+    return (
+      <>
+        <PropBlock spec={A} dim disabled />
+        {op}
+        {wrap(
+          <>
+            <PropBlock spec={B} dim disabled />
+            {op}
+            <PropBlock spec={C} dim disabled />
+          </>,
+        )}
+      </>
+    );
+  };
+
+  return (
+    <div style={{ marginTop: 10 }}>
+      <p style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 700, color: COLOR.textSecondary }}>
+        Use the control to move <strong>which pair is grouped first</strong> — the three values stay in the same order.
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '12px 8px', borderRadius: 14, background: '#f8fafc', border: `1px dashed ${COLOR.border}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
+          {row(groupFirst)}
+        </div>
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => {
+            if (disabled) return;
+            setGroupFirst((g) => !g);
+            onExplored?.();
+          }}
+          style={{
+            padding: '8px 14px',
+            borderRadius: 10,
+            fontWeight: 800,
+            fontSize: 12,
+            border: `2px solid ${COLOR.purple}`,
+            background: '#fff',
+            color: COLOR.purple,
+            cursor: disabled ? 'default' : 'pointer',
+          }}
+        >
+          {groupFirst ? 'Group the second pair instead' : 'Group the first pair instead'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** Drag a onto (b+c) to “split” into ab + ac */
+function LabDistribute({ disabled, onExplored }) {
+  const [expanded, setExpanded] = useState(false);
+  const zoneRef = useRef(null);
+  const draggingA = useRef(false);
+
+  useEffect(() => {
+    if (expanded) onExplored?.();
+  }, [expanded, onExplored]);
+
+  useEffect(() => {
+    if (expanded || disabled) return undefined;
+    const onUp = (e) => {
+      if (!draggingA.current) return;
+      draggingA.current = false;
+      const z = zoneRef.current;
+      if (!z) return;
+      const r = z.getBoundingClientRect();
+      const x = e.clientX;
+      const y = e.clientY;
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) setExpanded(true);
+    };
+    const onCancel = () => { draggingA.current = false; };
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onCancel);
+    return () => {
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onCancel);
+    };
+  }, [expanded, disabled]);
+
+  return (
+    <div style={{ marginTop: 10 }}>
+      <p style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 700, color: COLOR.textSecondary }}>
+        <strong>Drag</strong> the <em>a</em> block onto the sum (b + c) to multiply through — distributive step.
+      </p>
+      <div style={{ padding: '12px 8px', borderRadius: 14, background: '#f8fafc', border: `1px dashed ${COLOR.border}` }}>
+        {!expanded ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div
+              onPointerDown={(e) => {
+                if (disabled) return;
+                draggingA.current = true;
+                try {
+                  e.currentTarget.setPointerCapture(e.pointerId);
+                } catch (_) { /* ignore */ }
+              }}
+              style={{ cursor: disabled ? 'default' : 'grab', touchAction: 'none' }}
+            >
+              <PropBlock spec={BLOCK.a} dim={disabled} disabled={disabled} />
+            </div>
+            <span style={{ fontSize: 22, fontWeight: 800 }}>·</span>
+            <div
+              ref={zoneRef}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 12px',
+                borderRadius: 12,
+                border: `3px dashed ${COLOR.amber}`,
+                background: COLOR.amberBg,
+                minHeight: 52,
+              }}
+            >
+              <span style={{ fontSize: 18, fontWeight: 800 }}>(</span>
+              <PropBlock spec={BLOCK.b} dim disabled />
+              <span style={{ fontSize: 22, fontWeight: 800 }}>+</span>
+              <PropBlock spec={BLOCK.c} dim disabled />
+              <span style={{ fontSize: 18, fontWeight: 800 }}>)</span>
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <PropBlock spec={{ label: 'ab', color: BLOCK.a.color }} dim disabled />
+            <span style={{ fontSize: 22, fontWeight: 800 }}>+</span>
+            <PropBlock spec={{ label: 'ac', color: BLOCK.a.color }} dim disabled />
+            <span style={{ width: '100%', textAlign: 'center', fontSize: 12, fontWeight: 800, color: COLOR.green, marginTop: 6 }}>
+              a·b + a·c — same as a(b + c)
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Merge a + (−a) into 0 */
+function LabInverseAdd({ disabled, onExplored }) {
+  const [merged, setMerged] = useState(false);
+  const [sel, setSel] = useState(null);
+
+  useEffect(() => {
+    if (merged) onExplored?.();
+  }, [merged, onExplored]);
+
+  const tap = (which) => {
+    if (disabled || merged) return;
+    if (sel == null) {
+      setSel(which);
+      return;
+    }
+    if (sel === which) {
+      setSel(null);
+      return;
+    }
+    if ((sel === 'a' && which === 'na') || (sel === 'na' && which === 'a')) setMerged(true);
+    setSel(null);
+  };
+
+  return (
+    <div style={{ marginTop: 10 }}>
+      <p style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 700, color: COLOR.textSecondary }}>
+        Tap <strong>a</strong>, then <strong>−a</strong> (or the reverse) to show they <strong>cancel</strong> to zero.
+      </p>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', padding: '12px 8px', borderRadius: 14, background: '#f8fafc', border: `1px dashed ${COLOR.border}` }}>
+        {!merged ? (
+          <>
+            <PropBlock spec={BLOCK.a} selected={sel === 'a'} dim={disabled} disabled={disabled} onTap={() => tap('a')} />
+            <span style={{ fontSize: 22, fontWeight: 800, color: COLOR.textSecondary }}>+</span>
+            <PropBlock spec={BLOCK.na} selected={sel === 'na'} dim={disabled} disabled={disabled} onTap={() => tap('na')} />
+          </>
+        ) : (
+          <PropBlock spec={{ label: '0', color: '#64748b' }} dim={disabled} disabled />
+        )}
+        {merged && !disabled && (
+          <span style={{ width: '100%', textAlign: 'center', fontSize: 12, fontWeight: 800, color: COLOR.green, marginTop: 4 }}>
+            Additive inverse — sum is the additive identity 0.
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PropertyManipulativeLab({ item, disabled, onExplored }) {
+  const noop = useCallback(() => {}, []);
+  const ex = onExplored || noop;
+  switch (item.lab) {
+    case 'swapAdd':
+      return <LabSwapCommute op="+" leftKey="a" rightKey="b" disabled={disabled} onExplored={ex} />;
+    case 'swapMul':
+      return <LabSwapCommute op="·" leftKey="x" rightKey="one" disabled={disabled} onExplored={ex} />;
+    case 'parenAdd':
+      return <LabParenGroup times={false} disabled={disabled} onExplored={ex} />;
+    case 'parenMul':
+      return <LabParenGroup times disabled={disabled} onExplored={ex} />;
+    case 'distribute':
+      return <LabDistribute disabled={disabled} onExplored={ex} />;
+    case 'inverseAdd':
+      return <LabInverseAdd disabled={disabled} onExplored={ex} />;
+    default:
+      return null;
+  }
+}
 
 function RealNumberPropertiesExplorer({ onComplete, continueLabel, badgeLabel, embedded }) {
   const [round, setRound] = useState(0);
@@ -546,13 +1316,21 @@ function RealNumberPropertiesExplorer({ onComplete, continueLabel, badgeLabel, e
   }, [round]);
   const [picked, setPicked] = useState({});
   const [checked, setChecked] = useState(false);
+  const [labDone, setLabDone] = useState({});
 
   useEffect(() => {
     setPicked({});
     setChecked(false);
+    setLabDone({});
   }, [round]);
 
+  const markLab = useCallback((id) => {
+    setLabDone((d) => (d[id] ? d : { ...d, [id]: true }));
+  }, []);
+
   const allPicked = batch.every((it) => picked[it.id]);
+  const allLabs = batch.every((it) => labDone[it.id]);
+  const canCheck = allPicked && allLabs;
   const nCorrect = checked ? batch.filter((it) => picked[it.id] === it.answer).length : 0;
   const allRight = checked && nCorrect === batch.length;
 
@@ -563,36 +1341,51 @@ function RealNumberPropertiesExplorer({ onComplete, continueLabel, badgeLabel, e
         Properties of the real numbers
       </p>
       <p style={{ margin: '0 0 10px', fontSize: 13, color: COLOR.textSecondary, lineHeight: 1.5 }}>
-        For each statement, choose whether it illustrates commutativity, associativity, the distributive property, or an identity / additive-inverse idea.
+        Use the <strong>blocks</strong> on each card, then name the property: commutativity, associativity, distributive, or identity / inverse.
       </p>
       <QBotBubble
-        message={!checked ? 'These properties justify every algebra move you make on the real numbers.' : allRight ? 'Strong! You separated structure (how numbers combine) from the particular values.' : 'Use each hint — focus on whether order, grouping, or factoring across a sum changed.'}
+        message={
+          !checked
+            ? 'Move the pieces first — then match what you noticed to the formal property name.'
+            : allRight
+              ? 'Strong! You connected the physical rearrangement to the algebraic rule.'
+              : 'Use each hint — focus on whether order, grouping, or spreading multiplication changed.'
+        }
         mood={!checked ? 'wave' : allRight ? 'celebrate' : 'think'}
       />
       {batch.map((it) => (
-        <div key={it.id} style={{ marginBottom: 12, padding: '10px 12px', borderRadius: 12, border: `1px solid ${COLOR.border}`, background: '#fafafa' }}>
-          <p style={{ margin: '0 0 8px', fontSize: 14, fontWeight: 800, color: COLOR.text }}>{it.text}</p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        <div key={it.id} style={{ marginBottom: 14, padding: '12px 12px', borderRadius: 14, border: `1px solid ${COLOR.border}`, background: '#fafafa' }}>
+          <p style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 800, color: COLOR.text }}>{it.text}</p>
+          {!labDone[it.id] && !checked && (
+            <p style={{ margin: '0 0 6px', fontSize: 11, fontWeight: 700, color: COLOR.amber }}>Try the lab below — then pick a property.</p>
+          )}
+          {labDone[it.id] && !checked && (
+            <p style={{ margin: '0 0 6px', fontSize: 11, fontWeight: 700, color: COLOR.green }}>Lab explored — now classify.</p>
+          )}
+          <PropertyManipulativeLab item={it} disabled={checked} onExplored={() => markLab(it.id)} />
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
             {Object.entries(PROPERTY_LABELS).map(([key, label]) => {
               const sel = picked[it.id] === key;
               const show = checked;
               const ok = show && key === it.answer;
               const bad = show && sel && key !== it.answer;
+              const lock = !labDone[it.id] && !checked;
               return (
                 <button
                   key={key}
                   type="button"
-                  disabled={checked}
-                  onClick={() => !checked && setPicked((p) => ({ ...p, [it.id]: key }))}
+                  disabled={checked || lock}
+                  onClick={() => !checked && !lock && setPicked((p) => ({ ...p, [it.id]: key }))}
                   style={{
                     padding: '6px 10px',
                     borderRadius: 8,
                     fontSize: 12,
                     fontWeight: 700,
                     border: `2px solid ${ok ? COLOR.greenBorder : bad ? '#fca5a5' : sel ? COLOR.blue : COLOR.border}`,
-                    background: ok ? COLOR.greenLight : bad ? '#fef2f2' : sel ? COLOR.blueBg : '#fff',
-                    color: bad ? '#b91c1c' : COLOR.text,
-                    cursor: checked ? 'default' : 'pointer',
+                    background: ok ? COLOR.greenLight : bad ? '#fef2f2' : sel ? COLOR.blueBg : lock ? '#f3f4f6' : '#fff',
+                    color: bad ? '#b91c1c' : lock ? COLOR.textMuted : COLOR.text,
+                    cursor: checked || lock ? 'default' : 'pointer',
+                    opacity: lock ? 0.65 : 1,
                   }}
                 >
                   {label}
@@ -607,12 +1400,20 @@ function RealNumberPropertiesExplorer({ onComplete, continueLabel, badgeLabel, e
       ))}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
         {!checked && (
-          <button type="button" disabled={!allPicked} onClick={() => setChecked(true)} style={{ ...BTN_PRIMARY, opacity: allPicked ? 1 : 0.45 }}>
+          <button type="button" disabled={!canCheck} onClick={() => setChecked(true)} style={{ ...BTN_PRIMARY, opacity: canCheck ? 1 : 0.45 }}>
             Check
           </button>
         )}
         {checked && !allRight && (
-          <button type="button" onClick={() => { setPicked({}); setChecked(false); }} style={{ ...BTN_PRIMARY, background: 'linear-gradient(135deg,#d97706,#b45309)' }}>
+          <button
+            type="button"
+            onClick={() => {
+              setPicked({});
+              setChecked(false);
+              setLabDone({});
+            }}
+            style={{ ...BTN_PRIMARY, background: 'linear-gradient(135deg,#d97706,#b45309)' }}
+          >
             Retry
           </button>
         )}
@@ -1296,17 +2097,35 @@ function FactorLab({ onComplete, continueLabel, badgeLabel, embedded }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Main export — rotates mode by activityIndex
+   Main export — mode from modeOverride, else activitySlot % modeSet (loop tiles A/B/C).
    ═══════════════════════════════════════════════════════════════════════════ */
 const MODES = ['number-line', 'complex-plane', 'prime-blast', 'factor-lab'];
 
-export default function NumberExplorer({ activityIndex = 0, modeSet = null, onComplete, continueLabel = 'Continue', badgeLabel = 'Interactive activity', embedded = false }) {
+export default function NumberExplorer({
+  activityIndex = 0,
+  activitySlot = null,
+  modeOverride = null,
+  modeSet = null,
+  onComplete,
+  continueLabel = 'Continue',
+  badgeLabel = 'Interactive activity',
+  embedded = false,
+}) {
   const activeModes = Array.isArray(modeSet) && modeSet.length > 0 ? modeSet : MODES;
-  const mode = activeModes[activityIndex % activeModes.length];
+  const mode = (() => {
+    if (modeOverride) return modeOverride;
+    const idx = activitySlot != null ? activitySlot : activityIndex % activeModes.length;
+    return activeModes[idx % activeModes.length];
+  })();
   if (mode === 'number-line') return <NumberLinePlot onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'real-number-sets') return <RealNumberSetsExplorer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'real-properties') return <RealNumberPropertiesExplorer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+  if (mode === 'commutativity') return <CommutativityExplorer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+  if (mode === 'gcd-lcm') return <GcdLcmExplorer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'complex-plane') return <ComplexPlaneExplorer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+  if (mode === 'complex-geometry') return <ComplexPlaneGeometryExplorer activityIndex={activityIndex} onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+  if (mode === 'complex-fractal') return <ComplexFractalExplorer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
+  if (mode === 'complex-card-sort') return <ComplexCardSortExplorer activityIndex={activityIndex} onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'complex-arithmetic') return <ComplexArithmeticExplorer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'complex-equations') return <ComplexEquationsExplorer onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
   if (mode === 'prime-blast') return <PrimeNumberBlast onComplete={onComplete} continueLabel={continueLabel} badgeLabel={badgeLabel} embedded={embedded} />;
