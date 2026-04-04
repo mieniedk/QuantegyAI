@@ -24,7 +24,7 @@ import { phaseNeedsUrlUpdate, withPhaseInSearch } from '../utils/practiceLoopUrl
 import {
   COLOR, CARD, BTN_PRIMARY, BTN_GAME_LINK, BADGE, HEADING, BODY,
   SCOPE_BADGE, OPTION_BASE, OPTION_SELECTED, OPTION_DISABLED,
-  resultBanner, resultTitle, resultScore, PROGRESS_TRACK, progressFill,
+  resultBanner, resultTitle, resultScore, PROGRESS_TRACK, progressFill, progressBarA11y,
   MOBILE_BP, SMALL_PHONE_BP, TIGHT_LANDSCAPE_HEIGHT_BP,
 } from '../utils/loopStyles';
 import learningLoopConfig from '../data/learning-loop-config.json';
@@ -690,8 +690,15 @@ function PhaseCard({ children, stepIndex, totalSteps, phaseKey }) {
           <div style={{
             display: 'flex', alignItems: 'center', gap: 6,
           }}>
-            <div style={{ width: compactSolveCard ? 66 : 80, height: 6, borderRadius: 6, background: '#e5e7eb', overflow: 'hidden' }}>
-              <div style={{ height: '100%', borderRadius: 6, background: meta?.accent || COLOR.green, width: `${Math.round((stepNum / totalSteps) * 100)}%`, transition: motionTransition('width 0.4s ease') }} />
+            <div
+              style={{ width: compactSolveCard ? 66 : 80, height: 6, borderRadius: 6, background: '#e5e7eb', overflow: 'hidden' }}
+              {...progressBarA11y({
+                value: Math.round((stepNum / totalSteps) * 100),
+                label: `Lesson step ${stepNum} of ${totalSteps}`,
+                valueText: `${Math.round((stepNum / totalSteps) * 100)}% through this lesson`,
+              })}
+            >
+              <div style={{ height: '100%', borderRadius: 6, background: meta?.accent || COLOR.green, width: `${Math.round((stepNum / totalSteps) * 100)}%`, transition: motionTransition('width 0.4s ease') }} aria-hidden />
             </div>
             <span style={{ fontSize: compactSolveCard ? 10 : 11, fontWeight: 700, color: COLOR.textMuted }}>{Math.round((stepNum / totalSteps) * 100)}%</span>
           </div>
@@ -727,7 +734,16 @@ function StepProgress({ current, total, compact = false, smallPhone = false }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: compact ? (smallPhone ? 9 : 10) : 11, fontWeight: 700, color: COLOR.textMuted, marginBottom: 4, lineHeight: 1.3 }}>
         <span>Step {safeCurrent + 1} of {safeTotal}</span><span>{pct}%</span>
       </div>
-      <div style={PROGRESS_TRACK}><div style={progressFill(pct)} /></div>
+      <div
+        style={PROGRESS_TRACK}
+        {...progressBarA11y({
+          value: pct,
+          label: `Loop step ${safeCurrent + 1} of ${safeTotal}`,
+          valueText: `${pct}% through the current cycle`,
+        })}
+      >
+        <div style={progressFill(pct)} aria-hidden />
+      </div>
     </div>
   );
 }
@@ -739,7 +755,16 @@ function MasteryBar({ label, score, status }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, color: COLOR.text, marginBottom: 3 }}>
         <span>{label}</span><span style={{ color: clr }}>{score}% — {status}</span>
       </div>
-      <div style={PROGRESS_TRACK}><div style={progressFill(score, clr)} /></div>
+      <div
+        style={PROGRESS_TRACK}
+        {...progressBarA11y({
+          value: Math.min(100, Math.max(0, score)),
+          label: `Mastery for ${label}`,
+          valueText: `${score}% — ${status}`,
+        })}
+      >
+        <div style={progressFill(score, clr)} aria-hidden />
+      </div>
     </div>
   );
 }
@@ -751,7 +776,16 @@ function ExamBar({ label, mastered, total, countLabel = 'mastered' }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, color: COLOR.textMuted, marginBottom: 3 }}>
         <span>{label} progress</span><span>{mastered}/{total} {countLabel}</span>
       </div>
-      <div style={PROGRESS_TRACK}><div style={progressFill(pct, COLOR.blue)} /></div>
+      <div
+        style={PROGRESS_TRACK}
+        {...progressBarA11y({
+          value: pct,
+          label: `${label} progress`,
+          valueText: `${mastered} of ${total} ${countLabel}`,
+        })}
+      >
+        <div style={progressFill(pct, COLOR.blue)} aria-hidden />
+      </div>
     </div>
   );
 }
@@ -804,6 +838,7 @@ function MicroGoalBanner({ phase, whyMatters, compact = false, smallPhone = fals
 
 function WorkedSolution({ explanation, misconception }) {
   const [open, setOpen] = React.useState(true);
+  const workedPanelId = React.useId();
   if (!explanation && !misconception) return null;
 
   const steps = [];
@@ -837,6 +872,7 @@ function WorkedSolution({ explanation, misconception }) {
             type="button"
             onClick={() => setOpen((o) => !o)}
             aria-expanded={open}
+            aria-controls={workedPanelId}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%',
               padding: '10px 14px', background: COLOR.card, border: 'none', cursor: 'pointer',
@@ -844,10 +880,10 @@ function WorkedSolution({ explanation, misconception }) {
             }}
           >
             Worked Solution
-            <span style={{ fontSize: 11, transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>&#9660;</span>
+            <span aria-hidden style={{ fontSize: 11, transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>&#9660;</span>
           </button>
           {open && (
-            <div style={{ padding: '8px 14px 14px' }}>
+            <div id={workedPanelId} style={{ padding: '8px 14px 14px' }}>
               {hasSteps ? steps.map((s, i) => (
                 <div key={i} style={{ display: 'flex', gap: 10, marginBottom: i < steps.length - 1 ? 10 : 0, alignItems: 'flex-start' }}>
                   <span style={{
@@ -928,14 +964,14 @@ function QuizBlock({
       {pool.map((q, qi) => (
         <div key={q.id} className="quiz-question" data-question-id={q.id} data-hotkey-target={String(firstIncompleteQuestionId === q.id)} style={{ marginBottom: compactQuiz ? 16 : 20 }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <p style={{ fontWeight: 700, color: COLOR.text, margin: 0, fontSize: tinyQuiz ? 14 : 15, lineHeight: compactQuiz ? 1.45 : 1.5, flex: '1 1 200px' }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(`Q${qi + 1}: ${q.question}`)) }} />
+            <p id={`practice-quiz-q-${q.id}`} style={{ fontWeight: 700, color: COLOR.text, margin: 0, fontSize: tinyQuiz ? 14 : 15, lineHeight: compactQuiz ? 1.45 : 1.5, flex: '1 1 200px' }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatMathHtml(`Q${qi + 1}: ${q.question}`)) }} />
             {q.spacedReview && (
               <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '4px 10px', borderRadius: 999, background: COLOR.amberBg, color: '#92400e', border: `1px solid ${COLOR.amber}` }}>
                 Spaced review
               </span>
             )}
           </div>
-          <div role="radiogroup" aria-label={`Question ${qi + 1} options`} style={{ display: 'flex', flexDirection: 'column', gap: compactQuiz ? 6 : 8 }}>
+          <div role="radiogroup" aria-labelledby={`practice-quiz-q-${q.id}`} style={{ display: 'flex', flexDirection: 'column', gap: compactQuiz ? 6 : 8 }}>
             {(q.options || []).map((opt, optIdx) => {
               const selected = answers[q.id] === opt;
               const isCorrect = submitted && opt === q.correct;
@@ -982,6 +1018,7 @@ function QuizBlock({
               <button
                 type="button"
                 onClick={() => onToggleFlag(q.id)}
+                aria-pressed={flaggedSet.has(q.id)}
                 style={{
                   fontSize: 12,
                   fontWeight: 600,
@@ -1005,7 +1042,7 @@ function QuizBlock({
         <button type="button" onClick={onSubmit} disabled={Object.keys(answers).length < pool.length} style={Object.keys(answers).length < pool.length ? { ...actionBtnStyle, opacity: 0.5, cursor: 'not-allowed' } : actionBtnStyle}>Submit</button>
       ) : (
         <>
-          <div style={resultBanner(correctCount === pool.length)}>
+          <div role="status" aria-live="polite" aria-atomic="true" style={resultBanner(correctCount === pool.length)}>
             <div style={resultTitle}>{correctCount === pool.length ? 'Perfect!' : 'Results'}</div>
             <div style={resultScore(correctCount === pool.length)}>{correctCount}/{pool.length} correct</div>
           </div>
@@ -3889,9 +3926,14 @@ export default function PracticeLoop() {
   return (
     <div style={pageShellStyle}>
       <div style={pageInnerStyle}>
+        <h1 className="sr-only">
+          {hasTopic
+            ? `Adaptive learning loop${conceptTitle ? `, ${conceptTitle}` : ''}`
+            : 'Adaptive learning loop'}
+        </h1>
 
         {(!isOnline || localSaveWarning) && hasTopic && (
-          <div style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 10, background: '#fef3c7', border: '1px solid #fcd34d', fontSize: 13, color: '#78350f', lineHeight: 1.5 }}>
+          <div role="status" aria-live="polite" style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 10, background: '#fef3c7', border: '1px solid #fcd34d', fontSize: 13, color: '#78350f', lineHeight: 1.5 }}>
             {!isOnline ? 'You appear offline — answers still work in this session; progress is saved on this device when storage is available.' : ''}
             {localSaveWarning && isOnline ? 'Connection may be unstable — your work is stored locally in the browser.' : ''}
           </div>
@@ -3947,6 +3989,7 @@ export default function PracticeLoop() {
         {celebrationToast && (
           <div
             role="status"
+            aria-live="polite"
             style={{
               position: 'fixed',
               bottom: 24,
@@ -3971,9 +4014,6 @@ export default function PracticeLoop() {
 
         {showBreakModal && (
           <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="break-modal-title"
             style={{
               position: 'fixed',
               inset: 0,
@@ -3985,7 +4025,14 @@ export default function PracticeLoop() {
               padding: isMobile ? '12px 10px' : 16,
             }}
           >
-            <div ref={breakModalRef} tabIndex={-1} style={{ maxWidth: 400, width: '100%', maxHeight: 'calc(100dvh - 24px)', overflowY: 'auto', marginTop: isMobile ? 10 : 0, padding: isMobile ? 16 : 22, borderRadius: 16, background: '#fff', border: `1px solid ${COLOR.border}`, outline: 'none' }}>
+            <div
+              ref={breakModalRef}
+              tabIndex={-1}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="break-modal-title"
+              style={{ maxWidth: 400, width: '100%', maxHeight: 'calc(100dvh - 24px)', overflowY: 'auto', marginTop: isMobile ? 10 : 0, padding: isMobile ? 16 : 22, borderRadius: 16, background: '#fff', border: `1px solid ${COLOR.border}`, outline: 'none' }}
+            >
               <h3 id="break-modal-title" style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 800 }}>Take a short break?</h3>
               <p style={{ margin: '0 0 16px', fontSize: 14, color: COLOR.textSecondary, lineHeight: 1.55 }}>
                 You have been in this loop for a while. A 5-minute break often improves focus for the next quizzes.
@@ -4088,7 +4135,7 @@ export default function PracticeLoop() {
         )}
 
         {hasTopic && !keyboardOpen && phase !== 'paywall' && (
-          <div style={{
+          <nav aria-label="Learning loop progress and tools" style={{
             position: 'sticky', top: isLandscapeTight ? 0 : (isCompactDock ? (isSmallPhone ? 0 : 2) : 8), zIndex: 20,
             marginBottom: isLandscapeTight ? 8 : (isCompactDock ? 10 : 18),
             padding: isLandscapeTight
@@ -4134,7 +4181,12 @@ export default function PracticeLoop() {
                           aria-label={`${t.name}${clickable ? ', revisit tile' : ''}`}
                           title={`${t.name}${t.pct != null ? ` — ${t.pct}%` : t.status === 'passed' ? ' — done' : t.status === 'current' ? ' — now' : ''}${clickable ? ' (click to revisit)' : ''}`}
                           onClick={clickable ? () => revisitTile(t.key) : undefined}
-                          onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') revisitTile(t.key); } : undefined}
+                          onKeyDown={clickable ? (e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              revisitTile(t.key);
+                            }
+                          } : undefined}
                           style={{
                             height: isSmallPhone ? 10 : 9, borderRadius: 4,
                             background: t.color || '#e5e7eb',
@@ -4152,6 +4204,7 @@ export default function PracticeLoop() {
                 </div>
                 {revisitReturnPhase && (
                   <button
+                    type="button"
                     onClick={() => {
                       const returnTo = revisitReturnPhase;
                       revisitReturnRef.current = null;
@@ -4267,7 +4320,12 @@ export default function PracticeLoop() {
                           aria-label={`${t.name}${clickable ? ', revisit tile' : ''}`}
                           title={`${t.name}${t.pct != null ? ` — ${t.pct}%` : t.status === 'passed' ? ' — done' : t.status === 'current' ? ' — now' : ''}${clickable ? ' (click to revisit)' : ''}`}
                           onClick={clickable ? () => revisitTile(t.key) : undefined}
-                          onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') revisitTile(t.key); } : undefined}
+                          onKeyDown={clickable ? (e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              revisitTile(t.key);
+                            }
+                          } : undefined}
                           style={{
                             height: isCompactDock ? (isSmallPhone ? 12 : 11) : 10,
                             borderRadius: 4,
@@ -4297,6 +4355,7 @@ export default function PracticeLoop() {
                 )}
                 {revisitReturnPhase && (
                   <button
+                    type="button"
                     onClick={() => {
                       const returnTo = revisitReturnPhase;
                       revisitReturnRef.current = null;
@@ -4319,7 +4378,7 @@ export default function PracticeLoop() {
                 )}
               </>
             )}
-          </div>
+          </nav>
         )}
 
         {showSaveProgressModal && (
@@ -4343,9 +4402,6 @@ export default function PracticeLoop() {
 
         {showConfidenceCheckIn && hasTopic && (
           <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="confidence-checkin-title"
             style={{
               position: 'fixed',
               inset: 0,
@@ -4360,6 +4416,9 @@ export default function PracticeLoop() {
             <div
               ref={confidenceModalRef}
               tabIndex={-1}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="confidence-checkin-title"
               style={{
                 maxWidth: 440,
                 width: '100%',
@@ -5037,6 +5096,7 @@ export default function PracticeLoop() {
             <button
               type="button"
               onClick={() => setCoachExpanded((v) => !v)}
+              aria-expanded={coachExpanded}
               style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: isSmallPhone ? 'flex-start' : 'center', flexWrap: isSmallPhone ? 'wrap' : 'nowrap', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: 0, minHeight: 36 }}
             >
               <div style={{ fontSize: 12, fontWeight: 800, color: COLOR.blue, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -5105,6 +5165,7 @@ export default function PracticeLoop() {
                   <button
                     type="button"
                     onClick={() => setPracticeSwitchOpen((v) => !v)}
+                    aria-expanded={practiceSwitchOpen}
                     style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 800, color: COLOR.blue, textTransform: 'uppercase', letterSpacing: '0.05em', padding: 0 }}
                   >
                     {practiceSwitchOpen ? '▼' : '▶'} Practice your way (switch competency anytime)
@@ -5114,8 +5175,9 @@ export default function PracticeLoop() {
                       <div style={{ marginBottom: 6, fontSize: 12, color: COLOR.textSecondary, lineHeight: 1.45 }}>
                         Pick any competency and choose where to start: video, lesson, interactive, game, quiz, readiness, or mastery.
                       </div>
-                      <label style={{ display: 'block', marginBottom: 4, fontSize: 11, fontWeight: 700, color: COLOR.textMuted }}>Competency</label>
+                      <label htmlFor="practice-loop-comp-select" style={{ display: 'block', marginBottom: 4, fontSize: 11, fontWeight: 700, color: COLOR.textMuted }}>Competency</label>
                       <select
+                        id="practice-loop-comp-select"
                         value={practiceCompKey}
                         onChange={(e) => setPracticeCompKey(e.target.value)}
                         style={{ width: '100%', marginBottom: 8, padding: '8px 10px', borderRadius: 8, border: `1px solid ${COLOR.border}`, fontSize: 12, fontFamily: 'inherit' }}
@@ -5124,8 +5186,9 @@ export default function PracticeLoop() {
                           <option key={choice.key} value={choice.key}>{choice.label}</option>
                         ))}
                       </select>
-                      <label style={{ display: 'block', marginBottom: 4, fontSize: 11, fontWeight: 700, color: COLOR.textMuted }}>Start with</label>
+                      <label htmlFor="practice-loop-start-select" style={{ display: 'block', marginBottom: 4, fontSize: 11, fontWeight: 700, color: COLOR.textMuted }}>Start with</label>
                       <select
+                        id="practice-loop-start-select"
                         value={practiceStartId}
                         onChange={(e) => setPracticeStartId(e.target.value)}
                         style={{ width: '100%', marginBottom: 10, padding: '8px 10px', borderRadius: 8, border: `1px solid ${COLOR.border}`, fontSize: 12, fontFamily: 'inherit' }}

@@ -299,3 +299,22 @@ export const progressFill = (pct, color = COLOR.green) => ({
   background: color,
   transition: 'width 0.5s ease',
 });
+
+/**
+ * Spread onto the track element (the bar container) for screen readers / WCAG progressbar.
+ * @param {{ value: number, min?: number, max?: number, label?: string, valueText?: string }} opts
+ */
+export function progressBarA11y({ value, min = 0, max = 100, label, valueText }) {
+  const lo = Number(min);
+  const hi = Number(max);
+  const raw = Number(value);
+  const clamped = Number.isFinite(raw) ? Math.min(hi, Math.max(lo, Math.round(raw))) : lo;
+  return {
+    role: 'progressbar',
+    'aria-valuenow': clamped,
+    'aria-valuemin': lo,
+    'aria-valuemax': hi,
+    ...(label ? { 'aria-label': label } : {}),
+    ...(valueText != null && String(valueText) !== '' ? { 'aria-valuetext': String(valueText) } : {}),
+  };
+}

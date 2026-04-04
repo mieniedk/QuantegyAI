@@ -92,10 +92,10 @@ function KeyConceptMatch({ pairs, onComplete, continueLabel, badgeLabel, embedde
   };
 
   return (
-    <div style={embedded ? {} : CARD}>
+    <div role="region" aria-label={badgeLabel || 'Vocabulary matching activity'} style={embedded ? {} : CARD}>
       {!embedded && <div style={{ ...BADGE, background: `${COLOR.purple}14`, color: COLOR.purple }}>{badgeLabel || 'Interactive activity'}</div>}
       <p style={{ margin: '0 0 16px', fontSize: 15, color: COLOR.textSecondary, fontWeight: 600 }}>
-        Tap a term on the left, then tap its matching definition on the right.
+        Choose a term on the left, then choose its matching definition on the right.
       </p>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

@@ -9,7 +9,7 @@ import {
   MASTERY_LABELS,
   MASTERY_COLORS,
 } from '../utils/masteryEngine';
-import { COLOR, CARD, BTN_PRIMARY, PROGRESS_TRACK, progressFill } from '../utils/loopStyles';
+import { COLOR, CARD, BTN_PRIMARY, PROGRESS_TRACK, progressFill, progressBarA11y } from '../utils/loopStyles';
 
 const EXAM_ID = 'math712';
 const GRADE = 'grade7-12';
@@ -95,6 +95,8 @@ export default function Math712LearningPath() {
   return (
     <StudentLayout>
       <div
+        role="region"
+        aria-labelledby="math712-path-heading"
         style={{
           maxWidth: 720,
           margin: '0 auto',
@@ -110,7 +112,7 @@ export default function Math712LearningPath() {
           ← TExES Test Prep
         </Link>
 
-        <h1 style={{ margin: '0 0 8px', fontSize: 26, fontWeight: 800, color: COLOR.text }}>
+        <h1 id="math712-path-heading" style={{ margin: '0 0 8px', fontSize: 26, fontWeight: 800, color: COLOR.text }}>
           Math 7–12 learning path
         </h1>
         <p style={{ margin: '0 0 20px', fontSize: 14, color: COLOR.textSecondary, lineHeight: 1.6 }}>
@@ -119,7 +121,7 @@ export default function Math712LearningPath() {
         </p>
 
         <div style={{ ...CARD, marginBottom: 20, padding: '18px 20px' }}>
-          <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: COLOR.textMuted, marginBottom: 8 }}>
+          <div id="math712-path-progress-label" style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: COLOR.textMuted, marginBottom: 8 }}>
             Overall path progress
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
@@ -128,8 +130,15 @@ export default function Math712LearningPath() {
             </span>
             <span style={{ fontSize: 14, fontWeight: 600, color: COLOR.textSecondary }}>{pct}% at ≥85%</span>
           </div>
-          <div style={PROGRESS_TRACK}>
-            <div style={progressFill(pct, COLOR.blue)} />
+          <div
+            style={PROGRESS_TRACK}
+            aria-labelledby="math712-path-progress-label"
+            {...progressBarA11y({
+              value: pct,
+              valueText: `${pathProgress.mastered} of ${pathProgress.total} competencies at or above 85 percent`,
+            })}
+          >
+            <div style={progressFill(pct, COLOR.blue)} aria-hidden />
           </div>
           {nextUp ? (
             <div style={{ marginTop: 16 }}>
@@ -154,7 +163,7 @@ export default function Math712LearningPath() {
           if (stds.length === 0) return null;
           const di = domains.findIndex((d) => d.id === dom.id);
           return (
-            <section key={dom.id} style={{ marginBottom: 24 }}>
+            <section key={dom.id} aria-label={`Domain ${ROMAN[di] || di + 1}: ${dom.name}`} style={{ marginBottom: 24 }}>
               <h2 style={{ fontSize: 16, fontWeight: 800, margin: '0 0 12px', color: COLOR.text }}>
                 Domain {ROMAN[di] || di + 1}: {dom.name}
               </h2>
