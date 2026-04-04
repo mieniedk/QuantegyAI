@@ -467,7 +467,7 @@ const MATH712_STD_TO_CATEGORY_KEY = {
   c004: 'comp002', c005: 'comp002', c006: 'comp002', c007: 'comp002', c008: 'comp002',
   c009: 'comp003', c010: 'c010-lim', c011: 'comp003', c012: 'comp003', c013: 'comp003', c014: 'comp004',
   c015: 'comp004', c016: 'comp004', c017: 'comp004',
-  c018: 'comp005', c019: 'comp005',
+  c018: 'comp005', c019: 'comp005', c022: 'comp005',
   c020: 'c020', c021: 'c021',
 };
 
@@ -488,7 +488,7 @@ const STD_TO_COMP = {
   c004: 'comp002', c005: 'comp002', c006: 'comp002', c007: 'comp002', c008: 'comp002',
   c009: 'comp003', c010: 'comp003', c011: 'comp003', c012: 'comp003', c013: 'comp003',
   c014: 'comp004', c015: 'comp004', c016: 'comp004', c017: 'comp004',
-  c018: 'comp005', c019: 'comp005',
+  c018: 'comp005', c019: 'comp005', c022: 'comp005',
   c020: 'comp006', c021: 'comp006',
   calc_c001: 'calc_limits', calc_c002: 'calc_limits',
   calc_c003: 'calc_derivatives', calc_c004: 'calc_derivatives',

@@ -3,6 +3,22 @@ import { COLOR, CARD, BTN_PRIMARY, BADGE } from '../utils/loopStyles';
 
 const MODES = ['limit-zoom', 'derivative-sense', 'lhospital-lab'];
 
+/** Distinct interactives for loop tiles A/B/C (activityIndex 0–2); most on-topic mode listed first. */
+const CALCULUS_INTERACTIVE_MODE_SETS = {
+  calc_c001: ['limit-zoom', 'derivative-sense', 'lhospital-lab'],
+  calc_c002: ['lhospital-lab', 'limit-zoom', 'derivative-sense'],
+  calc_c003: ['derivative-sense', 'limit-zoom', 'lhospital-lab'],
+  calc_c004: ['derivative-sense', 'lhospital-lab', 'limit-zoom'],
+  calc_c005: ['derivative-sense', 'limit-zoom', 'lhospital-lab'],
+  calc_c006: ['derivative-sense', 'lhospital-lab', 'limit-zoom'],
+  calc_c007: ['derivative-sense', 'limit-zoom', 'lhospital-lab'],
+  calc_c008: ['derivative-sense', 'lhospital-lab', 'limit-zoom'],
+  calc_c009: ['derivative-sense', 'limit-zoom', 'lhospital-lab'],
+  calc_c010: ['derivative-sense', 'lhospital-lab', 'limit-zoom'],
+  calc_c011: ['limit-zoom', 'derivative-sense', 'lhospital-lab'],
+  calc_c012: ['derivative-sense', 'limit-zoom', 'lhospital-lab'],
+};
+
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const roundTo = (v, d = 3) => Math.round(v * 10 ** d) / 10 ** d;
 
@@ -534,13 +550,8 @@ function LHospitalLab({ onComplete, continueLabel, badgeLabel, embedded, activit
 }
 
 function pickCalculusMode(currentStd, activityIndex) {
-  if (currentStd === 'calc_c002') return 'lhospital-lab';
-  if (currentStd === 'calc_c001') return 'limit-zoom';
-  if (currentStd === 'calc_c011') return 'limit-zoom';
-  if (['calc_c003', 'calc_c004', 'calc_c005', 'calc_c006', 'calc_c007', 'calc_c008', 'calc_c009', 'calc_c010'].includes(currentStd)) {
-    return 'derivative-sense';
-  }
-  if (currentStd === 'calc_c012') return activityIndex % 2 === 0 ? 'limit-zoom' : 'derivative-sense';
+  const set = CALCULUS_INTERACTIVE_MODE_SETS[currentStd];
+  if (set?.length) return set[activityIndex % set.length];
   return MODES[activityIndex % MODES.length];
 }
 

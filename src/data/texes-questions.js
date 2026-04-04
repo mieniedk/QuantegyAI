@@ -86,7 +86,9 @@ export const TEXES_DOMAINS = [
       { id: 'c018', name: 'Competency 018 — Mathematical Reasoning & Problem Solving',
         desc: 'Inductive/deductive reasoning, direct & indirect proofs, counterexamples, conjectures, problem-solving strategies, evaluating reasonableness, mathematical models.' },
       { id: 'c019', name: 'Competency 019 — Connections & Communication',
-        desc: 'Cross-strand connections, real-world applications, mathematical terminology, multiple representations, translating between verbal/symbolic forms, history of mathematics, technology.' },
+        desc: 'Cross-strand connections, real-world applications, mathematical terminology, multiple representations, translating between verbal/symbolic forms, technology in mathematics.' },
+      { id: 'c022', name: 'Standard VI — Mathematical Perspectives',
+        desc: 'Historical development of mathematical ideas; relationship between society and mathematics; structure of mathematics (axiomatic systems, fields); evolving nature of mathematics and mathematical knowledge; contributions across cultures.' },
     ],
   },
   // ═══ Domain VI — Mathematical Learning, Instruction & Assessment (approx. 10%) ═══
@@ -117,7 +119,7 @@ const STANDARD_MAP = {
   // ── Domain II: Patterns and Algebra (c004–c010) ──
   // c004 Patterns (sequences, series, induction)
   t012:'c004',t069:'c004',t079:'c004',
-  tp01:'c004',tp02:'c004',tp03:'c004',tp04:'c004',tp05:'c004',tp06:'c004',tp07:'c004',tp08:'c004',
+  tp01:'c004',tp02:'c004',tp03:'c004',tp04:'c004',tp05:'c004',tp06:'c004',tp07:'c004',tp08:'c004',tp09:'c004',tp10:'c004',
   // c005 Functions, Relations & Graphs
   t016:'c005',t070:'c005',t075:'c005',t076:'c005',t078:'c005',t085:'c005',
   tf01:'c005',tf02:'c005',tf03:'c005',tf04:'c005',tf05:'c005',tf06:'c005',tf07:'c005',tf08:'c005',
@@ -129,11 +131,11 @@ const STANDARD_MAP = {
   tr01:'c007',tr02:'c007',tr03:'c007',tr04:'c007',tr05:'c007',tr06:'c007',tr07:'c007',tr08:'c007',
   // c008 Exponential & Logarithmic
   t014:'c008',t072:'c008',
-  te01:'c008',te02:'c008',te03:'c008',te04:'c008',te05:'c008',te06:'c008',te07:'c008',te08:'c008',
+  te01:'c008',te02:'c008',te03:'c008',te04:'c008',te05:'c008',te06:'c008',te07:'c008',te08:'c008',te09:'c008',te10:'c008',
   // c009 Trigonometric & Circular
-  tg01:'c009',tg02:'c009',tg03:'c009',tg04:'c009',tg05:'c009',tg06:'c009',tg07:'c009',tg08:'c009',tg09:'c009',tg10:'c009',
+  tg01:'c009',tg02:'c009',tg03:'c009',tg04:'c009',tg05:'c009',tg06:'c009',tg07:'c009',tg08:'c009',tg09:'c009',tg10:'c009',tg11:'c009',tg12:'c009',
   // c010 Differential & Integral Calculus
-  td01:'c010',td02:'c010',td03:'c010',td04:'c010',td05:'c010',td06:'c010',td07:'c010',td08:'c010',td09:'c010',td10:'c010',
+  td01:'c010',td02:'c010',td03:'c010',td04:'c010',td05:'c010',td06:'c010',td07:'c010',td08:'c010',td09:'c010',td10:'c010',td11:'c010',td12:'c010',
 
   // ── Domain III: Geometry and Measurement (c011–c014) ──
   // c011 Measurement
@@ -144,10 +146,10 @@ const STANDARD_MAP = {
   tx01:'c012',tx02:'c012',tx03:'c012',tx04:'c012',tx05:'c012',tx06:'c012',
   // c013 Euclidean Geometry (Results & Applications)
   t022:'c013',t092:'c013',t094:'c013',t095:'c013',t098:'c013',t106:'c013',
-  tga01:'c013',tga02:'c013',tga03:'c013',tga04:'c013',
+  tga01:'c013',tga02:'c013',tga03:'c013',tga04:'c013',tga05:'c013',tga06:'c013',
   // c014 Coordinate, Transformational & Vector Geometry
   t026:'c014',t103:'c014',t104:'c014',t105:'c014',
-  tv01:'c014',tv02:'c014',tv03:'c014',tv04:'c014',tv05:'c014',tv06:'c014',
+  tv01:'c014',tv02:'c014',tv03:'c014',tv04:'c014',tv05:'c014',tv06:'c014',tv07:'c014',tv08:'c014',
 
   // ── Domain IV: Probability and Statistics (c015–c017) ──
   // c015 Data Analysis
@@ -157,9 +159,9 @@ const STANDARD_MAP = {
   t027:'c016',t029:'c016',t033:'c016',
   t109:'c016',t112:'c016',t113:'c016',t115:'c016',t116:'c016',t117:'c016',t118:'c016',t124:'c016',t125:'c016',t130:'c016',
   // c017 Statistical Inference
-  ts01:'c017',ts02:'c017',ts03:'c017',ts04:'c017',ts05:'c017',ts06:'c017',ts07:'c017',ts08:'c017',ts09:'c017',ts10:'c017',
+  ts01:'c017',ts02:'c017',ts03:'c017',ts04:'c017',ts05:'c017',ts06:'c017',ts07:'c017',ts08:'c017',ts09:'c017',ts10:'c017',ts11:'c017',ts12:'c017',
 
-  // ── Domain V: Mathematical Processes and Perspectives (c018–c019) ──
+  // ── Domain V: Mathematical Processes and Perspectives (c018–c019, c022) ──
   // c018 Reasoning & Problem Solving
   t035:'c018',t036:'c018',t038:'c018',t040:'c018',
   t133:'c018',t134:'c018',t137:'c018',t143:'c018',t146:'c018',t151:'c018',
@@ -167,6 +169,9 @@ const STANDARD_MAP = {
   // c019 Connections & Communication
   t039:'c019',t041:'c019',t042:'c019',t136:'c019',t138:'c019',t142:'c019',t145:'c019',t147:'c019',
   t148:'c019',t149:'c019',t150:'c019',t152:'c019',
+  // c022 Standard VI — Mathematical Perspectives (history, society, structure of mathematics)
+  tw01:'c022',tw02:'c022',tw03:'c022',tw04:'c022',tw05:'c022',tw06:'c022',
+  tw07:'c022',tw08:'c022',tw09:'c022',tw10:'c022',tw11:'c022',tw12:'c022',
 
   // ── Domain VI: Mathematical Learning, Instruction & Assessment (c020–c021) ──
   ti01:'c020',ti02:'c020',ti03:'c020',ti04:'c020',ti05:'c020',ti06:'c020',ti07:'c020',ti08:'c020',
@@ -954,6 +959,58 @@ export const TEXES_QUESTIONS = [
     explanation: 'Error analysis examines what went wrong to inform instruction and address misconceptions.' },
 
   // ═══════════════════════════════════════════════
+  // Standard VI — Mathematical Perspectives (c022)
+  // ═══════════════════════════════════════════════
+  { id: 'tw01', comp: 'comp005', type: 'mc', difficulty: 2,
+    q: 'Euclid’s Elements is best known for organizing geometry using:',
+    choices: ['Purely numeric tables', 'An axiomatic system with definitions, postulates, and proofs', 'Coordinate graphs only', 'Statistical sampling'], answer: 'An axiomatic system with definitions, postulates, and proofs',
+    explanation: 'The *Elements* builds from undefined terms, definitions, axioms/postulates, and deductive proofs — a model of axiomatic structure.' },
+  { id: 'tw02', comp: 'comp005', type: 'mc', difficulty: 2,
+    q: 'Development of non-Euclidean geometries in the 19th century most directly challenged assumptions about:',
+    choices: ['The parallel postulate', 'The Pythagorean theorem', 'Order of operations', 'Decimal place value'], answer: 'The parallel postulate',
+    explanation: 'By varying Euclid’s fifth postulate, mathematicians built consistent geometries where “parallel” behavior differs from the Euclidean plane.' },
+  { id: 'tw03', comp: 'comp005', type: 'mc', difficulty: 1,
+    q: 'The Hindu–Arabic numeral system, including the use of zero as a placeholder, most improved:',
+    choices: ['Geometric compass constructions', 'Efficient calculation and recording of quantity', 'Trigonometric identity proofs', 'Riemann integration'], answer: 'Efficient calculation and recording of quantity',
+    explanation: 'Positional notation with zero revolutionized arithmetic, bookkeeping, and the growth of symbolic algebra.' },
+  { id: 'tw04', comp: 'comp005', type: 'mc', difficulty: 2,
+    q: 'Muhammad ibn Musa al-Khwarizmi’s work is a major historical root of:',
+    choices: ['Calculus of variations', 'Symbolic algebra and algorithmic equation solving', 'Non-Euclidean geometry', 'Bayesian statistics'], answer: 'Symbolic algebra and algorithmic equation solving',
+    explanation: 'Al-Khwarizmi’s writings on balancing and completion (*al-jabr*) helped shape school algebra and the word “algorithm.”' },
+  { id: 'tw05', comp: 'comp005', type: 'mc', difficulty: 2,
+    q: 'From a “mathematical perspectives” standpoint, studying ethnomathematics emphasizes:',
+    choices: ['That only one culture invented all mathematics', 'Mathematical ideas embedded in cultural practices and contexts', 'Eliminating story problems from the curriculum', 'Replacing proof with estimation'], answer: 'Mathematical ideas embedded in cultural practices and contexts',
+    explanation: 'Ethnomathematics explores how different communities use patterns, measurement, and logic — valid mathematics outside textbook forms.' },
+  { id: 'tw06', comp: 'comp005', type: 'mc', difficulty: 3,
+    q: 'Gödel’s incompleteness theorems are most associated with which idea?',
+    choices: ['Every triangle has angle sum 180° in neutral geometry', 'Limitations of formal axiomatic systems rich enough to encode arithmetic', 'The irrationality of π', 'The definition of standard deviation'], answer: 'Limitations of formal axiomatic systems rich enough to encode arithmetic',
+    explanation: 'They show that in sufficiently strong consistent systems, there are true statements not provable within the system — a profound structural insight.' },
+  { id: 'tw07', comp: 'comp005', type: 'mc', difficulty: 2,
+    q: 'Cantor’s work on infinite sets primarily advanced understanding of:',
+    choices: ['Volume of spheres only', 'Different sizes of infinity and set-theoretic foundations', 'Solving cubic equations by radicals', 'Complex conjugate roots'], answer: 'Different sizes of infinity and set-theoretic foundations',
+    explanation: 'Cantor compared infinite cardinalities and opened modern set theory, reshaping analysis and logic.' },
+  { id: 'tw08', comp: 'comp005', type: 'mc', difficulty: 2,
+    q: 'Which statement best reflects the relationship between society and mathematics?',
+    choices: ['Mathematics develops only in isolation from applications', 'Mathematical priorities and notation evolve with scientific, economic, and social needs', 'Applied mathematics is not real mathematics', 'Pure mathematics never influences technology'], answer: 'Mathematical priorities and notation evolve with scientific, economic, and social needs',
+    explanation: 'War, navigation, commerce, and computing have all steered which problems mattered and which tools (logs, vectors, statistics) flourished.' },
+  { id: 'tw09', comp: 'comp005', type: 'mc', difficulty: 2,
+    q: 'Teaching that “the structure of the real numbers as a complete ordered field” supports which big idea?',
+    choices: ['Decimals are unrelated to fractions', 'Why limits, continuity, and calculus can be built rigorously on ℝ', 'That all numbers are rational', 'That geometry never uses numbers'], answer: 'Why limits, continuity, and calculus can be built rigorously on ℝ',
+    explanation: 'Field and order properties plus completeness characterize ℝ and underpin analysis.' },
+  { id: 'tw10', comp: 'comp005', type: 'mc', difficulty: 1,
+    q: 'Including diverse mathematicians (e.g., Noether, Ramanujan) in curriculum primarily supports:',
+    choices: ['Narrowing math to memorization', 'Humanizing mathematics and broadening who students see as capable contributors', 'Removing proof from geometry', 'Avoiding technology'], answer: 'Humanizing mathematics and broadening who students see as capable contributors',
+    explanation: 'Representation counters stereotypes and shows mathematics as a living, collaborative human endeavor.' },
+  { id: 'tw11', comp: 'comp005', type: 'mc', difficulty: 2,
+    q: 'The “four-color theorem” proof controversy (1976) is often cited when discussing:',
+    choices: ['Whether calculators should be banned', 'Computer-assisted proofs and what counts as verifiable mathematics', 'The definition of prime numbers', 'Order of operations'], answer: 'Computer-assisted proofs and what counts as verifiable mathematics',
+    explanation: 'Large computer-checked cases raised questions about surveyability and the evolving nature of proof.' },
+  { id: 'tw12', comp: 'comp005', type: 'mc', difficulty: 2,
+    q: 'Babylonian clay tablets with quadratic problems illustrate that:',
+    choices: ['Algebra began only in 20th-century schools', 'Sophisticated procedural mathematics existed millennia ago', 'The number π was unknown before calculus', 'Statistics predates arithmetic'], answer: 'Sophisticated procedural mathematics existed millennia ago',
+    explanation: 'Ancient Mesopotamian scribes solved problems equivalent to quadratics — evidence of deep early mathematical practice.' },
+
+  // ═══════════════════════════════════════════════
   // NEW: Competency 004 — Patterns (tp01–tp08)
   // ═══════════════════════════════════════════════
   { id: 'tp01', comp: 'comp002', type: 'mc', difficulty: 1,
@@ -988,6 +1045,14 @@ export const TEXES_QUESTIONS = [
     q: 'What is the sum of the infinite geometric series 27 + 9 + 3 + 1 + …?',
     choices: ['40.5', '81', '36', '54'], answer: '40.5',
     explanation: 'S = a/(1 − r) = 27/(1 − 1/3) = 27/(2/3) = 40.5.' },
+  { id: 'tp09', comp: 'comp002', type: 'mc', difficulty: 2,
+    q: 'The 5th term of an arithmetic sequence is 17 and the common difference is 3. What is the first term?',
+    choices: ['5', '8', '11', '14'], answer: '5',
+    explanation: 'a₅ = a₁ + 4d → 17 = a₁ + 12 → a₁ = 5.' },
+  { id: 'tp10', comp: 'comp002', type: 'mc', difficulty: 2,
+    q: 'A geometric sequence has first term 4 and common ratio 1/2. What is the 4th term?',
+    choices: ['1/2', '1', '2', '1/4'], answer: '1/2',
+    explanation: 'a₄ = 4 · (1/2)³ = 4 · 1/8 = 1/2.' },
 
   // ═══════════════════════════════════════════════
   // NEW: Competency 005 — Functions, Relations & Graphs (tf01–tf08)
@@ -1060,6 +1125,14 @@ export const TEXES_QUESTIONS = [
     q: 'Solve: log₃(x) + log₃(x − 2) = 1',
     choices: ['3', '−1', '3 and −1', 'No solution'], answer: '3',
     explanation: 'log₃(x(x−2)) = 1 → 3^(1) = x(x−2) → x² − 2x = 3 → x² − 2x − 3 = 0 → (x−3)(x+1) = 0. Since x must be positive, x = 3.' },
+  { id: 'te09', comp: 'comp002', type: 'mc', difficulty: 2,
+    q: 'Solve for x: ln(x) = 2 (use e as the base of the natural logarithm).',
+    choices: ['x = e²', 'x = 2e', 'x = ln(2)', 'x = e/2'], answer: 'x = e²',
+    explanation: 'Exponentiate both sides: e^(ln x) = e² → x = e².' },
+  { id: 'te10', comp: 'comp002', type: 'mc', difficulty: 2,
+    q: 'If log₁₀(x) = 1.5, then x equals:',
+    choices: ['10^1.5', '1.5', '10 + 1.5', '10/1.5'], answer: '10^1.5',
+    explanation: 'By definition of common log: x = 10^(1.5).' },
 
   // ═══════════════════════════════════════════════
   // NEW: Competency 007 — Polynomial, Rational, Radical, Absolute Value, Piecewise (tr01–tr08)
@@ -1140,6 +1213,14 @@ export const TEXES_QUESTIONS = [
     q: 'If sin⁻¹(x) = π/6, what is x?',
     choices: ['1/2', '√3/2', '√2/2', '1'], answer: '1/2',
     explanation: 'sin(π/6) = 1/2, so sin⁻¹(1/2) = π/6, meaning x = 1/2.' },
+  { id: 'tg11', comp: 'comp002', type: 'mc', difficulty: 2,
+    q: 'What is tan(π/4)?',
+    choices: ['0', '1', '√2', 'undefined'], answer: '1',
+    explanation: 'tan(π/4) = sin/cos = (√2/2)/(√2/2) = 1.' },
+  { id: 'tg12', comp: 'comp002', type: 'mc', difficulty: 2,
+    q: 'Which expression equals sin(2θ)?',
+    choices: ['2 sin θ cos θ', 'sin²θ + cos²θ', '2 sin θ', 'cos(2θ)'], answer: '2 sin θ cos θ',
+    explanation: 'Double-angle identity: sin(2θ) = 2 sin θ cos θ.' },
 
   // ═══════════════════════════════════════════════
   // NEW: Competency 010 — Differential & Integral Calculus (td01–td10)
@@ -1184,6 +1265,14 @@ export const TEXES_QUESTIONS = [
     q: 'Evaluate: ∫₀² (4x) dx',
     choices: ['4', '8', '16', '2'], answer: '8',
     explanation: '∫₀² 4x dx = [2x²]₀² = 2(4) − 0 = 8.' },
+  { id: 'td11', comp: 'comp002', type: 'mc', difficulty: 2,
+    q: 'If f(x) = x³ − 3x, for which x in (0, 2) does f have a local maximum or minimum?',
+    choices: ['x = 1 only (local min)', 'x = 1 only (local max)', 'x = √3', 'No critical points'], answer: 'x = 1 only (local min)',
+    explanation: 'f′(x) = 3x² − 3 = 3(x−1)(x+1). On (0,2) the only critical point is x = 1. f″(x) = 6x > 0 at x = 1, so concave up → local minimum.' },
+  { id: 'td12', comp: 'comp002', type: 'mc', difficulty: 2,
+    q: 'The average value of f(x) = 2x on [0, 3] is:',
+    choices: ['2', '3', '6', '9'], answer: '3',
+    explanation: 'Average = (1/(3−0))∫₀³ 2x dx = (1/3)[x²]₀³ = 9/3 = 3.' },
 
   // ═══════════════════════════════════════════════
   // NEW: Competency 013 — Euclidean Geometry extra (tga01–tga04)
@@ -1204,6 +1293,14 @@ export const TEXES_QUESTIONS = [
     q: 'The sum of interior angles of a quadrilateral is:',
     choices: ['180°', '360°', '540°', '720°'], answer: '360°',
     explanation: 'Sum of interior angles = (n − 2) · 180° = 2 · 180° = 360°.' },
+  { id: 'tga05', comp: 'comp003', type: 'mc', difficulty: 2,
+    q: 'In a 30°-60°-90° triangle, if the shortest leg is 5, the hypotenuse is:',
+    choices: ['5√2', '10', '5√3', '15'], answer: '10',
+    explanation: 'Short leg is opposite 30°; hypotenuse = 2 × short leg = 10.' },
+  { id: 'tga06', comp: 'comp003', type: 'mc', difficulty: 2,
+    q: 'Two similar triangles have corresponding sides in ratio 2 : 5. Their areas are in ratio:',
+    choices: ['2 : 5', '4 : 25', '5 : 2', '25 : 4'], answer: '4 : 25',
+    explanation: 'Area ratio = (linear scale factor)² = 2² : 5² = 4 : 25.' },
 
   // ═══════════════════════════════════════════════
   // NEW: Competency 014 — Coordinate, Transformational & Vector Geometry (tv01–tv06)
@@ -1232,6 +1329,14 @@ export const TEXES_QUESTIONS = [
     q: 'A figure has rotational symmetry of order 4. Through what angle can it be rotated onto itself?',
     choices: ['45°', '60°', '90°', '120°'], answer: '90°',
     explanation: 'Order 4 means 360°/4 = 90° rotation maps the figure onto itself.' },
+  { id: 'tv07', comp: 'comp003', type: 'mc', difficulty: 2,
+    q: 'The midpoint of segment from A(−2, 5) to B(4, 1) is:',
+    choices: ['(1, 3)', '(3, 2)', '(0, 4)', '(6, 6)'], answer: '(1, 3)',
+    explanation: 'Midpoint = ((−2+4)/2, (5+1)/2) = (1, 3).' },
+  { id: 'tv08', comp: 'comp003', type: 'mc', difficulty: 2,
+    q: 'A dilation with scale factor k = 3 centered at the origin maps (2, −1) to:',
+    choices: ['(6, −3)', '(5, 2)', '(2/3, −1/3)', '(−6, 3)'], answer: '(6, −3)',
+    explanation: 'Dilation: (x, y) → (kx, ky) = (6, −3).' },
 
   // ═══════════════════════════════════════════════
   // NEW: Competency 017 — Statistical Inference (ts01–ts10)
@@ -1276,6 +1381,14 @@ export const TEXES_QUESTIONS = [
     q: 'An unbiased estimator is one where:',
     choices: ['It always equals the parameter', 'Its expected value equals the parameter', 'Its variance is zero', 'It never changes'], answer: 'Its expected value equals the parameter',
     explanation: 'An estimator is unbiased if E(estimator) = parameter being estimated.' },
+  { id: 'ts11', comp: 'comp004', type: 'mc', difficulty: 2,
+    q: 'A p-value is interpreted as:',
+    choices: ['The probability the null is true', 'The probability of data at least this extreme if the null is true', '1 − confidence level', 'The effect size'], answer: 'The probability of data at least this extreme if the null is true',
+    explanation: 'Under the null hypothesis, the p-value is the probability of observing a test statistic as extreme or more extreme.' },
+  { id: 'ts12', comp: 'comp004', type: 'mc', difficulty: 2,
+    q: 'In simple linear regression, the slope b₁ estimates:',
+    choices: ['The y-intercept', 'The average change in y per unit increase in x', 'The correlation squared', 'The sample variance of x'], answer: 'The average change in y per unit increase in x',
+    explanation: 'The slope in ŷ = b₀ + b₁x is the estimated change in y for each one-unit increase in x.' },
 
   // ═══════════════════════════════════════════════
   // NEW: Competency 020 — Mathematical Learning & Instruction (ti01–ti08)

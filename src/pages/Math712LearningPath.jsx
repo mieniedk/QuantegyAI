@@ -114,8 +114,8 @@ export default function Math712LearningPath() {
           Math 7–12 learning path
         </h1>
         <p style={{ margin: '0 0 20px', fontSize: 14, color: COLOR.textSecondary, lineHeight: 1.6 }}>
-          Twenty-one TExES competencies in a recommended order. Each opens the adaptive 20-tile loop scoped to that
-          competency. Mastery is tracked per competency (85%+ on the mastery bar for that standard).
+          Twenty-two competency scopes in a recommended order (21 numbered TExES competencies plus Standard VI — Mathematical Perspectives as c022). Each opens the adaptive 20-tile loop scoped to that
+          row. Mastery is tracked per standard (85%+ on the mastery bar).
         </p>
 
         <div style={{ ...CARD, marginBottom: 20, padding: '18px 20px' }}>

@@ -2828,7 +2828,7 @@ const Student = () => {
                     }}>
                       <span style={{ fontSize: 11, fontWeight: 700, opacity: 0.8, textTransform: 'uppercase', letterSpacing: 0.5 }}>TExES</span>
                       <span style={{ fontSize: 15, fontWeight: 800 }}>Math 7-12</span>
-                      <span style={{ fontSize: 11, opacity: 0.7 }}>6 domains · 21 competencies</span>
+                      <span style={{ fontSize: 11, opacity: 0.7 }}>6 domains · 22 competency scopes</span>
                     </Link>
                     <Link to="/texes-prep?exam=math48" style={{
                       padding: '18px 16px', borderRadius: 14, textDecoration: 'none',

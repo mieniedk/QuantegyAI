@@ -16,8 +16,16 @@ import GlobalLoopCalculator from "./components/GlobalLoopCalculator.jsx";
 import AppToaster from "./components/AppToaster.jsx";
 import { migrateBrandStorageKeys } from "./utils/storageKeyMigration.js";
 import { practiceLoopInstanceKey } from "./utils/practiceLoopScope.js";
+import { pullLearningOncePerSession } from "./utils/studentLearningSync.js";
 
 migrateBrandStorageKeys();
+
+function StudentLearningSyncBootstrap() {
+  React.useEffect(() => {
+    pullLearningOncePerSession();
+  }, []);
+  return null;
+}
 
 function PracticeLoopKeyed() {
   const [params] = useSearchParams();
@@ -125,6 +133,10 @@ const VideoStudio = React.lazy(() => import("./pages/VideoStudio.jsx"));
 const ConceptMap = React.lazy(() => import("./pages/ConceptMap.jsx"));
 const Printables = React.lazy(() => import("./pages/Printables.jsx"));
 const ClassroomTools = React.lazy(() => import("./pages/ClassroomTools.jsx"));
+const PlaceValueIlluminationsLab = React.lazy(() => import("./pages/PlaceValueIlluminationsLab.jsx"));
+const MatrixTransformsGraphicsLab = React.lazy(() => import("./pages/MatrixTransformsGraphicsLab.jsx"));
+const CommutativityTool = React.lazy(() => import("./pages/CommutativityTool.jsx"));
+const GcdLcmTool = React.lazy(() => import("./pages/GcdLcmTool.jsx"));
 const PacingGuide = React.lazy(() => import("./pages/PacingGuide.jsx"));
 const CalendarView = React.lazy(() => import("./pages/CalendarView.jsx"));
 const ParentPortal = React.lazy(() => import("./pages/ParentPortal.jsx"));
@@ -303,6 +315,7 @@ if (!rootEl) {
         <a href="#main-content" className="skip-link">Skip to main content</a>
         <LTIBanner />
         <RoutePrefetcher />
+        <StudentLearningSyncBootstrap />
         <QBotFloating />
         <CommandBar />
         <GlobalLoopCalculator />
@@ -399,6 +412,10 @@ if (!rootEl) {
           <Route path="/concept-map" element={<ErrorBoundary><ConceptMap /></ErrorBoundary>} />
           <Route path="/printables" element={<ErrorBoundary><Printables /></ErrorBoundary>} />
           <Route path="/classroom-tools" element={<ErrorBoundary><ClassroomTools /></ErrorBoundary>} />
+          <Route path="/tools/place-value-lab" element={<ErrorBoundary><PlaceValueIlluminationsLab /></ErrorBoundary>} />
+          <Route path="/tools/matrix-transforms-graphics" element={<ErrorBoundary><MatrixTransformsGraphicsLab /></ErrorBoundary>} />
+          <Route path="/tools/commutativity-explorer" element={<ErrorBoundary><CommutativityTool /></ErrorBoundary>} />
+          <Route path="/tools/gcd-lcm-explorer" element={<ErrorBoundary><GcdLcmTool /></ErrorBoundary>} />
           <Route path="/pacing-guide" element={<ErrorBoundary><PacingGuide /></ErrorBoundary>} />
           <Route path="/calendar" element={<ErrorBoundary><CalendarView /></ErrorBoundary>} />
           <Route path="/parent" element={<ErrorBoundary><ParentPortal /></ErrorBoundary>} />

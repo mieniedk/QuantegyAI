@@ -62,6 +62,7 @@ function saveLoopReview(key, data) {
       flagged: flagged.slice(-MAX_FLAGGED_ENTRIES),
     };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+    import('./studentLearningSync.js').then((m) => m.scheduleLearningSyncPush()).catch(() => {});
     return { ok: true };
   } catch (e) {
     const code = e && e.name === 'QuotaExceededError' ? 'QUOTA_EXCEEDED' : 'UNKNOWN';
@@ -136,6 +137,35 @@ export function getSpacedReviewCandidates(key, allowedIdSet, max = 5) {
   });
   (data.flagged || []).forEach((id) => {
     if (out.length >= max) return;
+    if (allowedIdSet.has(id) && !seen.has(id)) {
+      seen.add(id);
+      out.push(id);
+    }
+  });
+  return out;
+}
+
+/**
+ * Ordered question IDs for mistake-weighted quiz picks: most recently wrong first, then flagged.
+ * Restricted to ids in allowedIdSet (same competency/standard pool).
+ */
+export function getMistakePriorityIds(key, allowedIdSet, maxCandidates = 48) {
+  if (!key || !allowedIdSet || allowedIdSet.size === 0) return [];
+  const data = loadLoopReview(key);
+  const weakEntries = Object.entries(data.weak || {})
+    .filter(([id]) => allowedIdSet.has(id))
+    .sort((a, b) => (b[1] || 0) - (a[1] || 0));
+  const out = [];
+  const seen = new Set();
+  weakEntries.forEach(([id]) => {
+    if (out.length >= maxCandidates) return;
+    if (!seen.has(id)) {
+      seen.add(id);
+      out.push(id);
+    }
+  });
+  (data.flagged || []).forEach((id) => {
+    if (out.length >= maxCandidates) return;
     if (allowedIdSet.has(id) && !seen.has(id)) {
       seen.add(id);
       out.push(id);

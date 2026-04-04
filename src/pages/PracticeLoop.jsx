@@ -34,6 +34,7 @@ import {
   addWeakQuestionIds,
   toggleFlaggedQuestion,
   getSpacedReviewCandidates,
+  getMistakePriorityIds,
   persistLoopReviewSnapshot,
 } from '../utils/loopReviewStorage';
 import {
@@ -64,6 +65,104 @@ import { showAppToast } from '../utils/appToast';
 
 const COMPETENCY_EXPLORER = { id: 'concept-explorer', name: 'Concept Explorer', path: '/concept-explorer' };
 const STANDARD_LOOP_GAME_IDS = ['q-blocks', 'math-match', 'math-bingo', 'math-jeopardy'];
+
+/** Coarse bucket so the loop can pick four games with different interaction patterns (matches learning-loop uniqueness intent). */
+function loopGameInteractionBucket(game) {
+  const id = game?.id || '';
+  const map = {
+    'q-blocks': 'arcade-falling',
+    'teks-crush': 'arcade-match3',
+    'math-match': 'matching-pairs',
+    'math-memory': 'memory-flip',
+    'math-bingo': 'bingo-card',
+    'crosses-knots': 'grid-strategy',
+    'math-jeopardy': 'board-trivia',
+    'math-millionaire': 'ladder-trivia',
+    'math-sprint': 'mc-sprint',
+    'algebra-sprint': 'algebra-sprint',
+    'math-maze': 'maze-path',
+    'equation-balance': 'balance-scale',
+    'graph-explorer': 'graph-read',
+    'number-line-ninja': 'number-line',
+    'coordinate-commander': 'coordinate-plane',
+    'qbot-shop': 'money-shop',
+    'fraction-pizza': 'fraction-visual',
+    'shape-shifter': 'shape-classify',
+  };
+  return map[id] || `id:${id}`;
+}
+
+function pickLoopFourGames({ grade, loopExamId, loopCompId, domains }) {
+  const isOk = (g) => g && (
+    loopExamId === 'calculus'
+    || !Array.isArray(g.grades)
+    || g.grades.includes(grade)
+  );
+  const byId = (id) => GAMES_CATALOG.find((g) => g.id === id && isOk(g));
+
+  const fillFromStandardIds = () => {
+    const fixed = STANDARD_LOOP_GAME_IDS.map((id) => byId(id)).filter(Boolean);
+    if (fixed.length === STANDARD_LOOP_GAME_IDS.length) return fixed;
+    if (fixed.length > 0) {
+      const padded = [...fixed];
+      while (padded.length < 4) {
+        const next = GAMES_CATALOG.find((g) => isOk(g) && !padded.some((p) => p.id === g.id));
+        if (!next) break;
+        padded.push(next);
+      }
+      while (padded.length < 4) padded.push(COMPETENCY_EXPLORER);
+      return padded;
+    }
+    return [COMPETENCY_EXPLORER];
+  };
+
+  const useDomainOrder = (loopExamId === 'math712' || loopExamId === 'math48') && loopCompId;
+  if (!useDomainOrder) return fillFromStandardIds();
+
+  const domain = (domains || []).find((d) => d.id === loopCompId);
+  const preferredIds = [...(domain?.games || []), ...STANDARD_LOOP_GAME_IDS];
+  const selected = [];
+  const usedIds = new Set();
+  const usedBuckets = new Set();
+
+  const tryAdd = (game) => {
+    if (!game || usedIds.has(game.id)) return false;
+    const bucket = loopGameInteractionBucket(game);
+    if (usedBuckets.has(bucket)) return false;
+    selected.push(game);
+    usedIds.add(game.id);
+    usedBuckets.add(bucket);
+    return true;
+  };
+
+  for (const id of preferredIds) {
+    if (selected.length >= 4) break;
+    const g = byId(id);
+    if (g) tryAdd(g);
+  }
+
+  if (selected.length < 4) {
+    for (const g of GAMES_CATALOG) {
+      if (selected.length >= 4) break;
+      if (!isOk(g) || usedIds.has(g.id)) continue;
+      const bucket = loopGameInteractionBucket(g);
+      if (usedBuckets.has(bucket)) continue;
+      tryAdd(g);
+    }
+  }
+
+  if (selected.length < 4) {
+    for (const g of GAMES_CATALOG) {
+      if (selected.length >= 4) break;
+      if (!isOk(g) || usedIds.has(g.id)) continue;
+      selected.push(g);
+      usedIds.add(g.id);
+    }
+  }
+
+  while (selected.length < 4) selected.push(COMPETENCY_EXPLORER);
+  return selected.slice(0, 4);
+}
 const VIDEO_BACKUP_EMBEDS = [
   'https://www.youtube.com/embed/CLWpkv6ccpA',
   'https://www.youtube.com/embed/SP-YJe7Vldo',
@@ -205,6 +304,28 @@ function orderByDifficultyBias(items, bias = 'medium', seedInput = '') {
   return [...seeded(medium, 'medium'), ...seeded(easy, 'easy'), ...seeded(hard, 'hard')];
 }
 
+const CHECK_QUIZ_BIAS_ORDER = ['easy', 'medium', 'hard'];
+
+/**
+ * Nudges positional check-quiz bias using the same signals as coach messaging:
+ * supportLevel + blendedReadiness (recent quiz accuracy blended with confidence).
+ */
+function nudgeCheckQuizBiasForSupport(baseBias, supportLevel, blendedReadiness) {
+  const b = baseBias === 'easy' || baseBias === 'hard' ? baseBias : 'medium';
+  let idx = CHECK_QUIZ_BIAS_ORDER.indexOf(b);
+  if (idx < 0) idx = 1;
+  if (supportLevel === 'intensive-support') {
+    idx = Math.max(0, idx - 1);
+  } else if (supportLevel === 'challenge-ready') {
+    idx = Math.min(2, idx + 1);
+  } else if (blendedReadiness < 60) {
+    idx = Math.max(0, idx - 1);
+  } else if (blendedReadiness >= 85) {
+    idx = Math.min(2, idx + 1);
+  }
+  return CHECK_QUIZ_BIAS_ORDER[idx];
+}
+
 function toYouTubeEmbed(url) {
   if (!url) return null;
   const match = (String(url).match(/(?:embed\/|v=)([a-zA-Z0-9_-]+)/) || String(url).match(/youtu\.be\/([a-zA-Z0-9_-]+)/));
@@ -304,10 +425,25 @@ function buildOrderedPoolForPhase(items, {
   return ordered;
 }
 
-function pickPhaseQuestions(orderedPool, count, usedIds, recentIds = []) {
+function pickPhaseQuestions(orderedPool, count, usedIds, recentIds = [], opts = {}) {
+  const weakPreferenceIds = opts.weakPreferenceIds || [];
+  const maxWeakPreferenceSlots = Math.max(0, Math.min(Number(opts.maxWeakPreferenceSlots) || 0, count));
   const out = [];
   const inPhase = new Set();
   const recent = new Set(recentIds || []);
+
+  const poolById = new Map((orderedPool || []).map((q) => [q.id, q]));
+  let weakSlotsUsed = 0;
+  if (maxWeakPreferenceSlots > 0 && weakPreferenceIds.length) {
+    for (const wid of weakPreferenceIds) {
+      if (weakSlotsUsed >= maxWeakPreferenceSlots || out.length >= count) break;
+      const q = poolById.get(wid);
+      if (!q || usedIds.has(q.id)) continue;
+      inPhase.add(q.id);
+      out.push(q);
+      weakSlotsUsed += 1;
+    }
+  }
 
   const takeFrom = (list, predicate) => {
     for (const q of list) {
@@ -990,6 +1126,7 @@ function GamePhase({ gameLabel, scopeBadge, description, gameUrl, gameName, onSk
               border: `1px solid ${COLOR.border}`,
               borderRadius: 12,
               background: '#0f172a',
+              ...(isQblocksEmbed ? { touchAction: 'none' } : {}),
             }}
           />
         </div>
@@ -1042,7 +1179,9 @@ function ActivityPhase({ subject, examId, comp, currentStd, mode, activityIndex,
         subject={subject} examId={examId} comp={resolvedComp}
         currentStd={currentStd}
         mode={mode}
+        activitySlot={activityIndex}
         activityIndex={activityIndex + seed}
+        seed={seed}
         onComplete={onComplete}
         continueLabel="Continue"
         badgeLabel={badgeLabel}
@@ -1767,6 +1906,7 @@ export default function PracticeLoop() {
   const [showEarlyMasteryOffer, setShowEarlyMasteryOffer] = useState(false);
   const [readinessRetries, setReadinessRetries] = useState(0);
   const [conceptRefreshReturnPhase, setConceptRefreshReturnPhase] = useState(null);
+  const [conceptRefreshSlideIdx, setConceptRefreshSlideIdx] = useState(0);
   const [adaptiveDebugMessage, setAdaptiveDebugMessage] = useState('init');
   const [xpPoints, setXpPoints] = useState(0);
   const [quizStreak, setQuizStreak] = useState(0);
@@ -1923,6 +2063,12 @@ export default function PracticeLoop() {
   useEffect(() => {
     if (isLandscapeTight) setDockCollapsed(true);
   }, [isLandscapeTight]);
+
+  useEffect(() => {
+    const onSync = () => setStorageHealTick((n) => n + 1);
+    window.addEventListener('quantegy-learning-sync', onSync);
+    return () => window.removeEventListener('quantegy-learning-sync', onSync);
+  }, []);
 
   const adaptiveScope = learningLoopConfig.adaptiveScope || {};
   const adaptiveExamIds = Array.isArray(adaptiveScope.examIds) && adaptiveScope.examIds.length > 0
@@ -2302,12 +2448,40 @@ export default function PracticeLoop() {
   }, [phase]);
 
   const goToPhaseAfterDiagnostic = useCallback((diagnosticCorrect, diagnosticTotal) => {
-    // Always progress in sequence after tile 1 so every competency completes
-    // the same full-tile learning loop without diagnostic skip-ahead jumps.
-    if (isAdaptiveDebug) setAdaptiveDebugMessage(`diagnostic:${diagnosticCorrect}/${diagnosticTotal} -> next:video`);
-    setCoachAdaptiveNote('');
-    goToPhase('video');
-  }, [goToPhase, isAdaptiveDebug]);
+    const ratio = diagnosticTotal > 0 ? diagnosticCorrect / diagnosticTotal : 0;
+    const skipCfg = ADAPTIVE.diagnosticSkipAhead;
+    let nextPhase = 'video';
+    let note = '';
+
+    if (adaptiveEnabledForContext && skipCfg?.enabled) {
+      const perfect = skipCfg.perfectScore;
+      const high = skipCfg.highScore;
+      const tryTile = (tileId) => {
+        if (!tileId) return null;
+        const mapped = TILE_ID_TO_PHASE[tileId] || tileId;
+        return PHASES.includes(mapped) ? mapped : null;
+      };
+      if (perfect && typeof perfect.threshold === 'number' && ratio + 1e-9 >= perfect.threshold) {
+        const target = tryTile(perfect.skipToTileId);
+        if (target) {
+          nextPhase = target;
+          note = 'Perfect diagnostic — jumping ahead to a readiness check that matches your level.';
+        }
+      } else if (high && typeof high.threshold === 'number' && ratio + 1e-9 >= high.threshold) {
+        const target = tryTile(high.skipToTileId);
+        if (target) {
+          nextPhase = target;
+          note = 'Strong diagnostic — quick concept recap, then we will continue from there.';
+        }
+      }
+    }
+
+    if (isAdaptiveDebug) {
+      setAdaptiveDebugMessage(`diagnostic:${diagnosticCorrect}/${diagnosticTotal} ratio:${Math.round(ratio * 100)}% -> next:${nextPhase}`);
+    }
+    setCoachAdaptiveNote(note);
+    goToPhase(nextPhase);
+  }, [goToPhase, isAdaptiveDebug, adaptiveEnabledForContext, ADAPTIVE]);
 
   const goToPhaseAfterCheckQuiz = useCallback((correctCount, total, normalNext, phaseKey) => {
     setCoachAdaptiveNote('');
@@ -2421,7 +2595,6 @@ export default function PracticeLoop() {
     });
     return out;
   }, [ADAPTIVE]);
-  const currentDifficultyBias = CHECK_DIFFICULTY_BY_PHASE[phase] || 'n/a';
   const recentQuizAccuracy = useMemo(() => {
     if (!quizHistory.length) return 0;
     const recent = quizHistory.slice(-4);
@@ -2550,6 +2723,15 @@ export default function PracticeLoop() {
     'mastery-check',
   ]), []);
 
+  const quizPhaseDifficultyDebug = useMemo(() => {
+    const specKey = quizSpecKeyByPhase[phase] || 'check';
+    const base = CHECK_DIFFICULTY_BY_PHASE[phase] || (specKey === 'mastery' ? 'hard' : specKey === 'diagnostic' ? 'easy' : 'medium');
+    const eff = ADAPTIVE.performanceDifficultyAdjust?.enabled && specKey === 'check'
+      ? nudgeCheckQuizBiasForSupport(base, supportLevel, blendedReadiness)
+      : base;
+    return { base, eff, specKey };
+  }, [phase, quizSpecKeyByPhase, CHECK_DIFFICULTY_BY_PHASE, ADAPTIVE, supportLevel, blendedReadiness]);
+
   const quizPoolsByPhase = useMemo(() => {
     const eid = loopExamId || gradeToExamId(grade);
     const c = loopCompId || (singleTeks && eid && getCompForTeks(singleTeks, eid)) || forcedLoopCompId;
@@ -2604,11 +2786,33 @@ export default function PracticeLoop() {
       const count = quizCountsByPhase[phaseKey] || CHECK_QUIZ_COUNT;
       const specKey = quizSpecKeyByPhase[phaseKey] || 'check';
       const mix = QUIZ_SPECS[specKey]?.difficultyMix || null;
-      const bias = CHECK_DIFFICULTY_BY_PHASE[phaseKey] || (specKey === 'mastery' ? 'hard' : specKey === 'diagnostic' ? 'easy' : 'medium');
+      let bias = CHECK_DIFFICULTY_BY_PHASE[phaseKey] || (specKey === 'mastery' ? 'hard' : specKey === 'diagnostic' ? 'easy' : 'medium');
+      if (ADAPTIVE.performanceDifficultyAdjust?.enabled && specKey === 'check') {
+        bias = nudgeCheckQuizBiasForSupport(bias, supportLevel, blendedReadiness);
+      }
       const epochPart = SPACED_REVIEW_PHASE_KEYS.has(phaseKey) ? `|rev${reviewPoolEpoch}` : '';
       const phaseSeed = `${loopSessionSeed}|quiz|${phaseKey}|${grade}|${singleTeks}|${scopedComp}|${scopedStd}${epochPart}|rs${revisitSeed}`;
       const ordered = buildOrderedPoolForPhase(sourcePool, { seedInput: phaseSeed, bias, mix });
-      const picked = pickPhaseQuestions(ordered, count, usedIds, recentIds);
+      const mw = ADAPTIVE.mistakeWeightedSelection || {};
+      const mistakePickEnabled = adaptiveEnabledForContext && mw.enabled !== false && loopReviewKey;
+      let maxWeakSlots = 0;
+      if (mistakePickEnabled) {
+        const cap = Math.max(0, Math.min(Number(mw.maxSlotsPerQuiz) || 2, count));
+        if (specKey === 'diagnostic') {
+          if (mw.applyToDiagnostic) maxWeakSlots = cap;
+        } else if (specKey === 'check') {
+          if (mw.applyToCheck !== false) maxWeakSlots = cap;
+        } else if (specKey === 'readiness') {
+          if (mw.applyToReadiness !== false) maxWeakSlots = cap;
+        } else if (specKey === 'mastery') {
+          if (mw.applyToMastery !== false) maxWeakSlots = cap;
+        }
+      }
+      const weakPrefs = maxWeakSlots > 0 ? getMistakePriorityIds(loopReviewKey, allowedIds, 48) : [];
+      const picked = pickPhaseQuestions(ordered, count, usedIds, recentIds, {
+        weakPreferenceIds: weakPrefs,
+        maxWeakPreferenceSlots: maxWeakSlots,
+      });
 
       let pickedFinal = picked;
       let spacedInjectedId = null;
@@ -2640,6 +2844,7 @@ export default function PracticeLoop() {
     isLHospitalLoop,
     forcedLoopStdId, forcedLoopCompId,
     CHECK_DIFFICULTY_BY_PHASE, quizCountsByPhase, quizSpecKeyByPhase, quizPhaseOrder,
+    ADAPTIVE, supportLevel, blendedReadiness, adaptiveEnabledForContext,
   ]);
   const sourcePoolCoverage = useMemo(() => {
     const eid = loopExamId || gradeToExamId(grade);
@@ -2897,25 +3102,10 @@ export default function PracticeLoop() {
     }
   }, [phase, quizResetMap]);
 
-  const fourGames = useMemo(() => {
-    // Calculus loops should always use the standardized game lineup, even if
-    // the legacy catalog grade tags do not yet include "calculus".
-    const isOk = (g) => g && (
-      loopExamId === 'calculus'
-      || !Array.isArray(g.grades)
-      || g.grades.includes(grade)
-    );
-    const fixed = STANDARD_LOOP_GAME_IDS
-      .map((id) => GAMES_CATALOG.find((g) => g.id === id && isOk(g)))
-      .filter(Boolean);
-    if (fixed.length === STANDARD_LOOP_GAME_IDS.length) return fixed;
-    if (fixed.length > 0) {
-      const padded = [...fixed];
-      while (padded.length < 4) padded.push(COMPETENCY_EXPLORER);
-      return padded;
-    }
-    return [COMPETENCY_EXPLORER];
-  }, [grade, loopExamId]);
+  const fourGames = useMemo(
+    () => pickLoopFourGames({ grade, loopExamId, loopCompId, domains }),
+    [grade, loopExamId, loopCompId, domains],
+  );
 
   const activityModes = useMemo(() => {
     if (subject !== 'math') return [];
@@ -3086,7 +3276,7 @@ export default function PracticeLoop() {
   const showVideoSourceBadge = loopExamId === 'math712' || loopExamId === 'math48';
   const introVideoSourceId = introLecture?.teks || resolvedStdId || loopCompId || '';
   const deepDiveVideoSourceId = deepDiveLecture?.teks || introLecture?.teks || resolvedStdId || loopCompId || '';
-  const useGeometricRefreshActivity = comp === 'comp005' || currentStd === 'c018';
+  const useGeometricRefreshActivity = comp === 'comp005' || currentStd === 'c018' || currentStd === 'c022';
   const microTeachConcept = useMemo(() => {
     const normalizeConceptText = (v) => String(v || '').replace(/\s+/g, ' ').trim().toLowerCase();
     const key = `loop-microteach-seen:${conceptSessionScopeKey}`;
@@ -3127,11 +3317,23 @@ export default function PracticeLoop() {
       const raw = window.sessionStorage.getItem(key);
       const parsed = raw ? JSON.parse(raw) : [];
       const current = Array.isArray(parsed) ? parsed : [];
-      const normalized = normalizeConceptText(text);
       const normalizedSet = new Set(current.map(normalizeConceptText));
-      if (!normalizedSet.has(normalized)) {
-        window.sessionStorage.setItem(key, JSON.stringify([...current, text]));
+      const toAdd = [text];
+      const mis = String(microTeachConcept?.misconception || '').trim();
+      if (mis) toAdd.push(`Watch out focus: ${mis}`);
+      const ex = String(microTeachConcept?.workedExample || '').trim();
+      if (ex) toAdd.push(`Worked-example focus: ${ex}`);
+      let next = [...current];
+      let changed = false;
+      for (const t of toAdd) {
+        const n = normalizeConceptText(t);
+        if (n && !normalizedSet.has(n)) {
+          next.push(t);
+          normalizedSet.add(n);
+          changed = true;
+        }
       }
+      if (changed) window.sessionStorage.setItem(key, JSON.stringify(next));
     } catch {}
   }, [phase, microTeachConcept, conceptSessionScopeKey]);
 
@@ -3152,6 +3354,19 @@ export default function PracticeLoop() {
       }
     } catch {
       usedAcrossSession = new Set();
+    }
+    // Avoid concept-recap tiles repeating the same angles already shown in the concept lesson.
+    try {
+      const mtRaw = window.sessionStorage.getItem(`loop-microteach-seen:${conceptSessionScopeKey}`);
+      const mtParsed = mtRaw ? JSON.parse(mtRaw) : [];
+      if (Array.isArray(mtParsed)) {
+        for (const t of mtParsed) {
+          const n = normalizeConceptText(t);
+          if (n) usedAcrossSession.add(n);
+        }
+      }
+    } catch {
+      /* ignore */
     }
 
     const candidates = [];
@@ -3219,6 +3434,16 @@ export default function PracticeLoop() {
       illustrationHtml: undefined,
     };
   }, [examId, comp, singleTeks, currentStd, conceptVariantIndex, microConcept, reminderText, conceptTitle, conceptSessionScopeKey]);
+
+  const conceptRefreshSlides = useMemo(() => {
+    const s = conceptRefreshConcept?.conceptRefreshSlides;
+    return Array.isArray(s) && s.length > 0 ? s : null;
+  }, [conceptRefreshConcept]);
+
+  useEffect(() => {
+    if (phase !== 'concept-refresh') return;
+    setConceptRefreshSlideIdx(0);
+  }, [phase, conceptSessionScopeKey, conceptRefreshConcept?.conceptText]);
 
   useEffect(() => {
     if (phase !== 'concept-refresh' && !(phase === 'video2' && !hasUniqueDeepDiveLecture && !showNumberSetsActivity)) return;
@@ -3311,6 +3536,7 @@ export default function PracticeLoop() {
       c017: 'Statistical inference (hypothesis tests, confidence intervals, regression) turns data into conclusions. Mastering this competency proves you can teach evidence-based reasoning.',
       c018: 'Mathematical reasoning and problem-solving strategies are tested throughout the exam. Strength here lifts every other domain.',
       c019: 'Connecting math to the real world and communicating clearly are skills every math teacher needs — and the exam specifically assesses them.',
+      c022: 'Standard VI asks you to place mathematics in history and society — axiomatic systems, cultural contributions, and how mathematical knowledge evolves — alongside reasoning and communication.',
       c020: 'Understanding how students learn math — from concrete to abstract — directly impacts your teaching effectiveness and is a dedicated section of the exam.',
       c021: 'Knowing how to design assessments and diagnose student misconceptions makes you a better teacher and is specifically tested on the TExES.',
     };
@@ -3775,7 +4001,12 @@ export default function PracticeLoop() {
             <div>phase: {phase} | tiles: {tilesCompleted} | score: {masteryScore}%</div>
             <div>checkFailStreak: {checkQuizFailStreak} | videoReplays: {videoReplayCount}/{MAX_VIDEO_REPLAYS} | readinessRetries: {readinessRetries}</div>
             <div>adaptiveEnabled: {adaptiveEnabledForContext ? 'yes' : 'no'} | exam: {examId} | comp: {comp || 'n/a'} | std: {currentStd || 'n/a'}</div>
-            <div>difficultyBias(current): {currentDifficultyBias}</div>
+            <div>
+              difficultyBias:
+              {quizPhaseDifficultyDebug.specKey === 'check' && ADAPTIVE.performanceDifficultyAdjust?.enabled
+                ? ` positional ${quizPhaseDifficultyDebug.base} → effective ${quizPhaseDifficultyDebug.eff}`
+                : ` ${quizPhaseDifficultyDebug.eff}`}
+            </div>
             <div>sourcePool: total {sourcePoolCoverage.total} | easy {sourcePoolCoverage.easy} | medium {sourcePoolCoverage.medium} | hard {sourcePoolCoverage.hard}</div>
             <div>blendedReadiness: {blendedReadiness}% | confIndex: {confidenceIndex ?? 'n/a'}</div>
             <div style={{ color: '#93c5fd' }}>lastDecision: {adaptiveDebugMessage}</div>
@@ -4492,11 +4723,42 @@ export default function PracticeLoop() {
                 />
               ) : (
                 <>
-                  <div style={{ ...BODY, lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(conceptToBulletHtml(conceptRefreshConcept?.conceptText || reminderText || '')) }} />
-                  {conceptRefreshConcept?.illustrationHtml && (
-                    <div style={{ marginTop: 12 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(conceptRefreshConcept.illustrationHtml) }} />
+                  {conceptRefreshSlides ? (
+                    <>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.textSecondary, marginBottom: 10 }}>
+                        Part {conceptRefreshSlideIdx + 1} of {conceptRefreshSlides.length}
+                      </div>
+                      <div style={{ ...BODY, lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(conceptToBulletHtml(String(conceptRefreshSlides[conceptRefreshSlideIdx]?.conceptText || ''))) }} />
+                      {conceptRefreshSlides[conceptRefreshSlideIdx]?.illustrationHtml ? (
+                        <div style={{ marginTop: 12 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(conceptRefreshSlides[conceptRefreshSlideIdx].illustrationHtml) }} />
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (conceptRefreshSlideIdx < conceptRefreshSlides.length - 1) {
+                            setConceptRefreshSlideIdx((i) => i + 1);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          } else {
+                            const dest = (conceptRefreshReturnPhase && conceptRefreshReturnPhase !== 'concept-refresh') ? conceptRefreshReturnPhase : 'check-quiz-4';
+                            setConceptRefreshReturnPhase(null);
+                            setDetourFromStep(null);
+                            goToPhase(dest);
+                          }
+                        }}
+                        style={BTN_PRIMARY}
+                      >
+                        {conceptRefreshSlideIdx < conceptRefreshSlides.length - 1 ? 'Next' : 'Continue'}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ ...BODY, lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(conceptToBulletHtml(conceptRefreshConcept?.conceptText || reminderText || '')) }} />
+                      {conceptRefreshConcept?.illustrationHtml && (
+                        <div style={{ marginTop: 12 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(conceptRefreshConcept.illustrationHtml) }} />
+                      )}
+                      <button type="button" onClick={() => { const dest = (conceptRefreshReturnPhase && conceptRefreshReturnPhase !== 'concept-refresh') ? conceptRefreshReturnPhase : 'check-quiz-4'; setConceptRefreshReturnPhase(null); setDetourFromStep(null); goToPhase(dest); }} style={BTN_PRIMARY}>Continue</button>
+                    </>
                   )}
-                  <button type="button" onClick={() => { const dest = (conceptRefreshReturnPhase && conceptRefreshReturnPhase !== 'concept-refresh') ? conceptRefreshReturnPhase : 'check-quiz-4'; setConceptRefreshReturnPhase(null); setDetourFromStep(null); goToPhase(dest); }} style={BTN_PRIMARY}>Continue</button>
                 </>
               )
             ) : (
@@ -5018,7 +5280,7 @@ export default function PracticeLoop() {
                       to={examId === 'math48' ? '/texes-prep?exam=math48' : '/math-712-learning-path'}
                       style={{ fontSize: 13, fontWeight: 700, color: COLOR.blue, textDecoration: 'none' }}
                     >
-                      {examId === 'math48' ? '← Full learning path (all 18 standards)' : '← Full learning path (all 21 competencies)'}
+                      {examId === 'math48' ? '← Full learning path (all 18 standards)' : '← Full learning path (all 22 competencies)'}
                     </Link>
                   </div>
                 )}

@@ -779,7 +779,7 @@ const LECTURES = {
     visual: 'chalkboard',
   },
   // ═══════════════════════════════════════════════════════════
-  // MATH 7-12 STANDARD-SPECIFIC LECTURES (c001–c021)
+  // MATH 7-12 STANDARD-SPECIFIC LECTURES (c001–c022)
   // ═══════════════════════════════════════════════════════════
   'c001': {
     teks: 'c001',
@@ -1074,6 +1074,21 @@ const LECTURES = {
     ],
     example: { problem: 'Show 3 representations of y = 2x + 1.', solution: ['Verbal: "start at 1, go up 2 for each unit right."', 'Table: (0,1), (1,3), (2,5).', 'Graph: line through (0,1) with slope 2.'], answer: 'Verbal, tabular, and graphical representations all describe the same linear relationship.' },
     tip: 'When stuck, switch representations — a graph might reveal what an equation hides.',
+    visual: 'chalkboard',
+  },
+  'c022': {
+    teks: 'c022',
+    title: 'Mathematical Perspectives (Standard VI)',
+    video: 'https://www.youtube.com/embed/TIlBWGuST9U',
+    objective: 'You will relate the history, culture, and structure of mathematics to how we teach and understand the subject today.',
+    keyIdea: 'Mathematics is a human enterprise: ideas evolve, notation changes, and applications reshape what gets studied. Axiomatic systems (like Euclid or modern fields) show how math organizes truth; non-Euclidean geometry and set theory show how foundations can shift.',
+    steps: [
+      { title: 'Historical threads', content: 'From Babylonian and Egyptian practical math through Greek deductive geometry, Islamic algebra, the calculus revolution, to modern computing — each era solved new problems and refined language.' },
+      { title: 'Society and mathematics', content: 'Navigation, physics, commerce, and cryptography have driven discovery. Who gets credit and access shapes the stories we tell — include diverse contributors.' },
+      { title: 'Structure and change', content: 'Axioms, definitions, and proof set ground rules; new questions (infinity, incompleteness, computer proof) update what “certain” means without abandoning rigor.' },
+    ],
+    example: { problem: 'Why did questioning the parallel postulate matter?', solution: ['Euclidean geometry assumed one behavior of parallel lines.', 'Replacing that postulate yields consistent non-Euclidean models (e.g., hyperbolic geometry).', 'This showed axioms are not “self-evident facts about the world” alone — they are starting rules for a mathematical world.'], answer: 'It separated “geometry from one set of axioms” from “all possible consistent geometries,” deepening understanding of axiomatic systems.' },
+    tip: 'When students ask “who invented math?”, pivot to many cultures and to mathematics as growing knowledge, not a single finished book.',
     visual: 'chalkboard',
   },
   'c020': {

@@ -42,6 +42,7 @@ const STATS_INTERACTIVE_MODE_SETS = {
 const REASONING_INTERACTIVE_MODE_SETS = {
   c018: ['proof-sorter', 'pattern-finder', 'representation-match'],
   c019: ['representation-match', 'pattern-finder', 'proof-sorter'],
+  c022: ['pattern-finder', 'representation-match', 'proof-sorter'],
 };
 const PEDAGOGY_INTERACTIVE_MODE_SETS = {
   c020: ['lesson-sequencer', 'misconception-detector', 'assessment-matcher'],
@@ -263,6 +264,9 @@ export default function CompetencyActivity({
   onComplete = () => {},
   continueLabel = 'Continue',
   activityIndex = 0,
+  /** Raw interactive slot 0 / 1 / 2 for tiles A / B / C (before revisit seed is added to activityIndex). */
+  activitySlot = null,
+  seed = 0,
   badgeLabel = 'Interactive activity',
   embedded = false,
 }) {
@@ -305,15 +309,24 @@ export default function CompetencyActivity({
   }
   if (subject === 'math' && comp === 'comp001') {
     const numberModeSet = currentStd === 'c001'
-      ? ['number-line', 'real-number-sets', 'real-properties']
+      ? ['number-line', 'real-number-sets', 'real-properties', 'commutativity']
       : currentStd === 'c002'
-        ? ['complex-plane', 'complex-arithmetic', 'complex-equations']
+        ? null
         : currentStd === 'c003'
-          ? ['prime-blast', 'factor-lab', 'number-line', 'prime-blast', 'factor-lab', 'number-line']
+          ? ['prime-blast', 'real-number-sets', 'factor-lab', 'gcd-lcm', 'prime-blast', 'real-number-sets', 'factor-lab']
           : null;
+    const slot = activitySlot != null ? activitySlot : 0;
+    let modeOverride = null;
+    if (currentStd === 'c002') {
+      const others = ['complex-geometry', 'complex-fractal', 'complex-card-sort', 'complex-arithmetic', 'complex-equations'];
+      const s = ((Number(seed) || 0) % others.length + others.length) % others.length;
+      modeOverride = slot === 1 ? 'real-number-sets' : slot === 0 ? others[s] : others[(s + 1) % others.length];
+    }
     return (
       <NumberExplorer
         activityIndex={activityIndex}
+        activitySlot={activitySlot}
+        modeOverride={modeOverride}
         modeSet={numberModeSet}
         onComplete={onComplete}
         continueLabel={continueLabel}

@@ -4,6 +4,7 @@
  * All math notation uses ^ for exponents (formatMathHtml renders as superscript)
  * Key: examId:compId or examId:teks for EC-6
  * Optional illustrationHtml: safe HTML (img grid) rendered below conceptText where supported.
+ * Optional conceptRefreshSlides: [{ conceptText, illustrationHtml? }] for paged concept recap only.
  */
 
 import { euclideanCircleTheoremsFiguresHtml, chordVsDiameterFigureHtml } from './euclideanCircleFigures';
@@ -13,6 +14,11 @@ import {
   stemPlotFigureHtml, scatterCorrelationFigureHtml, histogramFigureHtml,
   outlierFigureHtml,
 } from './statsDataFigures';
+import {
+  complexPlaneEulerConjugateFiguresHtml,
+  complexPlaneModArgFiguresHtml,
+  eulerConjugateFiguresHtml,
+} from './complexNumbersFigures';
 
 export const MICRO_CONCEPTS = {
   // ═══════════════════════════════════════════════════════════════
@@ -57,7 +63,7 @@ export const MICRO_CONCEPTS = {
     misconception: 'Formative and summative assessment serve different purposes. Formative informs instruction in real time; summative measures achievement after instruction.',
   },
 
-  // ── Standard-level entries (c001–c021) with variants ──
+  // ── Standard-level entries (c001–c022) with variants ──
   // Each entry has a base concept plus a `variants` array. getMicroConcept
   // rotates through them so the user sees fresh content each visit.
 
@@ -87,7 +93,18 @@ export const MICRO_CONCEPTS = {
         misconception: 'To divide complex numbers, multiply numerator and denominator by the conjugate of the denominator. You cannot just divide real and imaginary parts separately.' },
       { conceptText: 'The complex plane: real axis (horizontal), imaginary axis (vertical). Each z = a+bi is the point (a,b). Magnitude |z| = distance from origin. Argument arg(z) = angle from positive real axis. Euler\'s formula: e^(iθ) = cos θ + i sin θ. This connects exponential and trigonometric functions. Conjugate roots theorem: polynomial with real coefficients → complex roots come in conjugate pairs.',
         workedExample: 'x² + 4 = 0 → x² = −4 → x = ±2i. Both roots are conjugates: 2i and −2i.',
-        misconception: 'A quadratic always has exactly two roots in ℂ (the complex numbers). When there are no real roots, the two roots are complex conjugates.' },
+        misconception: 'A quadratic always has exactly two roots in ℂ (the complex numbers). When there are no real roots, the two roots are complex conjugates.',
+        illustrationHtml: complexPlaneEulerConjugateFiguresHtml,
+        conceptRefreshSlides: [
+          {
+            conceptText: 'The complex plane: real axis (horizontal), imaginary axis (vertical). Each z = a+bi is the point (a,b). Magnitude |z| = distance from origin. Argument arg(z) = angle from positive real axis.',
+            illustrationHtml: complexPlaneModArgFiguresHtml,
+          },
+          {
+            conceptText: 'Euler\'s formula: e^(iθ) = cos θ + i sin θ. This connects exponential and trigonometric functions. Conjugate roots theorem: polynomial with real coefficients → complex roots come in conjugate pairs.',
+            illustrationHtml: eulerConjugateFiguresHtml,
+          },
+        ] },
     ],
   },
   'math712:c003': {
@@ -374,6 +391,18 @@ export const MICRO_CONCEPTS = {
       { conceptText: 'Cross-strand connections: Pythagorean theorem links algebra (a²+b²=c²) and geometry (right triangles). Trigonometry connects circular geometry with algebraic functions. Probability uses combinatorics from number theory. Calculus extends algebraic patterns to continuous change. Historical milestones: Euler\'s identity e^(iπ)+1=0 unifies five fundamental constants. Mathematics as a universal language transcends cultural boundaries.',
         workedExample: 'Prove the quadrilateral with vertices (0,0),(4,0),(5,3),(1,3) is a parallelogram. Slopes: bottom 0, top 0 (parallel); left 3/1=3, right 3/1=3 (parallel). Both pairs parallel → parallelogram. Algebra verifies geometry.',
         misconception: 'Algebra, geometry, statistics, and calculus constantly reinforce each other. The strongest problem-solvers draw connections across mathematical domains.' },
+    ],
+  },
+
+  'math712:c022': {
+    title: 'Mathematical Perspectives (Standard VI)',
+    conceptText: 'Standard VI highlights how mathematics sits in history and society: ideas develop over centuries; notation and proof styles change; applications (navigation, physics, computing) steer what questions matter. Axiomatic systems (Euclid\'s postulates, field axioms for ℝ) make explicit what is assumed versus what is proved. Non-Euclidean geometry and set-theoretic foundations show mathematics can reorganize its “bedrock” while staying rigorous.',
+    workedExample: 'Students ask whether math is invented or discovered. A balanced classroom answer: humans invent language and axioms; once chosen, many consequences are forced by logic — so results feel discovered. Example: whether you treat geometry as Euclidean or hyperbolic changes theorems, but proof discipline stays.',
+    misconception: 'Mathematics is not only ancient Greek nor only modern Western Europe — significant contributions come from Mesopotamia, Egypt, India, China, the Islamic world, Africa, and the Americas. Credit the people and contexts honestly.',
+    variants: [
+      { conceptText: 'Ethnomathematics studies patterns, games, textiles, and architecture as mathematical activity in cultural settings — not “less rigorous,” just differently formalized. Gödel\'s incompleteness and the four-color computer proof illustrate that “truth” and “proof” remain philosophically rich even after high school algebra.',
+        workedExample: 'Compare Egyptian unit fractions to modern fraction notation — same rational numbers, different representation system. Discuss efficiency and pedagogy: which helps which learner first?',
+        misconception: 'A single culture or era does not own mathematics; classrooms should reflect global contributors (e.g., al-Khwarizmi, Brahmagupta, Hypatia, Emmy Noether, Srinivasa Ramanujan).' },
     ],
   },
 

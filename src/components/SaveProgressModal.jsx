@@ -1,16 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { studentSignup, studentLogin, pushProgress } from '../utils/studentAuth';
+import { studentSignup, studentLogin } from '../utils/studentAuth';
+import { pushAllLearningBlobsToServer } from '../utils/studentLearningSync';
 import { COLOR, BTN_PRIMARY, MOBILE_BP } from '../utils/loopStyles';
-
-const MASTERY_KEY = 'quantegyai-mastery';
-const EXPERIENCE_KEY = 'quantegyai-learning-experience';
-const REVIEW_KEY = 'quantegyai-loop-review';
-
-const LEGACY_TO_NEW = {
-  'allen-ace-mastery': MASTERY_KEY,
-  'allen-ace-learning-experience': EXPERIENCE_KEY,
-  'allen-ace-loop-review': REVIEW_KEY,
-};
 const PENDING_SIGNUP_KEY = 'quantegy-pending-signup';
 /** Show “taking a while” + local save after this (ms); signup no longer blocks on a 90s wake. */
 const BUSY_LONG_HINT_MS = 22000;
@@ -27,17 +18,7 @@ function isAccountExistsError(message) {
 }
 
 function syncProgressToServer() {
-  const keys = [MASTERY_KEY, EXPERIENCE_KEY, REVIEW_KEY];
-  keys.forEach((k) => {
-    try {
-      let raw = localStorage.getItem(k);
-      if (raw == null) {
-        const legacyKey = Object.keys(LEGACY_TO_NEW).find((oldKey) => LEGACY_TO_NEW[oldKey] === k);
-        if (legacyKey) raw = localStorage.getItem(legacyKey);
-      }
-      if (raw) pushProgress(k, JSON.parse(raw));
-    } catch { /* best-effort */ }
-  });
+  pushAllLearningBlobsToServer().catch(() => {});
 }
 
 function warmUpApi() {

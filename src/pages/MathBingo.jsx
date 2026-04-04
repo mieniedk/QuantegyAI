@@ -382,6 +382,22 @@ const Q_POOLS = {
     { expr: 'Mean: 4, 6, 8', ans: 6 }, { expr: 'Hypotenuse: 8, 15, ?', ans: 17 },
     { expr: 'Volume: cube side 4', ans: 64 }, { expr: 'Median: 3,5,7,9,11', ans: 7 },
   ],
+  'c022': [
+    { expr: 'Euclid Elements: traditional # of books', ans: 13 },
+    { expr: 'Century of Cantor’s set theory (4 digits)', ans: 19 },
+    { expr: 'π rounded to nearest whole', ans: 3 },
+    { expr: '√(144)', ans: 12 },
+    { expr: 'Interior angle sum: triangle', ans: 180 },
+    { expr: 'Faces on a cube', ans: 6 },
+    { expr: 'Euclid’s parallel postulate: which # (of five)', ans: 5 },
+    { expr: '2⁵', ans: 32 },
+    { expr: 'LCM(4,6)', ans: 12 },
+    { expr: 'Sum 1+2+…+10', ans: 55 },
+    { expr: 'Babylonian sexagesimal base', ans: 60 },
+    { expr: 'Gödel incompleteness papers: century', ans: 20 },
+    { expr: 'Euler V−E+F for a cube', ans: 2 },
+    { expr: 'Exterior angle sum: convex polygon', ans: 360 },
+  ],
 
   // Domain VI — Learning & Assessment
   'c020': [

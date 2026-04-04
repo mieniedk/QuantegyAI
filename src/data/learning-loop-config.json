@@ -269,7 +269,7 @@
   },
   "adaptiveRules": {
     "diagnosticSkipAhead": {
-      "enabled": false,
+      "enabled": true,
       "perfectScore": {
         "threshold": 1.0,
         "skipToTileId": "readiness-quiz",
@@ -318,6 +318,19 @@
         { "tiles": ["check-quiz-6", "check-quiz-7", "check-quiz-8"], "difficultyBias": "hard" }
       ],
       "description": "Early quizzes favor easy questions, later quizzes favor harder ones"
+    },
+    "performanceDifficultyAdjust": {
+      "enabled": true,
+      "description": "After diagnostic, nudge each check-quiz pool bias using supportLevel and blendedReadiness (quiz history + confidence check-ins)"
+    },
+    "mistakeWeightedSelection": {
+      "enabled": true,
+      "maxSlotsPerQuiz": 2,
+      "applyToDiagnostic": false,
+      "applyToCheck": true,
+      "applyToReadiness": true,
+      "applyToMastery": true,
+      "description": "Prefer recently missed and flagged items from loop review storage (up to maxSlotsPerQuiz per quiz); pools refresh on tile navigation via reviewPoolEpoch"
     }
   },
   "competencyConfigTemplate": {

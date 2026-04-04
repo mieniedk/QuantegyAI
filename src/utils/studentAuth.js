@@ -8,6 +8,16 @@ const isLocalHost = typeof window !== 'undefined'
 const API_BASE = envApiBase || (isLocalHost ? '' : DEFAULT_PROD_API_BASE);
 let ACTIVE_API_BASE = API_BASE;
 const REQUEST_TIMEOUT_MS = 30000;
+
+/** After real server JWT (not local demo), merge remote learning blobs then push merged state. */
+function triggerLearningBlobSyncAfterRealAuth(result) {
+  if (!result?.success || !result.token || result.local) return;
+  import('./studentLearningSync.js').then(async (m) => {
+    m.resetLearningPullSessionFlag();
+    await m.pullAndMergeLearningBlobsFromServer().catch(() => {});
+    await m.pushAllLearningBlobsToServer().catch(() => {});
+  }).catch(() => {});
+}
 const SIGNUP_TIMEOUT_MS = 45000;
 const AUTH_FLOW_MAX_MS = 90000;
 const WAKE_REMOTE_FIRE_AND_FORGET_MS = 30000;
@@ -169,6 +179,7 @@ export async function studentSignup({
         setActiveApiBase(base);
         localStorage.setItem(TOKEN_KEY, data.token);
         storeCredentials(email, password);
+        triggerLearningBlobSyncAfterRealAuth(data);
         return data;
       }
 
@@ -227,6 +238,7 @@ export async function studentLogin({ email, password, allowLocalFallback = true 
         setActiveApiBase(base);
         localStorage.setItem(TOKEN_KEY, data.token);
         storeCredentials(email, password);
+        triggerLearningBlobSyncAfterRealAuth(data);
         return data;
       }
 
@@ -257,6 +269,7 @@ export function studentLogout() {
     localStorage.removeItem('quantegyai-auth-email');
     localStorage.removeItem('quantegyai-auth-password');
   } catch { /* best-effort */ }
+  import('./studentLearningSync.js').then((m) => m.resetLearningPullSessionFlag()).catch(() => {});
 }
 
 export function isStudentLoggedIn() {
@@ -442,6 +455,7 @@ export async function reAuthenticateWithServer(email, password) {
     if (data?.success && data.token) {
       setActiveApiBase(base);
       localStorage.setItem(TOKEN_KEY, data.token);
+      triggerLearningBlobSyncAfterRealAuth(data);
       return data;
     }
     if (!data?.success && isTimedOutError(data?.error)) {
@@ -458,6 +472,7 @@ export async function reAuthenticateWithServer(email, password) {
       if (retry?.success && retry.token) {
         setActiveApiBase(base);
         localStorage.setItem(TOKEN_KEY, retry.token);
+        triggerLearningBlobSyncAfterRealAuth(retry);
         return retry;
       }
     }

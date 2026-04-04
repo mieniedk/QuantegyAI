@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import TeacherLayout from '../components/TeacherLayout';
 import { getClassesByTeacher } from '../utils/storage';
 import { showAppToast } from '../utils/appToast';
@@ -28,6 +29,22 @@ export default function ClassroomTools() {
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ margin: '0 0 4px', fontSize: 24, color: '#0f172a' }}>🧰 Classroom Tools</h1>
         <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>Quick tools for everyday classroom management.</p>
+        <p style={{ margin: '10px 0 0', fontSize: 14 }}>
+          <Link to="/tools/place-value-lab" style={{ color: '#2563eb', fontWeight: 700 }}>Place value interactive lab</Link>
+          <span style={{ color: '#94a3b8' }}> — NCTM-style triangle, base-ten builder, rename, name-collection, 100 chart</span>
+        </p>
+        <p style={{ margin: '8px 0 0', fontSize: 14 }}>
+          <Link to="/tools/commutativity-explorer" style={{ color: '#2563eb', fontWeight: 700 }}>Commutativity explorer</Link>
+          <span style={{ color: '#94a3b8' }}> — base-ten addition, multiplication array, subtraction counterexample</span>
+        </p>
+        <p style={{ margin: '8px 0 0', fontSize: 14 }}>
+          <Link to="/tools/gcd-lcm-explorer" style={{ color: '#2563eb', fontWeight: 700 }}>GCD & LCM explorer</Link>
+          <span style={{ color: '#94a3b8' }}> — prime factors, Venn diagram, factor and multiple number lines, a × b = GCD × LCM</span>
+        </p>
+        <p style={{ margin: '8px 0 0', fontSize: 14 }}>
+          <Link to="/tools/matrix-transforms-graphics" style={{ color: '#2563eb', fontWeight: 700 }}>Matrix transforms & graphics</Link>
+          <span style={{ color: '#94a3b8' }}> — 2D homogeneous matrices: scale, shear, rotation, translation; vertex-style polygon</span>
+        </p>
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>

@@ -431,7 +431,7 @@ const MATH712_STD_TO_POOL_KEY = {
   c004: 'comp002', c005: 'comp002', c006: 'comp002', c007: 'comp002', c008: 'comp002', c009: 'comp002', c010: 'comp002',
   c011: 'comp003', c012: 'comp003', c013: 'comp003', c014: 'comp003',
   c015: 'comp004', c016: 'comp004', c017: 'comp004',
-  c018: 'comp005', c019: 'comp005',
+  c018: 'comp005', c019: 'comp005', c022: 'comp005',
   c020: 'c020', c021: 'c021',
 };
 

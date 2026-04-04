@@ -22,6 +22,7 @@
     "test:all": "vitest run",
     "test:watch": "vitest",
     "qa:bingo": "node scripts/validate-bingo-content.mjs",
+    "audit:math712-banks": "node scripts/audit-math712-standard-banks.mjs",
     "e2e": "playwright test",
     "e2e:mastery": "playwright test tests/e2e/mastery-admin.spec.mjs tests/e2e/mastery-admin-real.spec.mjs",
     "e2e:mastery:headed": "playwright test --headed tests/e2e/mastery-admin.spec.mjs tests/e2e/mastery-admin-real.spec.mjs",

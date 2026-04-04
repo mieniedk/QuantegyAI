@@ -178,7 +178,7 @@ export default function Domains() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
             <div>
               <div style={PAGE_HEADER}>Domains & Competencies</div>
-              <div style={PAGE_SUBTITLE}>Browse all 21 competencies across 6 domains. Practice each one individually.</div>
+              <div style={PAGE_SUBTITLE}>Browse all 22 Math 7–12 competency scopes across 6 domains (includes Standard VI perspectives as c022). Practice each one individually.</div>
             </div>
             <Link to={`/texes-prep?exam=${encodeURIComponent(examId)}`} style={{ ...BTN_ACCENT, textDecoration: 'none', padding: '10px 18px' }}>
               Open Test Prep

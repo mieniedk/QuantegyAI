@@ -31,6 +31,7 @@ export function saveAll(data) {
   if (typeof window === 'undefined') return { ok: false, code: 'UNKNOWN', message: 'No window' };
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    import('./studentLearningSync.js').then((m) => m.scheduleLearningSyncPush()).catch(() => {});
     return { ok: true };
   } catch (e) {
     const name = e && e.name;

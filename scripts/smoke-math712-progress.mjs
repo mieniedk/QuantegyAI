@@ -11,6 +11,10 @@ const SCOPES = [
     url: `${BASE}/practice-loop?comp=comp004&currentStd=c015&examId=math712&grade=grade7-12&label=Probability%20and%20Statistics`,
   },
   {
+    key: 'comp005/c022',
+    url: `${BASE}/practice-loop?comp=comp005&currentStd=c022&examId=math712&grade=grade7-12&label=Mathematical%20Perspectives`,
+  },
+  {
     key: 'comp006/c021',
     url: `${BASE}/practice-loop?comp=comp006&currentStd=c021&examId=math712&grade=grade7-12&label=Mathematical%20Assessment`,
   },
@@ -20,6 +24,7 @@ const SCOPES = [
   },
 ];
 
+/** Parses loop tile label; total is 21 phases from `learning-loop-config.json` (not the 22 competency scopes). */
 function extractStepInfo(text) {
   const stepSlashMatch = text.match(/Step\s+(\d+)\s*\/\s*21/i);
   const stepOfMatch = text.match(/Step\s+(\d+)\s+of\s+21/i);

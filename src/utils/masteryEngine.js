@@ -54,6 +54,7 @@ function save(examId, data) {
     const all = raw ? JSON.parse(raw) : {};
     all[examId] = data;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+    import('./studentLearningSync.js').then((m) => m.scheduleLearningSyncPush()).catch(() => {});
     return { ok: true };
   } catch (e) {
     const code = e && e.name === 'QuotaExceededError' ? 'QUOTA_EXCEEDED' : 'UNKNOWN';
