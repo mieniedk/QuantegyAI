@@ -724,6 +724,40 @@ function PhaseHeader({ badgeColor, badgeLabel, title, description, scopeBadge })
   );
 }
 
+/** Optional PDF deck linked from microConcepts.supplementPdf (same-origin path only). */
+function MicroConceptPdfSupplement({ supplement }) {
+  const url = typeof supplement?.url === 'string' ? supplement.url.trim() : '';
+  if (!url.startsWith('/') || url.startsWith('//')) return null;
+  const title = supplement.title || 'Presentation PDF';
+  return (
+    <div style={{ marginTop: 18, paddingTop: 16, borderTop: `1px solid ${COLOR.border}` }}>
+      <p style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 700, color: COLOR.text }}>{title}</p>
+      <p style={{ margin: '0 0 10px', fontSize: 12, color: COLOR.textSecondary, lineHeight: 1.5 }}>
+        Slides appear below. Use “Open PDF in new tab” if your browser’s built-in viewer is hard to use.
+      </p>
+      <iframe
+        title={title}
+        src={`${url}#view=FitH`}
+        style={{
+          width: '100%',
+          minHeight: 480,
+          border: `1px solid ${COLOR.border}`,
+          borderRadius: 12,
+          background: '#f1f5f9',
+        }}
+      />
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ display: 'inline-block', marginTop: 10, fontSize: 13, fontWeight: 600, color: COLOR.blue }}
+      >
+        Open PDF in new tab
+      </a>
+    </div>
+  );
+}
+
 function StepProgress({ current, total, compact = false, smallPhone = false }) {
   const safeCurrent = Math.max(0, current || 0);
   const safeTotal = Math.max(1, total || 1);
@@ -4623,6 +4657,7 @@ export default function PracticeLoop() {
                 {activeMicroConcept?.illustrationHtml && (
                   <div style={{ marginTop: 12 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(activeMicroConcept.illustrationHtml) }} />
                 )}
+                <MicroConceptPdfSupplement supplement={activeMicroConcept?.supplementPdf} />
                 {activeMicroConcept?.workedExample && (
                   <div style={{ marginBottom: 16, padding: 14, background: COLOR.successBg, borderRadius: 12, border: `1px solid ${COLOR.successBorder}` }}>
                     <div style={{ fontSize: 11, fontWeight: 800, color: COLOR.successText, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Worked example</div>
@@ -4791,6 +4826,9 @@ export default function PracticeLoop() {
                       {conceptRefreshSlides[conceptRefreshSlideIdx]?.illustrationHtml ? (
                         <div style={{ marginTop: 12 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(conceptRefreshSlides[conceptRefreshSlideIdx].illustrationHtml) }} />
                       ) : null}
+                      {conceptRefreshSlideIdx === conceptRefreshSlides.length - 1 && (
+                        <MicroConceptPdfSupplement supplement={conceptRefreshConcept?.supplementPdf} />
+                      )}
                       <button
                         type="button"
                         onClick={() => {
@@ -4815,6 +4853,7 @@ export default function PracticeLoop() {
                       {conceptRefreshConcept?.illustrationHtml && (
                         <div style={{ marginTop: 12 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(conceptRefreshConcept.illustrationHtml) }} />
                       )}
+                      <MicroConceptPdfSupplement supplement={conceptRefreshConcept?.supplementPdf} />
                       <button type="button" onClick={() => { const dest = (conceptRefreshReturnPhase && conceptRefreshReturnPhase !== 'concept-refresh') ? conceptRefreshReturnPhase : 'check-quiz-4'; setConceptRefreshReturnPhase(null); setDetourFromStep(null); goToPhase(dest); }} style={BTN_PRIMARY}>Continue</button>
                     </>
                   )}

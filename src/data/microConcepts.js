@@ -5,6 +5,7 @@
  * Key: examId:compId or examId:teks for EC-6
  * Optional illustrationHtml: safe HTML (img grid) rendered below conceptText where supported.
  * Optional conceptRefreshSlides: [{ conceptText, illustrationHtml? }] for paged concept recap only.
+ * Optional supplementPdf: { url: string (same-origin path), title?: string } — embedded on micro-teach / concept recap tiles.
  */
 
 import { euclideanCircleTheoremsFiguresHtml, chordVsDiameterFigureHtml } from './euclideanCircleFigures';
@@ -765,9 +766,13 @@ export const MICRO_CONCEPTS = {
   },
   'linearAlgebra:la_c005': {
     title: 'Definition & Matrix Representation',
-    conceptText: 'T: ℝⁿ→ℝᵐ is linear if T(αu + βv) = αT(u) + βT(v). The standard matrix: A = [T(e₁) | T(e₂) | … | T(eₙ)]. Composition: T₂ ∘ T₁ corresponds to B·A. T is invertible ⟺ A is invertible ⟺ T is both one-to-one and onto.',
+    conceptText: 'T: ℝⁿ→ℝᵐ is linear if T(αu + βv) = αT(u) + βT(v). The standard matrix: A = [T(e₁) | T(e₂) | … | T(eₙ)]. Composition: T₂ ∘ T₁ corresponds to B·A. T is invertible ⟺ A is invertible ⟺ T is both one-to-one and onto. In computer graphics, the same matrices act on vectors to rotate, scale, and reflect — see the slide deck below.',
     workedExample: 'T(x,y) = (2x−y, x+3y). T(e₁) = (2,1), T(e₂) = (−1,3). A = [[2,−1],[1,3]]. det = 7 ≠ 0 → invertible.',
     misconception: 'A linear transformation always maps a square to a square. It maps parallelograms to parallelograms (or degenerate cases). Only orthogonal transformations preserve angles and lengths.',
+    supplementPdf: {
+      url: '/courses/linear-algebra/matrix-transformationsacc.pdf',
+      title: 'Matrix transformations in computer graphics (Dr. Mienie Roberts)',
+    },
   },
   'linearAlgebra:la_c006': {
     title: 'Kernel, Range & Rank-Nullity',
@@ -900,7 +905,11 @@ export function getMicroConcept(examId, compId, teks, standardId, variantIndex =
     if (variantIndex > 0 && entry.variants && entry.variants.length > 0) {
       const vi = ((variantIndex - 1) % entry.variants.length);
       const v = entry.variants[vi];
-      return { title: entry.title, ...v };
+      return {
+        title: entry.title,
+        ...v,
+        supplementPdf: v.supplementPdf ?? entry.supplementPdf,
+      };
     }
     return entry;
   }
