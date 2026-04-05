@@ -369,7 +369,7 @@ function renderChipLabelHtml(label) {
   return sanitizeHtml(label.replace(/\.\\overline\{([^}]+)\}/g, '<span style="text-decoration:overline">$1</span>'));
 }
 
-/** Ellipse model in SVG viewBox coords (outer Q → inner N). Hit-test innermost first. cx left of center so legend fits without overlapping ℚ. */
+/** Ellipse model in SVG viewBox coords (outer Q → inner N). Hit-test innermost first. */
 const REAL_NEST_ELLIPSES = [
   { id: 'Q', cx: 175, cy: 178, rx: 178, ry: 132 },
   { id: 'Z', cx: 175, cy: 178, rx: 128, ry: 98 },
@@ -377,8 +377,8 @@ const REAL_NEST_ELLIPSES = [
   { id: 'N', cx: 175, cy: 178, rx: 44, ry: 34 },
 ];
 
-/** Wider viewBox so diagram + on-canvas legend fit without crowding ovals. */
-const REAL_NEST_SVG_VIEW_W = 480;
+/** ViewBox fits nested ℚ ovals + labels only (legend lives in HTML below). */
+const REAL_NEST_SVG_VIEW_W = 368;
 const REAL_NEST_SVG_VIEW_H = 360;
 
 function clientPointInRect(clientX, clientY, rect) {
@@ -578,7 +578,7 @@ function RealNumberSetsExplorer({ onComplete, continueLabel, badgeLabel, embedde
   const qbot = !checked
     ? { msg: '**Drag** each number onto the **labeled ovals** (ℕ, ℤ, ℚ) or the **Irrational** zone. Pick the **smallest** set that fits — or tap a chip, then tap a region.', mood: 'wave' }
     : allCorrect
-      ? { msg: 'Nice! You matched each value to its tightest set: ℕ ⊂ 𝕎 ⊂ ℤ ⊂ ℚ, with irrationals beside ℚ inside ℝ.', mood: 'celebrate' }
+      ? { msg: 'Nice! Each value is in its tightest set: ℕ ⊂ 𝕎 ⊂ ℤ ⊂ ℚ, and irrationals fill the other half of ℝ (ℝ = ℚ ∪ irrationals).', mood: 'celebrate' }
       : { msg: `You have ${correctCount}/${items.length} correct. Read the hints and try Check again.`, mood: 'think' };
 
   const nestZones = REAL_SET_ZONES.filter((z) => z.id !== 'R');
@@ -591,14 +591,15 @@ function RealNumberSetsExplorer({ onComplete, continueLabel, badgeLabel, embedde
         Place numbers in the real number system
       </p>
       <p style={{ margin: '0 0 8px', fontSize: 13, color: COLOR.textSecondary, lineHeight: 1.5 }}>
-        The picture is a <strong>nested “Venn”</strong>: each oval is a set of numbers. <strong>ℕ</strong> (naturals) is the smallest oval; <strong>𝕎</strong> and <strong>ℤ</strong> are the next rings; the big <strong>ℚ</strong> oval is all rationals.
-        <strong>Irrationals</strong> are still real numbers but are <em>not</em> inside ℚ — drop them in the orange zone. Use the <strong>innermost</strong> oval that fits each number.
+        The diagram is a <strong>nested “Venn”</strong> for <strong>rationals only</strong>: <strong>ℕ</strong> is the smallest oval; <strong>𝕎</strong> and <strong>ℤ</strong> are the next rings; the outer <strong>ℚ</strong> oval is all rationals.
+        <strong>Irrationals</strong> are real numbers too, but they are <em>not</em> in ℚ — they belong in the <strong>orange region</strong>, which meets ℚ along one edge. There is <strong>no gap</strong> and <strong>nothing “in between”</strong>: every real is either rational or irrational (ℝ = ℚ ∪ (ℝ \ ℚ)).
+        Use the <strong>innermost</strong> oval for rationals, or the orange side for irrationals.
       </p>
 
       <QBotBubble message={qbot.msg} mood={qbot.mood} />
 
       <div style={{ marginBottom: 12, padding: '10px 12px', borderRadius: 10, background: '#f8fafc', border: `1px solid ${COLOR.border}`, fontSize: 12, color: COLOR.textSecondary, lineHeight: 1.45 }}>
-        <strong>How:</strong> Drag from the bank onto the ovals (each oval is a set), or tap a chip then tap a region. ℕ = 1, 2, 3, …; 𝕎 adds 0; ℤ adds negatives; ℚ adds non-integer rationals; the orange zone is for √2, π, and similar irrationals.
+        <strong>How:</strong> Drag from the bank onto the ovals (rationals) or the orange region (irrationals), or tap a chip then tap a region. ℕ = 1, 2, 3, …; 𝕎 adds 0; ℤ adds negatives; ℚ adds non-integer rationals; orange = ℝ \ ℚ (e.g. √2, π).
       </div>
 
       <div
@@ -626,16 +627,22 @@ function RealNumberSetsExplorer({ onComplete, continueLabel, badgeLabel, embedde
           <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a', textAlign: 'center', marginBottom: 4, letterSpacing: '0.02em' }}>
             ℝ Real numbers
           </div>
-          <p style={{ margin: '0 0 10px', fontSize: 12, color: COLOR.textSecondary, textAlign: 'center', lineHeight: 1.45 }}>
-            Everything you sort lives in ℝ. Rationals fill the nested ovals on the left; irrationals use the zone on the right (still real, not in ℚ).
+          <p style={{ margin: '0 0 6px', fontSize: 12, color: COLOR.textSecondary, textAlign: 'center', lineHeight: 1.45 }}>
+            Left: nested rationals (ℚ and its subsets). Right: irrationals. They <strong>touch</strong> along the vertical divider — that line is not a third set; it is just the boundary between the two parts of ℝ.
+          </p>
+          <p style={{ margin: '0 0 10px', fontSize: 11, color: '#64748b', textAlign: 'center', lineHeight: 1.45, fontStyle: 'italic' }}>
+            <strong>Illustration only — not to scale.</strong> The areas do not show how many numbers are in each set. In fact there are infinitely many rationals and <em>uncountably</em> many irrationals (far more than rationals); this picture is only to show how the sets nest and partition ℝ.
           </p>
           <div
             style={{
               display: 'flex',
               flexWrap: 'wrap',
-              gap: 12,
+              gap: 0,
               alignItems: 'stretch',
               justifyContent: 'center',
+              borderRadius: 14,
+              overflow: 'hidden',
+              border: '1px solid #cbd5e1',
             }}
           >
         {/* Concentric ℚ ⊃ ℤ ⊃ 𝕎 ⊃ ℕ — SVG ovals (sketch-style) + HTML targets for chips */}
@@ -650,15 +657,17 @@ function RealNumberSetsExplorer({ onComplete, continueLabel, badgeLabel, embedde
             assignFromTap(id);
           }}
           style={{
-            flex: '1 1 300px',
-            maxWidth: 460,
+            flex: '1 1 280px',
+            maxWidth: 520,
             position: 'relative',
             padding: 12,
-            borderRadius: 20,
+            borderRadius: 0,
             background: 'linear-gradient(160deg,#faf5ff 0%,#ede9fe 100%)',
-            border: `2px solid ${nestZones[3]?.border || '#c4b5fd'}`,
+            border: 'none',
+            borderRight: '3px solid #64748b',
             cursor: selectedLabel && !checked ? 'pointer' : 'default',
             minHeight: 340,
+            boxSizing: 'border-box',
           }}
         >
           <svg
@@ -726,21 +735,6 @@ function RealNumberSetsExplorer({ onComplete, continueLabel, badgeLabel, embedde
             <text x="175" y="156" textAnchor="middle" fontSize="9" fontWeight="600" fill="#0d9488">0, 1, 2, 3, …</text>
             <text x="175" y="182" textAnchor="middle" fontSize="14" fontWeight="800" fill="#166534">ℕ Natural numbers</text>
             <text x="175" y="198" textAnchor="middle" fontSize="9" fontWeight="600" fill="#15803d">1, 2, 3, … (counting)</text>
-            {/* Legend: maps colors to set names (right of ℚ oval: cx+rx ≈ 353) */}
-            <rect x="362" y="36" width="112" height="168" rx="10" fill="#ffffff" fillOpacity="0.92" stroke="#cbd5e1" strokeWidth="1.5" />
-            <text x="418" y="54" textAnchor="middle" fontSize="11" fontWeight="800" fill="#334155">Sets</text>
-            <circle cx="374" cy="72" r="7" fill="url(#rn-n)" stroke="#4ade80" strokeWidth="1.5" />
-            <text x="388" y="76" fontSize="10" fontWeight="700" fill="#166534">ℕ Natural</text>
-            <circle cx="374" cy="92" r="7" fill="url(#rn-w)" stroke="#2dd4bf" strokeWidth="1.5" />
-            <text x="388" y="96" fontSize="10" fontWeight="700" fill="#0f766e">𝕎 Whole</text>
-            <circle cx="374" cy="112" r="7" fill="url(#rn-z)" stroke="#60a5fa" strokeWidth="1.5" />
-            <text x="388" y="116" fontSize="10" fontWeight="700" fill="#1d4ed8">ℤ Integer</text>
-            <circle cx="374" cy="132" r="7" fill="url(#rn-q)" stroke="#a78bfa" strokeWidth="1.5" />
-            <text x="388" y="136" fontSize="10" fontWeight="700" fill="#5b21b6">ℚ Rational</text>
-            <text x="370" y="158" fontSize="9" fontWeight="600" fill="#64748b">Inner oval =</text>
-            <text x="370" y="172" fontSize="9" fontWeight="600" fill="#64748b">tightest fit.</text>
-            <text x="370" y="188" fontSize="9" fontWeight="600" fill="#c2410c">Orange zone →</text>
-            <text x="370" y="200" fontSize="9" fontWeight="600" fill="#c2410c">Irrational</text>
           </svg>
           <div style={{ position: 'relative', zIndex: 1, fontSize: 12, fontWeight: 800, color: '#6b21a8', textAlign: 'center', marginBottom: 8, letterSpacing: '0.04em' }}>
             Nested sets on the diagram — drop on the matching oval
@@ -754,8 +748,8 @@ function RealNumberSetsExplorer({ onComplete, continueLabel, badgeLabel, embedde
                   minWidth: 72,
                   padding: 8,
                   borderRadius: '50%',
-                  border: `2px solid ${zoneById.N.border}`,
-                  background: 'rgba(236,253,245,0.88)',
+                  border: '2px solid transparent',
+                  background: 'transparent',
                   display: 'flex',
                   flexWrap: 'wrap',
                   gap: 6,
@@ -784,8 +778,8 @@ function RealNumberSetsExplorer({ onComplete, continueLabel, badgeLabel, embedde
                   style={{
                     padding: padPct,
                     borderRadius: '50%',
-                    border: `2px solid ${z.border}`,
-                    background: zid === 'Q' ? 'rgba(245,243,255,0.35)' : zid === 'Z' ? 'rgba(239,246,255,0.4)' : 'rgba(240,253,250,0.45)',
+                    border: '2px solid transparent',
+                    background: 'transparent',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -825,30 +819,54 @@ function RealNumberSetsExplorer({ onComplete, continueLabel, badgeLabel, embedde
             }}
             onClick={() => assignFromTap('R')}
             style={{
-              flex: '1 1 200px',
-              maxWidth: 320,
-              minHeight: 200,
+              flex: '1 1 220px',
+              maxWidth: 340,
+              minHeight: 340,
               padding: 14,
-              borderRadius: 16,
-              border: `2px dashed ${irrZone.border}`,
+              borderRadius: 0,
+              borderTop: `2px dashed ${irrZone.border}`,
+              borderRight: `2px dashed ${irrZone.border}`,
+              borderBottom: `2px dashed ${irrZone.border}`,
+              borderLeft: 'none',
               background: irrZone.bg,
               cursor: selectedLabel && !checked ? 'pointer' : 'default',
               display: 'flex',
               flexDirection: 'column',
               touchAction: 'none',
+              boxSizing: 'border-box',
             }}
           >
             <div style={{ fontSize: 13, fontWeight: 800, color: irrZone.accent, marginBottom: 6 }}>
-              {irrZone.short} {irrZone.title}
+              ℝ \ ℚ — {irrZone.title}
             </div>
             <p style={{ margin: '0 0 10px', fontSize: 11, color: COLOR.textSecondary, lineHeight: 1.4 }}>
-              {irrZone.subtitle} (not inside ℚ — sits next to it in ℝ)
+              Same ℝ as the left side: irrationals meet rationals only on this shared edge — there is no “space” of other reals between the two kinds.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, flex: 1, alignContent: 'flex-start' }}>
               {items.filter((it) => assignments[it.label] === 'R').map(renderPlacedChip)}
             </div>
           </div>
         )}
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '6px 14px',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginTop: 12,
+              paddingTop: 10,
+              borderTop: '1px solid #e2e8f0',
+              fontSize: 11,
+              color: '#64748b',
+            }}
+          >
+            <span><span style={{ color: '#15803d', fontWeight: 900 }} aria-hidden>●</span> ℕ natural</span>
+            <span><span style={{ color: '#0d9488', fontWeight: 900 }} aria-hidden>●</span> 𝕎 whole</span>
+            <span><span style={{ color: '#2563eb', fontWeight: 900 }} aria-hidden>●</span> ℤ integer</span>
+            <span><span style={{ color: '#7c3aed', fontWeight: 900 }} aria-hidden>●</span> ℚ rational</span>
+            <span style={{ color: '#c2410c', fontWeight: 700 }}>Orange region = ℝ \ ℚ (irrational)</span>
           </div>
         </div>
       </div>

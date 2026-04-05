@@ -3413,6 +3413,7 @@ export default function PracticeLoop() {
     const normalizeConceptText = (v) => String(v || '').replace(/\s+/g, ' ').trim().toLowerCase();
     const currentTileSeen = new Set([
       normalizeConceptText(microConcept?.conceptText),
+      normalizeConceptText(microTeachConcept?.conceptText),
       normalizeConceptText(reminderText),
     ].filter(Boolean));
     const conceptSessionStoreKey = `loop-concept-seen:${conceptSessionScopeKey}`;
@@ -3449,8 +3450,10 @@ export default function PracticeLoop() {
     };
 
     // Gather many variants so we can rotate without repeats for the full session scope.
-    for (let step = 1; step <= 36; step++) {
-      pushCandidate(getMicroConcept(examId, comp, singleTeks, currentStd, conceptVariantIndex + step));
+    // Use a different index stride than micro-teach (step×11) so recap explores the pool in another order.
+    const reminderScanBase = conceptVariantIndex + 19;
+    for (let step = 1; step <= 48; step++) {
+      pushCandidate(getMicroConcept(examId, comp, singleTeks, currentStd, reminderScanBase + step * 5));
     }
 
     if (!microConcept) return null;
@@ -3504,7 +3507,7 @@ export default function PracticeLoop() {
       conceptText: fallbackText,
       illustrationHtml: undefined,
     };
-  }, [examId, comp, singleTeks, currentStd, conceptVariantIndex, microConcept, reminderText, conceptTitle, conceptSessionScopeKey]);
+  }, [examId, comp, singleTeks, currentStd, conceptVariantIndex, microConcept, microTeachConcept, reminderText, conceptTitle, conceptSessionScopeKey]);
 
   const conceptRefreshSlides = useMemo(() => {
     const s = conceptRefreshConcept?.conceptRefreshSlides;

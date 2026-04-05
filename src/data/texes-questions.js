@@ -11,7 +11,9 @@
 export const TEXES_DOMAINS = [
   // ═══ Domain I — Number Concepts (approx. 14%) ═══
   { id: 'comp001', name: 'Number Concepts', desc: 'Real numbers and number theory foundations.', weight: 0.14,
-    games: ['math-match', 'math-sprint', 'q-blocks', 'number-line-ninja', 'qbot-shop', 'math-bingo', 'math-memory'],
+    // Loop picks four games with distinct interaction buckets (see pickLoopFourGames). Keep the first slots aligned with
+    // learning-loop-config intent: matching + arcade + bingo + board trivia before timed MC sprint (sprint overlaps check quizzes).
+    games: ['math-match', 'q-blocks', 'math-bingo', 'math-jeopardy', 'math-sprint', 'number-line-ninja', 'qbot-shop', 'math-memory'],
     video: 'https://www.youtube.com/embed/VEY08fMYmEU',
     // Keep Domain I aligned to real / number-theory topics only — no complex-number clip in this list
     // (complex/imaginary is c002 and uses lectures.js c002). Mixed playlists broke Video B on c001 loops.

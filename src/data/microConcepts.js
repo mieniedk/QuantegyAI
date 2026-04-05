@@ -20,6 +20,11 @@ import {
   complexPlaneModArgFiguresHtml,
   eulerConjugateFiguresHtml,
 } from './complexNumbersFigures';
+import {
+  realNumberSubsetsNestedHtml,
+  realNumberLineSamplesHtml,
+  decimalTypesVisualHtml,
+} from './realNumberFigures';
 
 export const MICRO_CONCEPTS = {
   // ═══════════════════════════════════════════════════════════════
@@ -74,13 +79,20 @@ export const MICRO_CONCEPTS = {
     conceptText: 'Real numbers = rationals ∪ irrationals. Rationals: (a)/(b) with b≠0 (includes integers, terminating and repeating decimals). Irrationals: non-repeating, non-terminating (π, √2, e). Number line is complete — every point is a real number. Properties: commutative, associative, distributive, identity, inverse. Ordering: density — between any two reals there is another real.',
     workedExample: 'Show 0.3̄ is rational: let x = 0.333… → 10x = 3.333… → 9x = 3 → x = (1)/(3).',
     misconception: 'A radical sign does not make a number irrational. √4 = 2, which is rational. Only non-perfect-square roots (like √2, √3) are irrational.',
+    illustrationHtml: realNumberSubsetsNestedHtml,
     variants: [
       { conceptText: 'Subsets of ℝ: ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ. Closure: ℚ is closed under +, −, ×, ÷ (b ≠ 0). ℝ is closed under +, −, ×, and ÷ (divisor ≠ 0). The additive inverse of a is −a. The Multiplicative inverse of a (a ≠ 0) is (1)/(a). The distributive property, a(b + c) = ab + ac, links addition and multiplication. Absolute value as a piecewise function: |a| = { a, if a ≥ 0; −a, if a < 0 }.',
         workedExample: 'Is √(50) rational? 50 is not a perfect square, so √(50) is irrational. Simplify: √(50) = √(25·2) = 5√2.',
-        misconception: 'The sum of two irrationals can be rational. Example: (3+√2) + (3−√2) = 6, which is rational.' },
-      { conceptText: 'Decimal representations: terminating → rational (0.75 = (3)/(4)). Repeating → rational (0.16̅ = 0.1666… = (1)/(6)). Non-repeating, non-terminating → irrational (π, e). Every fraction can be written as a terminating or repeating decimal. To convert repeating: set x = decimal, multiply to shift, subtract. Density: between any two distinct reals there are infinitely many rationals and irrationals.',
+        misconception: 'The sum of two irrationals can be rational. Example: (3+√2) + (3−√2) = 6, which is rational.',
+        illustrationHtml: realNumberSubsetsNestedHtml },
+      { conceptText: 'Decimal representations: terminating → rational (0.75 = (3)/(4)). Repeating → rational (0.16̅ = 0.1666… = (1)/(6)). Non-repeating, non-terminating → irrational (π, e). Every fraction can be written as a terminating or repeating decimal. To convert a repeating decimal to a fraction, set x equal to the decimal, multiply by a power of 10 to shift the repeating block, then subtract to eliminate the tail.',
         workedExample: 'Convert 0.27̄ to a fraction: x = 0.2777… → 10x = 2.777… → 10x − x = 2.5 → 9x = 2.5 → x = (5)/(18).',
-        misconception: 'π is irrational and cannot be expressed as any fraction. (22)/(7) ≈ 3.1429 is only an approximation; π ≈ 3.14159… continues without repeating.' },
+        misconception: 'π is irrational and cannot be expressed as any fraction. (22)/(7) ≈ 3.1429 is only an approximation; π ≈ 3.14159… continues without repeating.',
+        illustrationHtml: decimalTypesVisualHtml },
+      { conceptText: 'The real line models order: a < b means a lies to the left of b. Open interval (a,b) excludes endpoints; closed [a,b] includes them. Distance from x to c is |x − c|. Inequalities: |x − c| < r means x is within r units of c (an open interval). |x − c| > r means x is farther than r from c (two rays). These ideas underpin limits, ε–δ proofs, and teaching “how close is close enough?”',
+        workedExample: 'Solve |2x − 6| < 4: equivalent to −4 < 2x − 6 < 4 → add 6: 2 < 2x < 10 → divide by 2: 1 < x < 5, so x ∈ (1,5).',
+        misconception: '|a + b| is not always |a| + |b|. Equality holds only when a and b have the same sign (or one is zero); otherwise the triangle inequality gives |a + b| ≤ |a| + |b|.',
+        illustrationHtml: realNumberLineSamplesHtml },
     ],
   },
   'math712:c002': {
